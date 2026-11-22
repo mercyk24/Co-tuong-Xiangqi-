@@ -7,7 +7,7 @@ Web app (PWA) miễn phí để luyện cờ tướng: đấu với máy, luyệ
 1. Tạo repo mới trên GitHub, ví dụ `co-tuong`.
 2. Tải lên **toàn bộ file trong thư mục này** (`index.html`, `manifest.webmanifest`, `sw.js`, các `icon-*`, thư mục `src`). Dùng nút *Add file → Upload files* hoặc `git push`.
 3. Vào *Settings → Pages*, mục *Build and deployment* chọn *Deploy from a branch*, nhánh `main`, thư mục `/ (root)`, bấm Save.
-4. Sau 1–2 phút, mở `https://<tên-github-của-bạn>.github.io/co-tuong/` bằng **Safari** trên iPhone.
+4. Sau 1–2 phút, mở `https://mercyk24.github.io/Co-tuong-Xiangqi-/` bằng **Safari** trên iPhone.
 5. Bấm nút Chia sẻ → **Thêm vào Màn hình chính**. App sẽ mở toàn màn hình như app thường.
 
 Khi cập nhật nội dung, hãy đổi `CACHE = 'xq-v1'` trong `sw.js` thành `xq-v2`, `xq-v3`… để điện thoại nhận bản mới.
