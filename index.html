@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ Tướng Luyện Tập</title>
+<meta name="theme-color" content="#2e6b5a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cờ Tướng">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#f3eee3; --card:#fffaf0; --ink:#2a2118; --muted:#7a6b58; --accent:#2e6b5a; --accent-ink:#fff;
+  --red:#b3261e; --line:#ddd1b9; --board:#e9cd93; --boardline:#5b3d17; --piece:#fbf0d5; --shadow:0 1px 2px rgba(60,40,10,.12),0 6px 18px rgba(60,40,10,.08);
+  --han:"Kaiti SC","STKaiti","KaiTi","Songti SC","PingFang SC","Noto Serif CJK SC","Noto Serif CJK TC","Source Han Serif SC","Microsoft YaHei",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14110d; --card:#1f1a14; --ink:#efe6d6; --muted:#a79a85; --accent:#5fb89e; --accent-ink:#0d1f19; --red:#ff7b70; --line:#3a3227; --board:#cba868; --boardline:#3b2a12; --piece:#f6e8c7; --shadow:none; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+body{min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;padding:12px 12px 24px}
+h1{font-size:20px;margin:6px 0 10px}
+h2{font-size:17px;margin:14px 0 6px}
+p{margin:6px 0}
+.muted{color:var(--muted)}
+small{font-weight:400;color:var(--muted)}
+.view[hidden],[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+.btn,.chip,.tab{cursor:pointer}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 14px;min-height:42px;box-shadow:var(--shadow)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.row .btn{flex:1 1 auto;text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
+.board-wrap{width:100%;touch-action:manipulation}
+svg.board{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
+.bd-bg{fill:var(--board);stroke:var(--boardline);stroke-width:3}
+.bd-line line,.bd-line polyline{stroke:var(--boardline);stroke-width:2;fill:none;stroke-linecap:round}
+.river{font-family:var(--han);font-size:34px;fill:var(--boardline);opacity:.55;letter-spacing:6px}
+.fl{font-family:var(--han);font-size:18px;fill:var(--boardline);opacity:.75}
+.pc-o{fill:var(--piece);stroke:var(--boardline);stroke-width:2.5;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
+.pc-i{fill:none;stroke-width:2}
+.pc.r .pc-i{stroke:#b3261e}.pc.b .pc-i{stroke:#1d1a16}
+.pc-t{font-family:var(--han);font-size:36px;font-weight:700;pointer-events:none}
+.pc.r .pc-t{fill:#b3261e}.pc.b .pc-t{fill:#1d1a16}
+.last{fill:rgba(46,107,90,.22);stroke:rgba(46,107,90,.6);stroke-width:2}
+.selring{fill:none;stroke:#1f8a5f;stroke-width:5}
+.tgt{fill:rgba(31,138,95,.8)}
+.tgt.cap{fill:none;stroke:rgba(214,60,40,.9);stroke-width:5}
+.chk{fill:rgba(220,40,30,.28);stroke:rgba(220,40,30,.8);stroke-width:3}
+.hintbox{fill:none;stroke:#e0a100;stroke-width:5;stroke-dasharray:8 6}
+.hintline{stroke:#e0a100;stroke-width:7;stroke-linecap:round;opacity:.8}
+.hintdot{fill:#e0a100;opacity:.9}
+.status{min-height:28px;margin:8px 2px 0;font-size:15px}
+.chk-t{color:var(--red)}.okt{color:var(--accent)}
+.moves{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:10px;max-height:116px;overflow:auto;line-height:2;font-family:var(--han);font-size:17px}
+.mn{color:var(--muted);margin-right:4px;font-size:14px;font-family:-apple-system,sans-serif}
+.mv{margin-right:10px;padding:1px 3px;border-radius:6px}
+.mv.red{color:var(--red)}
+.mv.ck{cursor:pointer}.mv.cur{background:rgba(46,107,90,.2);outline:1px solid var(--accent)}
+.settings{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:10px;font-size:14px}
+select{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+label.chk2{display:flex;align-items:center;gap:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.chip.on small{color:inherit;opacity:.8}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
+.pz.ok{border-color:var(--accent)}
+.pz-n{font-weight:700}.pz-s{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%}.dot.r{background:#b3261e}.dot.b{background:#1d1a16;box-shadow:0 0 0 1px var(--line)}
+.tick{position:absolute;right:10px;top:8px;color:var(--accent);font-weight:700}
+.line-h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.badge{font-size:12px;color:var(--muted);white-space:nowrap}
+.note{background:var(--card);border-left:4px solid var(--accent);border-radius:8px;padding:8px 12px;margin-top:10px;font-size:15px;min-height:48px}
+.title{font-weight:700;margin:4px 2px 6px;font-size:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.tab{flex:1;border:0;background:none;padding:9px 4px 8px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab b{font-family:var(--han);font-size:22px;font-weight:700;line-height:1.1}
+.tab.on{color:var(--accent)}
+#toast{position:fixed;left:50%;top:12px;transform:translate(-50%,-80px);max-width:92vw;background:#2a2118;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;transition:transform .25s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#toast.show{transform:translate(-50%,0)}#toast.warn{background:#8a3b12}#toast.ok{background:#1f6f4f}
+ul.tidy{padding-left:18px}.tidy li{margin:4px 0}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <section class="view" id="v-play" hidden>
+    <h1>Đấu với máy</h1>
+    <div class="board-wrap" id="play-board"></div>
+    <div class="status" id="play-status"></div>
+    <div class="row">
+      <button class="btn primary" id="play-new">Ván mới</button>
+      <button class="btn" id="play-undo">Đi lại</button>
+      <button class="btn" id="play-hint">Gợi ý</button>
+      <button class="btn" id="play-flip">Lật bàn</button>
+    </div>
+    <div class="settings">
+      <label>Bạn cầm <select id="play-side"><option value="1">Đen</option><option value="0">Đỏ</option></select></label>
+      <label>Cấp độ <select id="play-level"></select></label>
+      <label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label>
+    </div>
+    <div class="moves" id="play-moves"></div>
+  </section>
+
+  <section class="view" id="v-puz" hidden>
+    <h1>Luyện chiếu hết</h1>
+    <div id="puz-list-wrap">
+      <p class="muted">Chiếu hết bằng chuỗi nước chiếu liên tiếp (連將殺). Mỗi bài đều được máy kiểm chứng: đúng số nước tối thiểu, chỉ có một nước đầu tiên đúng.</p>
+      <div id="puz-list"></div>
+    </div>
+    <div id="puz-play" hidden>
+      <div class="title" id="puz-title"></div>
+      <div class="board-wrap" id="puz-board"></div>
+      <div class="status" id="puz-status"></div>
+      <div class="row">
+        <button class="btn" id="puz-back">‹ Danh sách</button>
+        <button class="btn" id="puz-hint">Gợi ý</button>
+        <button class="btn" id="puz-reset">Làm lại</button>
+        <button class="btn" id="puz-sol">Xem đáp án</button>
+        <button class="btn primary" id="puz-next" hidden>Bài kế ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-op" hidden>
+    <h1>Khai cuộc: Bình phong mã</h1>
+    <div id="op-list-wrap">
+      <div class="card" id="op-overview"></div>
+      <div id="op-list"></div>
+    </div>
+    <div id="op-play" hidden>
+      <div class="title" id="op-title"></div>
+      <div class="board-wrap" id="op-board"></div>
+      <div class="note" id="op-note"></div>
+      <div class="row" id="op-nav">
+        <button class="btn" id="op-first">⏮</button><button class="btn" id="op-prev">◀</button>
+        <button class="btn primary" id="op-next">▶</button><button class="btn" id="op-last">⏭</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="op-back">‹ Danh sách</button>
+        <button class="btn" id="op-study">Xem</button>
+        <button class="btn" id="op-drill">Tập</button>
+        <button class="btn" id="op-hint">Gợi ý</button>
+        <button class="btn" id="op-again">Tập lại</button>
+        <button class="btn" id="op-flip">Lật bàn</button>
+      </div>
+      <div class="moves" id="op-moves"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-about" hidden>
+    <h1>Giới thiệu</h1>
+    <div class="card">
+      <p><b>Cờ Tướng Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản và không thu thập dữ liệu. Tiến độ được lưu trên máy của bạn.</p>
+    </div>
+    <h2>Cài lên iPhone</h2>
+    <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
+    <h2>Ghi chú</h2>
+    <ul class="tidy">
+      <li>Máy trong bản này là engine tự viết, mạnh ở mức người chơi trung bình đến khá. Nó đủ để kiểm chứng bài chiếu hết và làm đối thủ luyện tập.</li>
+      <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai; hãy đối chiếu thêm với sách hoặc engine mạnh như Pikafish khi học sâu.</li>
+      <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
+      <li>Ký hiệu nước đi hiển thị bằng chữ Hán, kèm bản tiếng Việt khi cần (ví dụ 炮二平五 là Pháo 2 bình 5).</li>
+    </ul>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button class="tab" data-tab="play"><b>帥</b>Đấu máy</button>
+  <button class="tab" data-tab="puz"><b>殺</b>Chiếu hết</button>
+  <button class="tab" data-tab="op"><b>屏</b>Khai cuộc</button>
+  <button class="tab" data-tab="about"><b>？</b>Giới thiệu</button>
+</nav>
+<div id="toast"></div>
+
+<script id="core-src" type="text/plain">/* xq.js - Lõi cờ tướng: luật đi, ký hiệu Hán, engine alpha-beta, solver chiếu hết.
+ * Chạy được trong trình duyệt, Web Worker và Node. */
+(function (root) {
+  'use strict';
+
+  // ---------- Hằng số ----------
+  const R = 1, N = 2, B = 3, A = 4, K = 5, C = 6, P = 7; // loại quân; Đen = +8
+  const ROW = new Int8Array(90), COL = new Int8Array(90);
+  for (let i = 0; i < 90; i++) { ROW[i] = (i / 9) | 0; COL[i] = i % 9; }
+  const DR = [-1, 1, 0, 0], DC = [0, 0, -1, 1];
+  const START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w';
+  const FEN_CH = { r: R, n: N, b: B, e: B, a: A, k: K, c: C, p: P };
+  const CH_FEN = ['', 'r', 'n', 'b', 'a', 'k', 'c', 'p'];
+
+  // Bảng tiền xử lý
+  const KN = [[-2, -1, -1, 0], [-2, 1, -1, 0], [2, -1, 1, 0], [2, 1, 1, 0],
+              [-1, -2, 0, -1], [1, -2, 0, -1], [-1, 2, 0, 1], [1, 2, 0, 1]];
+  const knightT = [], bishopT = [], advisorT = [], kingT = [];
+  for (let s = 0; s < 90; s++) {
+    const r = ROW[s], c = COL[s];
+    const kn = [], bi = [], ad = [], ki = [];
+    for (const [dr, dc, lr, lc] of KN) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9) kn.push([nr * 9 + nc, (r + lr) * 9 + (c + lc)]);
+    }
+    for (const [dr, dc] of [[-2, -2], [-2, 2], [2, -2], [2, 2]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9) bi.push([nr * 9 + nc, (r + dr / 2) * 9 + (c + dc / 2)]);
+    }
+    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9) ad.push(nr * 9 + nc);
+    }
+    for (let d = 0; d < 4; d++) {
+      const nr = r + DR[d], nc = c + DC[d];
+      if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9) ki.push(nr * 9 + nc);
+    }
+    knightT.push(kn); bishopT.push(bi); advisorT.push(ad); kingT.push(ki);
+  }
+  function inPalace(side, s) {
+    const r = ROW[s], c = COL[s];
+    return c >= 3 && c <= 5 && (side === 0 ? r >= 7 : r <= 2);
+  }
+
+  // ---------- Zobrist (PRNG cố định) ----------
+  let seed = 123456789;
+  function rnd() { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed | 0; }
+  const ZLO = new Int32Array(16 * 90), ZHI = new Int32Array(16 * 90);
+  for (let i = 0; i < ZLO.length; i++) { ZLO[i] = rnd(); ZHI[i] = rnd(); }
+  const ZSIDE_LO = rnd(), ZSIDE_HI = rnd();
+
+  // ---------- Đánh giá ----------
+  const BASE = [0, 1000, 450, 200, 200, 0, 480, 100];
+  const VAL = new Int32Array(16 * 90); // góc nhìn Đỏ: Đỏ dương, Đen âm
+  function pst(type, row, col) { // row theo góc nhìn bên đó (9 = nhà)
+    const cen = 4 - Math.abs(col - 4);
+    switch (type) {
+      case R: return 1000 + (9 - row) * 3 + (col === 4 ? 4 : 0);
+      case N: return 450 + cen * 5 + Math.min(9 - row, 5) * 4 - (col === 0 || col === 8 ? 25 : 0);
+      case C: return 480 + (col === 4 ? 14 : 0) + Math.min(9 - row, 6) * 2;
+      case B: return 200 + (row === 7 && col === 4 ? 6 : 0);
+      case A: return 200 + (row === 8 && col === 4 ? 6 : 0);
+      case K: return 0;
+      case P:
+        if (row >= 5) return 100 + (row === 6 ? 4 : 0);
+        return 200 + (4 - row) * 6 + (col >= 3 && col <= 5 ? 24 : 0) - (row === 0 ? 40 : 0);
+    }
+    return 0;
+  }
+  for (let t = 1; t <= 7; t++) {
+    for (let s = 0; s < 90; s++) {
+      VAL[t * 90 + s] = pst(t, ROW[s], COL[s]);
+      VAL[(t + 8) * 90 + s] = -pst(t, 9 - ROW[s], COL[s]);
+    }
+  }
+  const MVV = [0, 10, 4, 2, 2, 100, 5, 1];
+
+  // ---------- Thế cờ ----------
+  class Pos {
+    constructor() {
+      this.b = new Int8Array(90);
+      this.side = 0;
+      this.ks = [-1, -1];
+      this.sc = 0;
+      this.lo = 0; this.hi = 0;
+      this.mv = []; this.cp = []; this.hl = []; this.hh = []; this.ss = [];
+    }
+
+    static fromFen(fen) {
+      const p = new Pos();
+      p.loadFen(fen || START_FEN);
+      return p;
+    }
+
+    loadFen(fen) {
+      this.b.fill(0); this.ks = [-1, -1]; this.sc = 0; this.lo = 0; this.hi = 0;
+      this.mv = []; this.cp = []; this.hl = []; this.hh = []; this.ss = [];
+      const parts = fen.trim().split(/\s+/);
+      const rows = parts[0].split('/');
+      if (rows.length !== 10) throw new Error('FEN sai: cần 10 hàng');
+      for (let r = 0; r < 10; r++) {
+        let c = 0;
+        for (const ch of rows[r]) {
+          if (ch >= '0' && ch <= '9') { c += +ch; continue; }
+          const low = ch.toLowerCase();
+          const t = FEN_CH[low];
+          if (!t || c > 8) throw new Error('FEN sai: ' + ch);
+          const code = ch === low ? t + 8 : t;
+          this._put(code, r * 9 + c);
+          c++;
+        }
+        if (c !== 9) throw new Error('FEN sai: hàng ' + r + ' có ' + c + ' cột');
+      }
+      this.side = (parts[1] === 'b' || parts[1] === 'B') ? 1 : 0;
+      if (this.side) { this.lo ^= ZSIDE_LO; this.hi ^= ZSIDE_HI; }
+    }
+
+    _put(code, s) {
+      this.b[s] = code;
+      if ((code & 7) === K) this.ks[code >> 3] = s;
+      this.sc += VAL[code * 90 + s];
+      this.lo ^= ZLO[code * 90 + s]; this.hi ^= ZHI[code * 90 + s];
+    }
+
+    fen() {
+      const rows = [];
+      for (let r = 0; r < 10; r++) {
+        let s = '', e = 0;
+        for (let c = 0; c < 9; c++) {
+          const p = this.b[r * 9 + c];
+          if (!p) { e++; continue; }
+          if (e) { s += e; e = 0; }
+          const ch = CH_FEN[p & 7];
+          s += (p >> 3) ? ch : ch.toUpperCase();
+        }
+        if (e) s += e;
+        rows.push(s);
+      }
+      return rows.join('/') + ' ' + (this.side ? 'b' : 'w');
+    }
+
+    clone() { return Pos.fromFen(this.fen()); }
+
+    attacked(sq, by) {
+      const b = this.b, r0 = ROW[sq], c0 = COL[sq];
+      const eR = (by << 3) | R, eC = (by << 3) | C, eK = (by << 3) | K, eN = (by << 3) | N, eP = (by << 3) | P;
+      for (let d = 0; d < 4; d++) {
+        const dr = DR[d], dc = DC[d];
+        let r = r0 + dr, c = c0 + dc, screen = false;
+        while (r >= 0 && r < 10 && c >= 0 && c < 9) {
+          const q = b[r * 9 + c];
+          if (q !== 0) {
+            if (!screen) {
+              if (q === eR) return true;
+              if (q === eK && dc === 0) return true;
+              screen = true;
+            } else {
+              if (q === eC) return true;
+              break;
+            }
+          }
+          r += dr; c += dc;
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        const k = KN[i];
+        const sr = r0 - k[0], sc = c0 - k[1];
+        if (sr >= 0 && sr < 10 && sc >= 0 && sc < 9 && b[sr * 9 + sc] === eN && b[(sr + k[2]) * 9 + (sc + k[3])] === 0) return true;
+      }
+      if (by === 1) {
+        if (r0 >= 1 && b[(r0 - 1) * 9 + c0] === eP) return true;
+        if (r0 >= 5) {
+          if (c0 > 0 && b[r0 * 9 + c0 - 1] === eP) return true;
+          if (c0 < 8 && b[r0 * 9 + c0 + 1] === eP) return true;
+        }
+      } else {
+        if (r0 <= 8 && b[(r0 + 1) * 9 + c0] === eP) return true;
+        if (r0 <= 4) {
+          if (c0 > 0 && b[r0 * 9 + c0 - 1] === eP) return true;
+          if (c0 < 8 && b[r0 * 9 + c0 + 1] === eP) return true;
+        }
+      }
+      return false;
+    }
+
+    inCheck(side) {
+      if (side === undefined) side = this.side;
+      return this.attacked(this.ks[side], side ^ 1);
+    }
+
+    // Sinh nước giả hợp lệ (chưa lọc tự chiếu). Trả về mảng số nguyên from<<7|to
+    pseudo(capOnly) {
+      const b = this.b, side = this.side, out = [];
+      for (let s = 0; s < 90; s++) {
+        const p = b[s];
+        if (p === 0 || (p >> 3) !== side) continue;
+        const t = p & 7, r0 = ROW[s], c0 = COL[s], f = s << 7;
+        switch (t) {
+          case R:
+            for (let d = 0; d < 4; d++) {
+              let r = r0 + DR[d], c = c0 + DC[d];
+              while (r >= 0 && r < 10 && c >= 0 && c < 9) {
+                const to = r * 9 + c, q = b[to];
+                if (q === 0) { if (!capOnly) out.push(f | to); }
+                else { if ((q >> 3) !== side) out.push(f | to); break; }
+                r += DR[d]; c += DC[d];
+              }
+            }
+            break;
+          case C:
+            for (let d = 0; d < 4; d++) {
+              let r = r0 + DR[d], c = c0 + DC[d], jumped = false;
+              while (r >= 0 && r < 10 && c >= 0 && c < 9) {
+                const to = r * 9 + c, q = b[to];
+                if (!jumped) {
+                  if (q === 0) { if (!capOnly) out.push(f | to); }
+                  else jumped = true;
+                } else if (q !== 0) {
+                  if ((q >> 3) !== side) out.push(f | to);
+                  break;
+                }
+                r += DR[d]; c += DC[d];
+              }
+            }
+            break;
+          case N: {
+            const L = knightT[s];
+            for (let i = 0; i < L.length; i++) {
+              if (b[L[i][1]] !== 0) continue;
+              const q = b[L[i][0]];
+              if (q === 0) { if (!capOnly) out.push(f | L[i][0]); }
+              else if ((q >> 3) !== side) out.push(f | L[i][0]);
+            }
+            break;
+          }
+          case B: {
+            const L = bishopT[s];
+            for (let i = 0; i < L.length; i++) {
+              const to = L[i][0];
+              if (side === 0 ? ROW[to] < 5 : ROW[to] > 4) continue;
+              if (b[L[i][1]] !== 0) continue;
+              const q = b[to];
+              if (q === 0) { if (!capOnly) out.push(f | to); }
+              else if ((q >> 3) !== side) out.push(f | to);
+            }
+            break;
+          }
+          case A: {
+            const L = advisorT[s];
+            for (let i = 0; i < L.length; i++) {
+              const to = L[i];
+              if (!inPalace(side, to)) continue;
+              const q = b[to];
+              if (q === 0) { if (!capOnly) out.push(f | to); }
+              else if ((q >> 3) !== side) out.push(f | to);
+            }
+            break;
+          }
+          case K: {
+            const L = kingT[s];
+            for (let i = 0; i < L.length; i++) {
+              const to = L[i];
+              if (!inPalace(side, to)) continue;
+              const q = b[to];
+              if (q === 0) { if (!capOnly) out.push(f | to); }
+              else if ((q >> 3) !== side) out.push(f | to);
+            }
+            break;
+          }
+          case P: {
+            const fr = side === 0 ? -1 : 1;
+            const crossed = side === 0 ? r0 <= 4 : r0 >= 5;
+            const nr = r0 + fr;
+            if (nr >= 0 && nr < 10) {
+              const to = nr * 9 + c0, q = b[to];
+              if (q === 0) { if (!capOnly) out.push(f | to); }
+              else if ((q >> 3) !== side) out.push(f | to);
+            }
+            if (crossed) {
+              for (const dc of [-1, 1]) {
+                const nc = c0 + dc;
+                if (nc < 0 || nc > 8) continue;
+                const to = r0 * 9 + nc, q = b[to];
+                if (q === 0) { if (!capOnly) out.push(f | to); }
+                else if ((q >> 3) !== side) out.push(f | to);
+              }
+            }
+            break;
+          }
+        }
+      }
+      return out;
+    }
+
+    make(m) {
+      const f = m >> 7, t = m & 127, b = this.b;
+      const p = b[f], cap = b[t];
+      this.mv.push(m); this.cp.push(cap); this.hl.push(this.lo); this.hh.push(this.hi); this.ss.push(this.sc);
+      let lo = this.lo ^ ZLO[p * 90 + f] ^ ZLO[p * 90 + t] ^ ZSIDE_LO;
+      let hi = this.hi ^ ZHI[p * 90 + f] ^ ZHI[p * 90 + t] ^ ZSIDE_HI;
+      let sc = this.sc + VAL[p * 90 + t] - VAL[p * 90 + f];
+      if (cap) { lo ^= ZLO[cap * 90 + t]; hi ^= ZHI[cap * 90 + t]; sc -= VAL[cap * 90 + t]; }
+      this.lo = lo; this.hi = hi; this.sc = sc;
+      b[t] = p; b[f] = 0;
+      if ((p & 7) === K) this.ks[p >> 3] = t;
+      this.side ^= 1;
+    }
+
+    unmake() {
+      const m = this.mv.pop(), cap = this.cp.pop();
+      this.lo = this.hl.pop(); this.hi = this.hh.pop(); this.sc = this.ss.pop();
+      const f = m >> 7, t = m & 127, b = this.b;
+      const p = b[t];
+      b[f] = p; b[t] = cap;
+      if ((p & 7) === K) this.ks[p >> 3] = f;
+      this.side ^= 1;
+    }
+
+    legalMoves(capOnly) {
+      const ps = this.pseudo(capOnly), out = [], side = this.side;
+      for (let i = 0; i < ps.length; i++) {
+        this.make(ps[i]);
+        if (!this.inCheck(side)) out.push(ps[i]);
+        this.unmake();
+      }
+      return out;
+    }
+
+    isLegal(m) { return this.legalMoves().indexOf(m) >= 0; }
+
+    // Kết quả: null nếu còn đi được; 'mate' nếu bên đi bị hết cờ/bí (thua)
+    status() {
+      if (this.legalMoves().length === 0) return 'mate';
+      return null;
+    }
+
+    perft(d) {
+      if (d === 0) return 1;
+      const ms = this.legalMoves();
+      if (d === 1) return ms.length;
+      let n = 0;
+      for (const m of ms) { this.make(m); n += this.perft(d - 1); this.unmake(); }
+      return n;
+    }
+
+    // Số lần thế hiện tại đã xuất hiện (kể cả bây giờ)
+    repCount() {
+      let n = 1;
+      for (let i = this.hl.length - 1; i >= 0; i--) {
+        if (this.hl[i] === this.lo && this.hh[i] === this.hi) n++;
+      }
+      return n;
+    }
+
+    // ---------- Ký hiệu Hán ----------
+    notation(m) {
+      const b = this.b, f = m >> 7, t = m & 127, p = b[f];
+      const side = p >> 3, type = p & 7;
+      const fr = ROW[f], fc = COL[f], tr = ROW[t], tc = COL[t];
+      const file = c => side === 0 ? 9 - c : c + 1;
+      const num = n => side === 0 ? '一二三四五六七八九'[n - 1] : String(n);
+      const names = side ? ['', '車', '馬', '象', '士', '將', '炮', '卒'] : ['', '車', '傌', '相', '仕', '帥', '炮', '兵'];
+      const same = [];
+      for (let r = 0; r < 10; r++) if (b[r * 9 + fc] === p) same.push(r);
+      let head;
+      if (same.length > 1 && type !== K) {
+        same.sort((x, y) => side === 0 ? x - y : y - x); // phần tử đầu = phía trước
+        const idx = same.indexOf(fr), n = same.length;
+        let pre;
+        if (idx === 0) pre = '前'; else if (idx === n - 1) pre = '後';
+        else pre = n === 3 ? '中' : '二三四'[idx - 1];
+        head = pre + names[type];
+      } else head = names[type] + num(file(fc));
+      let dir, tail;
+      if (tr === fr) { dir = '平'; tail = num(file(tc)); }
+      else {
+        const forward = side === 0 ? tr < fr : tr > fr;
+        dir = forward ? '進' : '退';
+        tail = (type === N || type === B || type === A) ? num(file(tc)) : num(Math.abs(tr - fr));
+      }
+      return head + dir + tail;
+    }
+
+    parse(str) {
+      const norm = s => s.replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+        .replace(/[一二三四五六七八九]/g, ch => String('一二三四五六七八九'.indexOf(ch) + 1))
+        .replace(/[俥]/g, '車').replace(/[傌]/g, '馬').replace(/[砲]/g, '炮').replace(/[象]/g, '相')
+        .replace(/[仕]/g, '士').replace(/[帥將]/g, '帥').replace(/[卒]/g, '兵')
+        .replace(/[进]/g, '進').replace(/[后]/g, '後').replace(/[退]/g, '退').replace(/[车]/g, '車')
+        .replace(/[马]/g, '馬').replace(/[炮]/g, '炮').replace(/[兵]/g, '兵');
+      const target = norm(str.trim());
+      const ms = this.legalMoves();
+      for (const m of ms) if (norm(this.notation(m)) === target) return m;
+      return -1;
+    }
+  }
+
+  // ---------- Tiện ích ----------
+  function sq(r, c) { return r * 9 + c; }
+  function mvStr(m) { // dạng toạ độ: a0..i9 (cột a-i từ trái, hàng 0 ở dưới phía Đỏ)
+    const f = m >> 7, t = m & 127;
+    return 'abcdefghi'[COL[f]] + (9 - ROW[f]) + 'abcdefghi'[COL[t]] + (9 - ROW[t]);
+  }
+  function rotateFen(fen) { // xoay 180° và đổi màu: biến bài Đỏ chiếu thành Đen chiếu
+    const parts = fen.trim().split(/\s+/);
+    const rows = parts[0].split('/');
+    const grid = rows.map(r => {
+      const a = [];
+      for (const ch of r) { if (ch >= '0' && ch <= '9') for (let i = 0; i < +ch; i++) a.push(''); else a.push(ch); }
+      return a;
+    });
+    const flat = [].concat(...grid).reverse().map(ch => ch === '' ? '' : (ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()));
+    const out = [];
+    for (let r = 0; r < 10; r++) {
+      let s = '', e = 0;
+      for (let c = 0; c < 9; c++) {
+        const ch = flat[r * 9 + c];
+        if (ch === '') e++; else { if (e) { s += e; e = 0; } s += ch; }
+      }
+      if (e) s += e;
+      out.push(s);
+    }
+    return out.join('/') + ' ' + (parts[1] === 'b' ? 'w' : 'b');
+  }
+
+  // ---------- Engine ----------
+  const INF = 32000, MATE = 30000;
+  const TT_BITS = 18, TT_SIZE = 1 << TT_BITS, TT_MASK = TT_SIZE - 1;
+
+  class Searcher {
+    constructor() {
+      this.ttKey = new Int32Array(TT_SIZE);
+      this.ttScore = new Int32Array(TT_SIZE);
+      this.ttDepth = new Int8Array(TT_SIZE).fill(-1);
+      this.ttFlag = new Int8Array(TT_SIZE);
+      this.ttMove = new Int16Array(TT_SIZE);
+      this.history = new Int32Array(90 * 90);
+      this.killers = [];
+      for (let i = 0; i < 80; i++) this.killers.push([0, 0]);
+      this.nodes = 0; this.stop = false; this.deadline = 0;
+    }
+
+    clear() { this.ttDepth.fill(-1); this.history.fill(0); }
+
+    evaluate(pos) {
+      return (pos.side === 0 ? pos.sc : -pos.sc) + 8;
+    }
+
+    scoreMoves(pos, moves, ttm, ply) {
+      const b = pos.b, sc = new Array(moves.length);
+      const k0 = this.killers[ply][0], k1 = this.killers[ply][1];
+      for (let i = 0; i < moves.length; i++) {
+        const m = moves[i], f = m >> 7, t = m & 127;
+        let s = 0;
+        if (m === ttm) s = 1e7;
+        else if (b[t]) s = 1e6 + MVV[b[t] & 7] * 100 - MVV[b[f] & 7];
+        else if (m === k0) s = 9e5;
+        else if (m === k1) s = 8e5;
+        else s = this.history[f * 90 + t];
+        sc[i] = s;
+      }
+      return sc;
+    }
+
+    pick(moves, sc, i) {
+      let best = i;
+      for (let j = i + 1; j < moves.length; j++) if (sc[j] > sc[best]) best = j;
+      if (best !== i) {
+        const tm = moves[i]; moves[i] = moves[best]; moves[best] = tm;
+        const ts = sc[i]; sc[i] = sc[best]; sc[best] = ts;
+      }
+    }
+
+    qsearch(pos, alpha, beta, ply) {
+      this.nodes++;
+      if ((this.nodes & 2047) === 0 && Date.now() > this.deadline) this.stop = true;
+      if (this.stop) return 0;
+      const inChk = pos.inCheck();
+      let moves;
+      if (inChk) {
+        moves = pos.legalMoves();
+        if (moves.length === 0) return -MATE + ply;
+      } else {
+        const stand = this.evaluate(pos);
+        if (stand >= beta) return stand;
+        if (stand > alpha) alpha = stand;
+        if (ply > 60) return stand;
+        moves = pos.legalMoves(true);
+      }
+      const sc = this.scoreMoves(pos, moves, 0, Math.min(ply, 79));
+      for (let i = 0; i < moves.length; i++) {
+        this.pick(moves, sc, i);
+        pos.make(moves[i]);
+        const v = -this.qsearch(pos, -beta, -alpha, ply + 1);
+        pos.unmake();
+        if (this.stop) return 0;
+        if (v >= beta) return v;
+        if (v > alpha) alpha = v;
+      }
+      return alpha;
+    }
+
+    negamax(pos, depth, alpha, beta, ply) {
+      this.nodes++;
+      if ((this.nodes & 2047) === 0 && Date.now() > this.deadline) this.stop = true;
+      if (this.stop) return 0;
+      if (ply > 0) {
+        // lặp thế trong nhánh tìm kiếm -> hoà
+        const hl = pos.hl, hh = pos.hh;
+        for (let i = hl.length - 1, k = 0; i >= 0 && k < 16; i--, k++) {
+          if (hl[i] === pos.lo && hh[i] === pos.hi) return 0;
+        }
+      }
+      const inChk = pos.inCheck();
+      if (inChk && ply < 40) depth++;
+      if (depth <= 0) return this.qsearch(pos, alpha, beta, ply);
+      const idx = pos.lo & TT_MASK, origAlpha = alpha;
+      let ttm = 0;
+      if (this.ttKey[idx] === pos.hi && this.ttDepth[idx] >= 0) {
+        ttm = this.ttMove[idx];
+        if (this.ttDepth[idx] >= depth && ply > 0) {
+          let v = this.ttScore[idx];
+          if (v > MATE - 100) v -= ply; else if (v < -MATE + 100) v += ply;
+          const fl = this.ttFlag[idx];
+          if (fl === 0) return v;
+          if (fl === 1 && v >= beta) return v;
+          if (fl === 2 && v <= alpha) return v;
+        }
+      }
+      const moves = pos.legalMoves();
+      if (moves.length === 0) return -MATE + ply;
+      const sc = this.scoreMoves(pos, moves, ttm, Math.min(ply, 79));
+      let best = -INF, bestMove = 0;
+      for (let i = 0; i < moves.length; i++) {
+        this.pick(moves, sc, i);
+        const m = moves[i];
+        const isCap = pos.b[m & 127] !== 0;
+        pos.make(m);
+        let v;
+        if (i === 0) v = -this.negamax(pos, depth - 1, -beta, -alpha, ply + 1);
+        else {
+          v = -this.negamax(pos, depth - 1, -alpha - 1, -alpha, ply + 1);
+          if (v > alpha && v < beta && !this.stop) v = -this.negamax(pos, depth - 1, -beta, -alpha, ply + 1);
+        }
+        pos.unmake();
+        if (this.stop) return 0;
+        if (v > best) { best = v; bestMove = m; }
+        if (v > alpha) {
+          alpha = v;
+          if (alpha >= beta) {
+            if (!isCap) {
+              const kl = this.killers[Math.min(ply, 79)];
+              if (kl[0] !== m) { kl[1] = kl[0]; kl[0] = m; }
+              this.history[(m >> 7) * 90 + (m & 127)] += depth * depth;
+            }
+            break;
+          }
+        }
+      }
+      let store = best;
+      if (store > MATE - 100) store += ply; else if (store < -MATE + 100) store -= ply;
+      this.ttKey[idx] = pos.hi; this.ttScore[idx] = store; this.ttDepth[idx] = Math.min(depth, 100);
+      this.ttFlag[idx] = best <= origAlpha ? 2 : (best >= beta ? 1 : 0);
+      this.ttMove[idx] = bestMove;
+      return best;
+    }
+
+    // opts: {maxDepth, timeMs, noise}
+    search(pos, opts) {
+      opts = opts || {};
+      const maxDepth = opts.maxDepth || 4, timeMs = opts.timeMs || 1000, noise = opts.noise || 0;
+      this.deadline = Date.now() + timeMs; this.stop = false; this.nodes = 0;
+      const moves = pos.legalMoves();
+      if (moves.length === 0) return { move: 0, score: -MATE, depth: 0, nodes: 0 };
+      if (moves.length === 1) return { move: moves[0], score: 0, depth: 0, nodes: 0 };
+      const hist = this.history; for (let i = 0; i < hist.length; i++) hist[i] >>= 3;
+      let bestMove = moves[0], bestScore = -INF, doneDepth = 0;
+      // Mức thấp: chấm điểm mọi nước gốc, cộng nhiễu rồi chọn
+      if (noise > 0) {
+        const d = Math.max(1, maxDepth);
+        const scored = [];
+        for (const m of moves) {
+          pos.make(m);
+          const v = -this.negamax(pos, d - 1, -INF, INF, 1);
+          pos.unmake();
+          scored.push([v + (Math.random() * 2 - 1) * noise, v, m]);
+        }
+        scored.sort((a, b) => b[0] - a[0]);
+        return { move: scored[0][2], score: scored[0][1], depth: d, nodes: this.nodes };
+      }
+      for (let d = 1; d <= maxDepth; d++) {
+        let alpha = -INF, beta = INF, iterBest = 0, iterScore = -INF;
+        const sc = this.scoreMoves(pos, moves, bestMove, 0);
+        for (let i = 0; i < moves.length; i++) {
+          this.pick(moves, sc, i);
+          const m = moves[i];
+          pos.make(m);
+          let v;
+          if (i === 0) v = -this.negamax(pos, d - 1, -beta, -alpha, 1);
+          else {
+            v = -this.negamax(pos, d - 1, -alpha - 1, -alpha, 1);
+            if (v > alpha && !this.stop) v = -this.negamax(pos, d - 1, -beta, -alpha, 1);
+          }
+          pos.unmake();
+          if (this.stop) break;
+          if (v > iterScore) { iterScore = v; iterBest = m; }
+          if (v > alpha) alpha = v;
+        }
+        if (this.stop) break;
+        bestMove = iterBest; bestScore = iterScore; doneDepth = d;
+        // đưa nước tốt nhất lên đầu cho vòng sau
+        const bi = moves.indexOf(bestMove);
+        if (bi > 0) { moves.splice(bi, 1); moves.unshift(bestMove); }
+        if (Math.abs(bestScore) > MATE - 100) break;
+        if (Date.now() > this.deadline) break;
+      }
+      return { move: bestMove, score: bestScore, depth: doneDepth, nodes: this.nodes };
+    }
+  }
+
+  // ---------- Solver chiếu hết (chỉ dùng nước chiếu của bên tấn công) ----------
+  const mateMemo = new Map();
+  function canMate(pos, n) {
+    if (n <= 0) return false;
+    const key = pos.hi + ':' + pos.lo + ':' + n;
+    const hit = mateMemo.get(key);
+    if (hit !== undefined) return hit;
+    let result = false;
+    const att = pos.side;
+    const moves = pos.legalMoves();
+    for (let i = 0; i < moves.length && !result; i++) {
+      pos.make(moves[i]);
+      if (pos.inCheck(att ^ 1)) {
+        const defs = pos.legalMoves();
+        if (defs.length === 0) result = true;
+        else if (n > 1) {
+          let all = true;
+          for (let j = 0; j < defs.length && all; j++) {
+            pos.make(defs[j]);
+            if (!canMate(pos, n - 1)) all = false;
+            pos.unmake();
+          }
+          if (all) result = true;
+        }
+      }
+      pos.unmake();
+    }
+    if (mateMemo.size > 400000) mateMemo.clear();
+    mateMemo.set(key, result);
+    return result;
+  }
+  // Số nước chiếu hết ngắn nhất (<= maxN) của bên đang đi; Infinity nếu không có
+  function mateLength(pos, maxN) {
+    for (let n = 1; n <= maxN; n++) if (canMate(pos, n)) return n;
+    return Infinity;
+  }
+  // Các nước chiếu đầu tiên giữ được chiếu hết trong n nước
+  function mateFirstMoves(pos, n) {
+    const att = pos.side, res = [];
+    for (const m of pos.legalMoves()) {
+      pos.make(m);
+      if (pos.inCheck(att ^ 1)) {
+        const defs = pos.legalMoves();
+        let ok;
+        if (defs.length === 0) ok = true;
+        else if (n > 1) {
+          ok = true;
+          for (const d of defs) {
+            pos.make(d);
+            if (!canMate(pos, n - 1)) ok = false;
+            pos.unmake();
+            if (!ok) break;
+          }
+        } else ok = false;
+        if (ok) res.push(m);
+      }
+      pos.unmake();
+    }
+    return res;
+  }
+  // Nước phòng thủ kháng cự lâu nhất (sau khi tấn công vừa đi)
+  function bestDefense(pos, maxN) {
+    const defs = pos.legalMoves();
+    let best = defs[0], bestLen = -1;
+    for (const d of defs) {
+      pos.make(d);
+      const len = mateLength(pos, maxN);
+      pos.unmake();
+      const v = len === Infinity ? 99 : len;
+      if (v > bestLen) { bestLen = v; best = d; }
+    }
+    return best;
+  }
+
+  const XQ = {
+    START_FEN, Pos, Searcher, sq, mvStr, rotateFen, ROW, COL,
+    canMate, mateLength, mateFirstMoves, bestDefense,
+    MATE, T: { R, N, B, A, K, C, P }
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = XQ;
+  else root.XQ = XQ;
+})(typeof self !== 'undefined' ? self : this);
+</script>
+<script>
+(function(){ (0, eval)(document.getElementById('core-src').textContent); })();
+var PUZZLES = [{"id":1,"fen":"5a3/1R7/3k1ac1b/R8/7c1/9/9/9/9/5K3 w","n":1,"side":0,"sol":"車九進一"},{"id":2,"fen":"9/P3a4/3N1k3/9/9/4r2N1/9/1ncKB4/9/7n1 b","n":1,"side":1,"sol":"車5平4"},{"id":3,"fen":"1P4bc1/7C1/3akr3/9/5r3/2B6/9/3K5/9/2B6 b","n":1,"side":1,"sol":"前車平4"},{"id":4,"fen":"r4a3/C8/4ka3/9/p2R5/9/9/C8/3Kc4/6B2 w","n":1,"side":0,"sol":"車六平五"},{"id":5,"fen":"2nk5/1n7/9/7R1/2r5P/9/9/4KA2B/9/5A3 b","n":1,"side":1,"sol":"車3平5"},{"id":6,"fen":"5r3/4a4/4k4/5C3/9/9/9/B2A1K3/2r6/9 b","n":1,"side":1,"sol":"車6進3"},{"id":7,"fen":"2bk5/9/9/N8/9/9/9/1R3A3/2c4p1/4K4 w","n":1,"side":0,"sol":"車八平六"},{"id":8,"fen":"1n4r2/9/4k2n1/9/3P5/9/9/9/5K3/1N7 b","n":1,"side":1,"sol":"車7平6"},{"id":9,"fen":"3P5/9/3ak4/1Pr6/9/6BN1/9/3K5/3n5/5A3 b","n":1,"side":1,"sol":"車3平4"},{"id":10,"fen":"1R3a3/4a4/3k5/9/9/9/9/R3K4/p1N6/5A3 w","n":1,"side":0,"sol":"車九平六"},{"id":11,"fen":"3a1c3/4k4/9/9/2n4P1/9/9/B4K2B/9/9 b","n":2,"side":1,"sol":"馬3進4"},{"id":12,"fen":"P8/6P2/5k3/9/9/9/5r3/3K5/5N3/r2A5 b","n":2,"side":1,"sol":"車6進1"},{"id":13,"fen":"3k1a3/N3a3C/9/9/p1b3b2/9/9/5A2B/5K3/2p6 w","n":2,"side":0,"sol":"傌九退七"},{"id":14,"fen":"3k5/4C2r1/1r7/9/9/1N7/9/9/9/3AK4 b","n":2,"side":1,"sol":"車2平5"},{"id":15,"fen":"4k4/7c1/5a3/9/4r4/6B2/9/5N3/9/3Kc4 b","n":2,"side":1,"sol":"車5平4"},{"id":16,"fen":"3k5/1NN2c3/9/9/6b2/9/9/2C6/9/4K2p1 w","n":2,"side":0,"sol":"傌七退六"},{"id":17,"fen":"9/1P2k2r1/9/9/9/9/3n5/3K4B/9/5r1R1 b","n":2,"side":1,"sol":"車8進6"},{"id":18,"fen":"9/9/3ck4/5P3/P4n3/9/9/2C6/9/3K5 b","n":2,"side":1,"sol":"馬6進4"},{"id":19,"fen":"5a3/8R/4k4/9/3n5/9/9/9/3K2n2/R8 w","n":2,"side":0,"sol":"車九進七"},{"id":20,"fen":"N2k2b2/9/4P4/1c7/8r/5c3/9/3A1K3/9/9 b","n":2,"side":1,"sol":"炮2平6"},{"id":21,"fen":"5k3/1C7/P2a2r2/9/9/2B4r1/9/3K5/1N7/2B6 b","n":2,"side":1,"sol":"車8平4"},{"id":22,"fen":"4k4/4a2RR/9/9/9/2B6/9/5K3/2c5c/5c3 w","n":2,"side":0,"sol":"車二平五"},{"id":23,"fen":"8r/3k5/5P3/9/6b2/3C5/9/9/5K3/2n1n4 b","n":2,"side":1,"sol":"馬5退4"},{"id":24,"fen":"9/9/3k5/9/2r1n4/9/9/5K2B/6r2/3AC1B2 b","n":2,"side":1,"sol":"車3進3"},{"id":25,"fen":"4ka3/9/5a2N/1R2p4/9/9/9/4K4/c8/6p2 w","n":2,"side":0,"sol":"傌一進三"},{"id":26,"fen":"3a5/3k5/9/9/3P5/6B1P/1n7/4K4/r3Ap3/3A2B2 b","n":2,"side":1,"sol":"車1退1"},{"id":27,"fen":"4P4/5k3/9/2r6/9/R8/9/3K4B/9/4r4 b","n":2,"side":1,"sol":"車3平4"},{"id":28,"fen":"R1b6/6n2/2C2k3/6N2/6n2/6B2/9/4K4/9/3A5 w","n":2,"side":0,"sol":"傌三進五"},{"id":29,"fen":"4k4/9/9/9/6b2/C7c/9/4BC2B/2n3r2/3K5 b","n":2,"side":1,"sol":"馬3退5"},{"id":30,"fen":"9/4rk3/5r3/9/9/4C4/9/9/3K5/3A1A3 b","n":2,"side":1,"sol":"車6平4"},{"id":31,"fen":"2r2a3/9/3a1k3/9/9/2N5R/9/3K1Ar2/9/9 w","n":3,"side":0,"sol":"傌七進六"},{"id":32,"fen":"4k4/4a4/9/1P7/2b2P1r1/9/5n3/n2A5/4A4/3K5 b","n":3,"side":1,"sol":"車8進5"},{"id":33,"fen":"5k3/4a4/4b1r2/9/1P7/5n3/9/2nK4B/9/1c1A1A3 b","n":3,"side":1,"sol":"車7進5"},{"id":34,"fen":"2b6/3R5/4k3b/9/9/R8/4c4/3K1A3/9/9 w","n":3,"side":0,"sol":"車六退一"},{"id":35,"fen":"3k5/9/3N5/9/3P5/9/9/1r2n4/3p1K3/7C1 b","n":3,"side":1,"sol":"馬5退7"},{"id":36,"fen":"3a1kb2/4N4/9/3r3P1/9/9/9/3A2p2/3n5/4KA3 b","n":3,"side":1,"sol":"馬4退6"},{"id":37,"fen":"4ka3/r8/5a3/9/1R7/9/9/3A5/3K3n1/6R2 w","n":3,"side":0,"sol":"車八進四"},{"id":38,"fen":"9/5k3/4ba3/9/9/8P/6N2/3AB4/c3A4/r1c2K3 b","n":3,"side":1,"sol":"炮3退1"},{"id":39,"fen":"4k4/1N7/b6P1/9/9/9/9/9/1n4r2/3A1K3 b","n":3,"side":1,"sol":"車7進1"},{"id":40,"fen":"n8/n4k3/4bN3/1R7/7C1/9/9/9/9/4K2n1 w","n":3,"side":0,"sol":"炮二平四"},{"id":41,"fen":"3a5/3k5/9/9/2r6/9/2n6/5A3/6n2/5K3 b","n":3,"side":1,"sol":"馬3進4"},{"id":42,"fen":"5P3/4cP3/5k3/9/9/Cr3n3/9/9/9/4K4 b","n":3,"side":1,"sol":"馬6進5"},{"id":43,"fen":"5k3/9/8b/8R/2b3P2/5C3/9/9/3K5/7c1 w","n":3,"side":0,"sol":"兵三平四"},{"id":44,"fen":"9/9/3k1ar2/9/8N/9/9/5K3/8C/8r b","n":3,"side":1,"sol":"車7進5"},{"id":45,"fen":"9/9/4k4/9/9/5C3/6p2/5K3/2n1A4/1r7 b","n":3,"side":1,"sol":"卒7進1"},{"id":46,"fen":"9/9/3k5/9/4R4/3p3p1/R8/3A5/9/5K3 w","n":3,"side":0,"sol":"車五平六"},{"id":47,"fen":"9/1r2k4/b8/9/9/9/9/5A3/1r2A4/C2K1N3 b","n":3,"side":1,"sol":"後車平4"},{"id":48,"fen":"5kb2/8P/9/9/8r/9/9/Br7/9/2BAK4 b","n":3,"side":1,"sol":"車9進5"},{"id":49,"fen":"3ak4/6C2/9/2r6/9/9/7R1/4c4/8C/p2K5 w","n":3,"side":0,"sol":"車二進六"},{"id":50,"fen":"3a5/3rk4/9/8r/9/9/9/9/4AK3/2B5N b","n":3,"side":1,"sol":"車9平6"},{"id":51,"fen":"2b2r3/9/4k4/9/9/2P2c3/3p5/8B/3KA4/6BN1 b","n":3,"side":1,"sol":"炮6平4"},{"id":52,"fen":"3a5/4k4/3a5/c8/9/1C5R1/6p2/2C5B/9/3K5 w","n":3,"side":0,"sol":"車二進四"},{"id":53,"fen":"9/9/2Nk1a3/9/3P5/9/9/3Kn3B/5p3/1r3AB2 b","n":3,"side":1,"sol":"車2退2"},{"id":54,"fen":"3ak4/7r1/9/9/6R2/r8/9/3A5/3K5/2B6 b","n":3,"side":1,"sol":"車1進3"},{"id":55,"fen":"9/9/4k2Nb/9/N8/9/9/R2pB4/1C2K4/9 w","n":4,"side":0,"sol":"傌九進七"},{"id":56,"fen":"9/9/1c3k3/9/r8/2B3B2/9/9/3K2n2/3A5 b","n":4,"side":1,"sol":"車1進4"},{"id":57,"fen":"P8/4a4/3k5/9/7C1/2Bc5/1n1r5/3N5/9/4K4 b","n":4,"side":1,"sol":"馬2進4"},{"id":58,"fen":"9/4ak3/4b4/9/2R6/5N3/4p4/9/6p2/1R1K5 w","n":4,"side":0,"sol":"傌四進三"},{"id":59,"fen":"3a5/9/2c1bk2r/9/6C2/1n1n5/9/9/4K4/3A5 b","n":4,"side":1,"sol":"馬2進3"},{"id":60,"fen":"9/7r1/b2k5/2P6/9/2B1c4/8r/9/5K3/6B2 b","n":4,"side":1,"sol":"車8平6"},{"id":61,"fen":"2bk5/9/9/9/8C/4N4/3p4R/9/3K5/9 w","n":4,"side":0,"sol":"車一平六"},{"id":62,"fen":"9/5k3/7P1/1r6r/9/2R6/9/6n2/3KA4/6B2 b","n":4,"side":1,"sol":"馬7進6"},{"id":63,"fen":"1r6N/5k3/9/9/c8/9/9/4B1r2/4A4/2B1K4 b","n":4,"side":1,"sol":"炮1進5"},{"id":64,"fen":"3a2R2/4a4/3k5/6R2/9/9/9/5K3/9/5p3 w","n":4,"side":0,"sol":"前車退二"},{"id":65,"fen":"3a5/9/3k5/7r1/R8/9/6r2/4B4/9/2B2K3 b","n":4,"side":1,"sol":"車8進6"},{"id":66,"fen":"2b6/3k5/9/8C/9/2B6/9/9/7rc/1n3K3 b","n":4,"side":1,"sol":"馬2退4"},{"id":67,"fen":"9/4k4/2Nab3b/9/9/3N5/9/3A5/3C5/1pBK1R3 w","n":4,"side":0,"sol":"炮六平五"},{"id":68,"fen":"3k5/9/r2a2P2/3R4r/2b2N3/n1B6/9/9/9/3K5 b","n":4,"side":1,"sol":"車9進6"},{"id":69,"fen":"4k4/4a4/7r1/9/r8/6B2/6P2/4BA3/3KA4/9 b","n":4,"side":1,"sol":"車1進4"},{"id":70,"fen":"3cnk3/2N6/b7b/5N3/9/7C1/9/9/4K4/9 w","n":4,"side":0,"sol":"傌七退五"},{"id":71,"fen":"9/9/3k5/4n1r2/1P7/9/5n3/5A3/9/5K3 b","n":4,"side":1,"sol":"車7進6"},{"id":72,"fen":"1r2k4/9/9/9/7c1/9/9/Cc3A3/3KA4/6B2 b","n":4,"side":1,"sol":"車2平4"},{"id":73,"fen":"2b6/1r7/4k3b/8R/9/9/4N2C1/3K1n3/1nN6/3A5 w","n":4,"side":0,"sol":"傌五進四"},{"id":74,"fen":"r3k4/4a4/9/4r3P/9/9/2CRn4/9/4K4/9 b","n":4,"side":1,"sol":"馬5進7"},{"id":75,"fen":"2ba1k3/C8/9/9/9/1nB6/9/4rA2B/9/3K4n b","n":5,"side":1,"sol":"馬2進3"},{"id":76,"fen":"1N6C/4k4/b6R1/9/8n/9/9/5K3/9/9 w","n":5,"side":0,"sol":"傌八退七"},{"id":77,"fen":"9/5k3/3a2N2/9/8r/2B6/2n3P2/B2K1A3/7n1/3C5 b","n":5,"side":1,"sol":"馬3進2"},{"id":78,"fen":"1r7/5k2N/9/8N/9/6B2/9/4Br2N/4A4/4K4 b","n":5,"side":1,"sol":"車2進9"},{"id":79,"fen":"3k5/9/4b4/8R/6b2/9/np7/9/1R1C5/5K3 w","n":5,"side":0,"sol":"車一平六"},{"id":80,"fen":"5k1r1/9/5a3/9/6n2/P1B6/5r3/B2K5/4A4/9 b","n":5,"side":1,"sol":"馬7進5"},{"id":81,"fen":"9/3k5/b2a5/9/9/4r1r2/9/1N7/9/3K2B1n b","n":5,"side":1,"sol":"車5平4"},{"id":82,"fen":"5a3/3k5/6P2/9/4R4/2B1N4/1rr6/9/2p6/5K3 w","n":5,"side":0,"sol":"車五平六"},{"id":83,"fen":"9/3k5/3a5/9/2r1P4/6r2/9/9/9/3K1A3 b","n":5,"side":1,"sol":"車3進5"},{"id":84,"fen":"3k4C/9/9/9/1r6C/9/1n7/6p2/9/5K3 b","n":5,"side":1,"sol":"車2平6"},{"id":85,"fen":"5NN2/4k4/9/9/1n4p2/7R1/9/4B4/4K4/9 w","n":5,"side":0,"sol":"車二平五"},{"id":86,"fen":"9/4r2C1/4k4/2P6/7C1/2B6/9/2n6/3KA4/9 b","n":5,"side":1,"sol":"車5平4"},{"id":87,"fen":"9/9/3kb4/r5C2/5n3/9/9/1C7/5Kn2/6B2 b","n":5,"side":1,"sol":"馬6進5"},{"id":88,"fen":"2ba5/9/3a1k3/9/9/6N2/3N5/6R2/c2K5/2B5C w","n":5,"side":0,"sol":"傌六進五"},{"id":89,"fen":"4P2R1/4k2r1/3C5/9/1r7/9/9/4B4/3K3n1/3A5 b","n":6,"side":1,"sol":"車2進4"},{"id":90,"fen":"6b2/8c/3C1k3/9/9/7C1/8r/9/9/3K1An2 b","n":6,"side":1,"sol":"車9平4"},{"id":91,"fen":"4k1b2/3N5/5aR2/9/1N3nb2/9/9/3A5/3K5/6B2 w","n":6,"side":0,"sol":"傌六退四"},{"id":92,"fen":"9/9/r2k5/9/5n3/9/9/B4K3/4A1N2/6r2 b","n":6,"side":1,"sol":"車1進5"},{"id":93,"fen":"5a3/3k4r/9/1r7/6N2/9/6C2/9/9/3A1K3 b","n":6,"side":1,"sol":"車9進8"},{"id":94,"fen":"2b6/9/4k4/4N4/1n7/9/5N3/2R5C/3n1K3/3A5 w","n":6,"side":0,"sol":"炮一平五"},{"id":95,"fen":"2r2k3/4c4/9/5C3/9/6n2/9/4K3B/9/1nB2A3 b","n":6,"side":1,"sol":"馬7進5"},{"id":96,"fen":"9/9/5k3/1P7/1c7/6B2/7n1/3N1An2/1r7/3K5 b","n":6,"side":1,"sol":"車2進1"},{"id":97,"fen":"2b1k4/N3a3R/5a3/8p/2b6/9/4n4/5R3/1n7/5KB2 w","n":6,"side":0,"sol":"車一進一"},{"id":98,"fen":"1P7/1r3k1r1/9/9/9/9/3n5/4B4/4A4/2BK5 b","n":6,"side":1,"sol":"車8進8"}];
+var OPENINGS = {"overview":["Bình phong mã (屏風馬): Đen nhảy cả hai Mã lên cột 3 và cột 7, đứng ngay trước Tốt 3 và Tốt 7. Hai Mã che chắn cung Tướng, bảo vệ lẫn nhau và bảo vệ Tốt giữa.","Đây là cách đối phó Pháo đầu (中炮) vững chắc và phổ biến nhất của bên Đen. Hai Pháo của Đen tạm giữ nguyên ở nhà để dùng sau.","Kế hoạch của Đen: (1) ra quân nhanh, đủ Mã, Xe; (2) đẩy Tốt 7 để đổi Tốt và mở đường cho Mã; (3) bình Pháo sang biên hoặc bình Pháo 7 để đổi Xe hoặc đuổi Xe đỏ; (4) giữ trung lộ chắc chắn trước các đòn Xe qua sông và Tốt giữa tiến.","Điểm cần cảnh giác: Xe đỏ qua sông ép vào Mã, Tốt giữa tiến mạnh (兵五進一), Pháo đỏ bắn qua ngòi lên Mã 7. Luôn kiểm tra quân nào đang được bảo vệ trước khi đi tiếp."],"lines":[{"id":"a1","title":"Bình pháo đổi Xe – Ngũ cửu pháo, Mã đỏ về tâm","summary":"Biến chính phổ biến: Đỏ dùng bộ Ngũ cửu pháo, hai bên đánh mỗi bên một cánh.","moves":["炮二平五","馬8進7","傌二進三","車9平8","車一平二","卒7進1","車二進六","馬2進3","兵七進一","炮8平9","車二平三","炮9退1","傌八進七","士4進5","炮八平九","車1平2","車九平八","炮9平7","車三平四","馬7進8","傌三退五","卒7進1","車四退一","卒7進1","車八進六","象7進5","傌七進六","馬8進9","相三進一","炮7平8","炮五平二","炮8平9","炮二平六","車8進5"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Xe sớm (車9平8): đưa quân mạnh nhất vào cuộc, nhắm cột 8.","5":"Đỏ ra Xe (車一平二), chuẩn bị ép Xe qua sông.","6":"Đen đẩy Tốt 7 (挺7卒): mở đường cho Mã 7, chủ động lo chuyện đổi Tốt và không để Xe đỏ tuần hà tự do.","7":"Xe qua sông (車二進六): Đỏ ép lên sớm để chiếm đường tấn công trước khi Đen kịp bình Pháo.","8":"Mã 2 tiến 3: hoàn tất \"bình phong\". Hai Mã đứng trước Tốt 3 và Tốt 7, che cung Tướng và bảo vệ nhau.","9":"Đỏ tiến Tốt 7 (兵七進一): mở đường cho Mã phải và tạo thế tấn công ở cánh phải.","10":"Bình Pháo đổi Xe (平炮兌車): Đen bình Pháo 8 sang 9 để mở cột 8 cho Xe Đen, đề nghị đổi Xe với Xe đỏ.","11":"Đỏ không đổi Xe mà bình sang cột 3 (車二平三), ép vào Mã 7 và Tốt 7 từ phía sau.","12":"Đen lùi Pháo 9 một bước (炮9退1): rút khỏi thế bị kẹp ở biên và chuẩn bị bình Pháo sang cột 7 để đuổi Xe đỏ.","13":"Đỏ ra Mã trái (傌八進七), đủ bộ quân chủ lực.","14":"Đen lên Sĩ (士4進5): củng cố cung Tướng trước khi giao chiến.","15":"Đỏ bình Pháo 8 sang 9 (炮八平九): dựng thế Ngũ cửu pháo (Pháo giữa + Pháo biên) và giải phóng Xe.","16":"Đen đưa nốt Xe còn lại ra (車1平2).","17":"Đỏ ra Xe (車九平八), nhắm cột 8.","18":"Đen bình Pháo sang cột 7: dùng chính Mã 7 làm ngòi để nhắm vào Xe đỏ, buộc Xe phải rời chỗ.","19":"Xe đỏ né sang cột 4 (車三平四).","20":"Mã 7 tiến 8: nhân lúc Xe đỏ lùi, Mã Đen vọt ra tấn công cánh trái Đỏ.","21":"Mã đỏ lùi về tâm (傌三退五): giảm áp lực ở cột 7 và tạo đường ra cho Mã còn lại. Đây là nước gần đây thịnh hành.","22":"Tốt 7 qua sông (卒7進1): Đen bắt đầu phản công ở cột 7."}},{"id":"a2","title":"Bình pháo đổi Xe – Ngũ cửu pháo, Xe trái qua sông","summary":"Đảo thứ tự nước đi; Đỏ bình Pháo biên, sau đó Xe trái qua sông.","moves":["炮二平五","馬8進7","傌二進三","馬2進3","車一平二","車9平8","兵七進一","卒7進1","車二進六","炮8平9","車二平三","炮9退1","傌八進七","士4進5","炮八平九","炮9平7","車三平四","馬7進8","車九平八","車1平2","車八進六"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Mã trái trước (馬2進3): hoàn tất bình phong trước, Xe ra sau. Thứ tự nước đi khác nhưng cùng một cấu hình.","5":"Đỏ ra Xe (車一平二).","6":"Đen ra Xe (車9平8), đủ ba quân Mã, Mã, Xe.","7":"Đỏ tiến Tốt 7 (兵七進一), chuẩn bị Xe qua sông.","8":"Đen đẩy Tốt 7 (卒7進1): đón Tốt đỏ và mở đường cho Mã 7.","9":"Xe qua sông (車二進六).","10":"Bình Pháo đổi Xe (炮8平9): mở cột 8 cho Xe Đen.","11":"Đỏ bình Xe sang cột 3 (車二平三) thay vì đổi Xe.","12":"Đen lùi Pháo 9 (炮9退1). Từ đây hai thứ tự nước đi hội tụ về cùng một thế.","13":"Đỏ ra Mã trái (傌八進七).","14":"Đen lên Sĩ (士4進5).","15":"Đỏ bình Pháo sang cột 9 (炮八平九): Ngũ cửu pháo.","16":"Đen bình Pháo sang cột 7 (炮9平7), nhắm vào Xe đỏ qua ngòi là Mã 7.","17":"Xe đỏ né sang cột 4 (車三平四).","18":"Mã 7 tiến 8 (馬7進8).","19":"Đỏ ra Xe trái (車九平八).","20":"Đen ra Xe (車1平2), hai Xe đều đã tham chiến.","21":"Xe đỏ qua sông (車八進六): hai bên bước vào giai đoạn giao tranh."}},{"id":"a3","title":"Xe đỏ ép Pháo – Đen đánh Tốt 3","summary":"Đỏ bình Xe bắt Pháo; Đen phản công bằng cách ăn Tốt 3.","moves":["炮二平五","馬8進7","傌二進三","馬2進3","車一平二","車9平8","兵七進一","卒7進1","車二進六","炮8平9","車二平三","炮9退1","傌八進七","炮9平7","車三平四","士4進5","炮八平九","馬7進8","車九平八","車1平2","車四進二","炮7進5","相三進一","炮2進4","兵五進一","炮7平3","傌三進四"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Mã trái trước (馬2進3): hoàn tất bình phong trước, Xe ra sau. Thứ tự nước đi khác nhưng cùng một cấu hình.","5":"Đỏ ra Xe (車一平二).","6":"Đen ra Xe (車9平8), đủ ba quân Mã, Mã, Xe.","7":"Đỏ tiến Tốt 7 (兵七進一), chuẩn bị Xe qua sông.","8":"Đen đẩy Tốt 7 (卒7進1): đón Tốt đỏ và mở đường cho Mã 7.","9":"Xe qua sông (車二進六).","10":"Bình Pháo đổi Xe (炮8平9): mở cột 8 cho Xe Đen.","11":"Đỏ bình Xe sang cột 3 (車二平三) thay vì đổi Xe.","12":"Đen lùi Pháo 9 (炮9退1). Từ đây hai thứ tự nước đi hội tụ về cùng một thế.","13":"Đỏ ra Mã trái (傌八進七).","14":"Đen bình Pháo 7 ngay (炮9平7): Pháo Đen nhắm vào Xe đỏ qua ngòi là Mã 7.","15":"Xe đỏ né sang cột 4 (車三平四).","16":"Đen lên Sĩ (士4進5).","21":"Xe đỏ tiến 2 (車四進二): ép lên bắt Pháo 7.","22":"Đen đáp bằng Pháo 7 tiến 5 (炮7進5), ăn Tốt 3 của Đỏ để giành thế phản công."}},{"id":"a4","title":"Xe đỏ ép Pháo – Đen lùi Pháo 2","summary":"Cùng thế Xe ép Pháo nhưng Đen chọn lùi Pháo 2 để hóa giải.","moves":["炮二平五","馬8進7","傌二進三","馬2進3","車一平二","車9平8","兵七進一","卒7進1","車二進六","炮8平9","車二平三","炮9退1","傌八進七","炮9平7","車三平四","士4進5","炮八平九","馬7進8","車九平八","車1平2","車四進二","炮2退1","車四退三","象3進5","車八進七","馬8進7","車四退二","炮7進1","傌七進六"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Mã trái trước (馬2進3): hoàn tất bình phong trước, Xe ra sau. Thứ tự nước đi khác nhưng cùng một cấu hình.","5":"Đỏ ra Xe (車一平二).","6":"Đen ra Xe (車9平8), đủ ba quân Mã, Mã, Xe.","7":"Đỏ tiến Tốt 7 (兵七進一), chuẩn bị Xe qua sông.","8":"Đen đẩy Tốt 7 (卒7進1): đón Tốt đỏ và mở đường cho Mã 7.","9":"Xe qua sông (車二進六).","10":"Bình Pháo đổi Xe (炮8平9): mở cột 8 cho Xe Đen.","11":"Đỏ bình Xe sang cột 3 (車二平三) thay vì đổi Xe.","12":"Đen lùi Pháo 9 (炮9退1). Từ đây hai thứ tự nước đi hội tụ về cùng một thế.","13":"Đỏ ra Mã trái (傌八進七).","14":"Đen bình Pháo 7 (炮9平7).","15":"Xe đỏ né sang cột 4 (車三平四).","16":"Đen lên Sĩ (士4進5).","21":"Xe đỏ tiến 2 (車四進二).","22":"Đen lùi Pháo 2 một bước (炮2退1), chọn thế vững thay vì ăn Tốt."}},{"id":"a5","title":"Xe đỏ ép Pháo – Đen lùi Pháo 2, Pháo đỏ đánh biên","summary":"Nhánh phụ của biến trước: Đỏ chọn Pháo tiến 4 thay vì Mã tiến 6.","moves":["炮二平五","馬8進7","傌二進三","馬2進3","車一平二","車9平8","兵七進一","卒7進1","車二進六","炮8平9","車二平三","炮9退1","傌八進七","炮9平7","車三平四","士4進5","炮八平九","馬7進8","車九平八","車1平2","車四進二","炮2退1","車四退三","象3進5","車八進七","馬8進7","車四退二","炮7進1","炮九進四"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Mã trái trước (馬2進3): hoàn tất bình phong trước, Xe ra sau. Thứ tự nước đi khác nhưng cùng một cấu hình.","5":"Đỏ ra Xe (車一平二).","6":"Đen ra Xe (車9平8), đủ ba quân Mã, Mã, Xe.","7":"Đỏ tiến Tốt 7 (兵七進一), chuẩn bị Xe qua sông.","8":"Đen đẩy Tốt 7 (卒7進1): đón Tốt đỏ và mở đường cho Mã 7.","9":"Xe qua sông (車二進六).","10":"Bình Pháo đổi Xe (炮8平9): mở cột 8 cho Xe Đen.","11":"Đỏ bình Xe sang cột 3 (車二平三) thay vì đổi Xe.","12":"Đen lùi Pháo 9 (炮9退1). Từ đây hai thứ tự nước đi hội tụ về cùng một thế.","13":"Đỏ ra Mã trái (傌八進七).","14":"Đen bình Pháo 7 (炮9平7).","15":"Xe đỏ né sang cột 4 (車三平四).","16":"Đen lên Sĩ (士4進5).","21":"Xe đỏ tiến 2 (車四進二).","22":"Đen lùi Pháo 2 (炮2退1)."}},{"id":"b1","title":"Đỏ xông Tốt giữa – Mã 3 lùi về tâm","summary":"Đỏ tiến Tốt giữa gấp; Đen lùi Mã về tâm giữ vững trung lộ.","moves":["炮二平五","馬8進7","傌二進三","車9平8","車一平二","卒7進1","車二進六","馬2進3","兵七進一","炮8平9","車二平三","炮9退1","兵五進一","馬3退5","炮八進四"],"notes":{"1":"Pháo đầu (中炮): Đỏ đưa Pháo vào cột giữa, nhắm thẳng vào Tốt giữa và cung Tướng Đen. Đây là khai cuộc phổ biến nhất của bên đi trước.","2":"Mã 8 tiến 7: vừa ra quân vừa bảo vệ Tốt giữa trước đòn Pháo đầu. Bình phong mã bắt đầu từ nước này.","3":"Đỏ ra Mã bên phải (傌二進三) để bảo vệ Tốt giữa của mình và mở đường cho Xe.","4":"Đen ra Xe sớm (車9平8): đưa quân mạnh nhất vào cuộc, nhắm cột 8.","5":"Đỏ ra Xe (車一平二), chuẩn bị ép Xe qua sông.","6":"Đen đẩy Tốt 7 (挺7卒): mở đường cho Mã 7, chủ động lo chuyện đổi Tốt và không để Xe đỏ tuần hà tự do.","7":"Xe qua sông (車二進六): Đỏ ép lên sớm để chiếm đường tấn công trước khi Đen kịp bình Pháo.","8":"Mã 2 tiến 3: hoàn tất \"bình phong\". Hai Mã đứng trước Tốt 3 và Tốt 7, che cung Tướng và bảo vệ nhau.","9":"Đỏ tiến Tốt 7 (兵七進一): mở đường cho Mã phải và tạo thế tấn công ở cánh phải.","10":"Bình Pháo đổi Xe (平炮兌車): Đen bình Pháo 8 sang 9 để mở cột 8 cho Xe Đen, đề nghị đổi Xe với Xe đỏ.","11":"Đỏ không đổi Xe mà bình sang cột 3 (車二平三), ép vào Mã 7 và Tốt 7 từ phía sau.","12":"Đen lùi Pháo 9 một bước (炮9退1): rút khỏi thế bị kẹp ở biên và chuẩn bị bình Pháo sang cột 7 để đuổi Xe đỏ.","13":"Đỏ tiến Tốt giữa gấp (兵五進一): muốn đột phá trung lộ trước khi Đen hoàn chỉnh thế trận.","14":"Đen lùi Mã 3 về cột 5 (馬3退5): Mã về giữ vững trung lộ và bảo vệ cung Tướng. Đây là cách đối phó được dùng trong thực chiến.","15":"Đỏ tiến Pháo trái 4 (炮八進四): một trong các nước được xem là chủ yếu của Đỏ. Chi tiết các nhánh sau đó cần tra thêm tài liệu hoặc engine."}}]};
+</script>
+<script>
+/* app.js - Giao diện Cờ Tướng Luyện Tập */
+(function () {
+  'use strict';
+  const $ = (s, el) => (el || document).querySelector(s);
+  const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // ---------- Lưu trữ ----------
+  const Store = {
+    get(k, d) { try { const v = localStorage.getItem('xq_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem('xq_' + k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } }
+  };
+
+  // ---------- Hiển thị quân & ký hiệu ----------
+  const HAN_RED = ['', '俥', '傌', '相', '仕', '帥', '炮', '兵'];
+  const HAN_BLK = ['', '車', '馬', '象', '士', '將', '砲', '卒'];
+  const glyph = p => ((p >> 3) ? HAN_BLK : HAN_RED)[p & 7];
+  const VI_PIECE = { '車': 'Xe', '傌': 'Mã', '馬': 'Mã', '相': 'Tượng', '象': 'Tượng', '仕': 'Sĩ', '士': 'Sĩ', '帥': 'Tướng', '將': 'Tướng', '炮': 'Pháo', '兵': 'Tốt', '卒': 'Tốt' };
+  const VI_DIR = { '進': 'tiến', '退': 'thoái', '平': 'bình' };
+  const VI_PRE = { '前': 'trước', '後': 'sau', '中': 'giữa', '二': 'thứ hai', '三': 'thứ ba', '四': 'thứ tư' };
+  const NUMS = '一二三四五六七八九';
+  const num = ch => { const k = NUMS.indexOf(ch); return k >= 0 ? String(k + 1) : ch; };
+  function vi(han) {
+    const c = Array.from(han);
+    if (c.length < 4) return han;
+    if (VI_PRE[c[0]] !== undefined && VI_PIECE[c[1]]) return VI_PIECE[c[1]] + ' ' + VI_PRE[c[0]] + ' ' + VI_DIR[c[2]] + ' ' + num(c[3]);
+    return (VI_PIECE[c[0]] || c[0]) + ' ' + num(c[1]) + ' ' + (VI_DIR[c[2]] || c[2]) + ' ' + num(c[3]);
+  }
+  function moveListHtml(notes, startSide, current, clickable) {
+    // notes: mảng chuỗi ký hiệu; startSide: 0 nếu nước đầu là Đỏ
+    let h = '';
+    for (let i = 0; i < notes.length; i++) {
+      const isRed = ((i + startSide) % 2) === 0;
+      if (isRed) h += '<span class="mn">' + (Math.floor((i + startSide) / 2) + 1) + '.</span>';
+      else if (i === 0) h += '<span class="mn">' + (Math.floor(startSide / 2) + 1) + '…</span>';
+      h += '<span class="mv' + (i === current ? ' cur' : '') + (clickable ? ' ck' : '') + (isRed ? ' red' : '') + '" data-i="' + i + '">' + esc(notes[i]) + '</span>';
+    }
+    return h;
+  }
+
+  // ---------- Engine (Web Worker + dự phòng) ----------
+  const HANDLER_SRC = `
+function xqHandle(S, d) {
+  function build() { const p = XQ.Pos.fromFen(d.fen); for (const m of d.moves) p.make(m); return p; }
+  if (d.type === 'search') { const p = build(); const r = S.search(p, d.opts); return { move: r.move, score: r.score, depth: r.depth }; }
+  if (d.type === 'analyze') {
+    const p = build();
+    const r1 = S.search(p, { maxDepth: d.depth, timeMs: d.timeMs });
+    const bestNot = r1.move ? p.notation(r1.move) : '';
+    p.make(d.move);
+    let s2;
+    if (p.legalMoves().length === 0) s2 = XQ.MATE;
+    else { const r2 = S.search(p, { maxDepth: Math.max(1, d.depth - 1), timeMs: d.timeMs }); s2 = -r2.score; }
+    return { best: r1.move, bestNot: bestNot, s1: r1.score, s2: s2 };
+  }
+  return {};
+}`;
+  const Engine = {
+    worker: null, pending: new Map(), seq: 0, fb: null, ready: false,
+    init() {
+      const src = document.getElementById('core-src').textContent;
+      try {
+        const glue = src + '\n' + HANDLER_SRC + `
+const S = new XQ.Searcher();
+onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (err) { res = { error: String(err) }; } res.id = e.data.id; postMessage(res); };`;
+        const url = URL.createObjectURL(new Blob([glue], { type: 'text/javascript' }));
+        this.worker = new Worker(url);
+        this.worker.onmessage = e => { const f = this.pending.get(e.data.id); if (f) { this.pending.delete(e.data.id); f(e.data); } };
+        this.worker.onerror = () => { this.worker = null; this._failPending(); };
+      } catch (err) { this.worker = null; }
+    },
+    _failPending() {
+      const items = Array.from(this.pending.entries()); this.pending.clear();
+      items.forEach(([id, f]) => f({ error: 'worker', id }));
+    },
+    call(d) {
+      d.id = ++this.seq;
+      return new Promise(resolve => {
+        if (this.worker) { this.pending.set(d.id, r => { if (r.error === 'worker') this._fallback(d).then(resolve); else resolve(r); }); this.worker.postMessage(d); }
+        else this._fallback(d).then(resolve);
+      });
+    },
+    _fallback(d) {
+      return new Promise(resolve => setTimeout(() => {
+        if (!this.fb) { this.fb = { S: new XQ.Searcher(), h: new Function('XQ', HANDLER_SRC + '; return xqHandle;')(XQ) }; }
+        let res; try { res = this.fb.h(this.fb.S, d); } catch (e) { res = { error: String(e) }; }
+        res.id = d.id; resolve(res);
+      }, 30));
+    }
+  };
+  const LEVELS = {
+    1: { name: '1 – Tập sự', opts: { maxDepth: 1, timeMs: 300, noise: 220 } },
+    2: { name: '2 – Sơ cấp', opts: { maxDepth: 2, timeMs: 500, noise: 90 } },
+    3: { name: '3 – Trung bình', opts: { maxDepth: 3, timeMs: 800, noise: 25 } },
+    4: { name: '4 – Khá', opts: { maxDepth: 6, timeMs: 1500 } },
+    5: { name: '5 – Mạnh', opts: { maxDepth: 9, timeMs: 4000 } }
+  };
+
+  // ---------- Bàn cờ SVG ----------
+  class Board {
+    constructor(host, onSquare) {
+      this.host = host; this.onSquare = onSquare; this.flip = false;
+      this.cell = 70; this.px = 50; this.py = 62;
+      this.W = 8 * this.cell + 2 * this.px; this.H = 9 * this.cell + 2 * this.py;
+      host.innerHTML = '<svg class="board" viewBox="0 0 ' + this.W + ' ' + this.H + '" role="img" aria-label="Bàn cờ tướng"><g class="static"></g><g class="dyn"></g></svg>';
+      this.svg = host.firstChild; this.gs = this.svg.querySelector('.static'); this.gd = this.svg.querySelector('.dyn');
+      this.svg.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        const rect = this.svg.getBoundingClientRect();
+        const px = (e.clientX - rect.left) * (this.W / rect.width), py = (e.clientY - rect.top) * (this.H / rect.height);
+        const dc = Math.round((px - this.px) / this.cell), dr = Math.round((py - this.py) / this.cell);
+        if (dc < 0 || dc > 8 || dr < 0 || dr > 9) return;
+        const c = this.flip ? 8 - dc : dc, r = this.flip ? 9 - dr : dr;
+        this.onSquare && this.onSquare(r * 9 + c);
+      });
+      this.drawStatic();
+    }
+    X(c) { return this.px + (this.flip ? 8 - c : c) * this.cell; }
+    Y(r) { return this.py + (this.flip ? 9 - r : r) * this.cell; }
+    setFlip(f) { this.flip = !!f; this.drawStatic(); }
+    drawStatic() {
+      const X0 = this.px, Y0 = this.py, c = this.cell, W = this.W, H = this.H;
+      let s = '<rect x="6" y="6" width="' + (W - 12) + '" height="' + (H - 12) + '" rx="18" class="bd-bg"/>';
+      s += '<g class="bd-line">';
+      for (let r = 0; r < 10; r++) s += '<line x1="' + X0 + '" y1="' + (Y0 + r * c) + '" x2="' + (X0 + 8 * c) + '" y2="' + (Y0 + r * c) + '"/>';
+      for (let k = 0; k < 9; k++) {
+        const x = X0 + k * c;
+        if (k === 0 || k === 8) s += '<line x1="' + x + '" y1="' + Y0 + '" x2="' + x + '" y2="' + (Y0 + 9 * c) + '"/>';
+        else s += '<line x1="' + x + '" y1="' + Y0 + '" x2="' + x + '" y2="' + (Y0 + 4 * c) + '"/><line x1="' + x + '" y1="' + (Y0 + 5 * c) + '" x2="' + x + '" y2="' + (Y0 + 9 * c) + '"/>';
+      }
+      const dg = (r1, c1, r2, c2) => '<line x1="' + (X0 + c1 * c) + '" y1="' + (Y0 + r1 * c) + '" x2="' + (X0 + c2 * c) + '" y2="' + (Y0 + r2 * c) + '"/>';
+      s += dg(0, 3, 2, 5) + dg(0, 5, 2, 3) + dg(7, 3, 9, 5) + dg(7, 5, 9, 3);
+      // dấu chấm vị trí pháo/tốt
+      const tick = (r, k) => {
+        const cx = X0 + k * c, cy = Y0 + r * c, a = 7, l = 14; let t = '';
+        for (const sx of [-1, 1]) {
+          if ((k === 0 && sx === -1) || (k === 8 && sx === 1)) continue;
+          for (const sy of [-1, 1]) t += '<polyline points="' + (cx + sx * (a + l)) + ',' + (cy + sy * a) + ' ' + (cx + sx * a) + ',' + (cy + sy * a) + ' ' + (cx + sx * a) + ',' + (cy + sy * (a + l)) + '"/>';
+        }
+        return t;
+      };
+      for (const k of [1, 7]) { s += tick(2, k) + tick(7, k); }
+      for (const k of [0, 2, 4, 6, 8]) { s += tick(3, k) + tick(6, k); }
+      s += '</g>';
+      s += '<text class="river" x="' + (X0 + 2 * c) + '" y="' + (Y0 + 4.5 * c + 14) + '" text-anchor="middle">楚　河</text>';
+      s += '<text class="river" x="' + (X0 + 6 * c) + '" y="' + (Y0 + 4.5 * c + 14) + '" text-anchor="middle">漢　界</text>';
+      // nhãn cột
+      const bottomRed = !this.flip;
+      for (let dc = 0; dc < 9; dc++) {
+        const fb = 9 - dc, ft = dc + 1, x = X0 + dc * c;
+        const bl = bottomRed ? NUMS[fb - 1] : String(fb), tl = bottomRed ? String(ft) : NUMS[ft - 1];
+        s += '<text class="fl" x="' + x + '" y="' + (H - 16) + '" text-anchor="middle">' + bl + '</text>';
+        s += '<text class="fl" x="' + x + '" y="' + 26 + '" text-anchor="middle">' + tl + '</text>';
+      }
+      this.gs.innerHTML = s;
+    }
+    // st: {pos, last:[from,to], sel, targets:[], hint:[from,to]|null, hintFrom:sq}
+    render(st) {
+      const pos = st.pos;
+      let s = '';
+      const sqXY = q => [this.X(q % 9), this.Y((q / 9) | 0)];
+      if (st.last) {
+        for (const q of st.last) { const [x, y] = sqXY(q); s += '<rect class="last" x="' + (x - 33) + '" y="' + (y - 33) + '" width="66" height="66" rx="12"/>'; }
+      }
+      if (st.hint) {
+        const [x1, y1] = sqXY(st.hint[0]), [x2, y2] = sqXY(st.hint[1]);
+        s += '<rect class="hintbox" x="' + (x1 - 34) + '" y="' + (y1 - 34) + '" width="68" height="68" rx="12"/>';
+        if (st.hint[1] !== undefined && st.hint[1] !== null && st.hint[1] !== st.hint[0]) {
+          s += '<line class="hintline" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/><circle class="hintdot" cx="' + x2 + '" cy="' + y2 + '" r="14"/>';
+        }
+      }
+      if (st.sel >= 0) { const [x, y] = sqXY(st.sel); s += '<circle class="selring" cx="' + x + '" cy="' + y + '" r="36"/>'; }
+      // quân cờ
+      let chk = -1;
+      if (pos.inCheck(pos.side)) chk = pos.ks[pos.side];
+      for (let q = 0; q < 90; q++) {
+        const pc = pos.b[q]; if (!pc) continue;
+        const [x, y] = sqXY(q), red = (pc >> 3) === 0;
+        if (q === chk) s += '<circle class="chk" cx="' + x + '" cy="' + y + '" r="40"/>';
+        s += '<g class="pc ' + (red ? 'r' : 'b') + '" transform="translate(' + x + ',' + y + ')"><circle class="pc-o" r="32"/><circle class="pc-i" r="27"/><text class="pc-t" y="12" text-anchor="middle">' + glyph(pc) + '</text></g>';
+      }
+      if (st.targets) {
+        for (const q of st.targets) {
+          const [x, y] = sqXY(q);
+          s += pos.b[q] ? '<circle class="tgt cap" cx="' + x + '" cy="' + y + '" r="36"/>' : '<circle class="tgt" cx="' + x + '" cy="' + y + '" r="9"/>';
+        }
+      }
+      this.gd.innerHTML = s;
+    }
+  }
+
+  // ---------- Điều khiển chọn ô chung ----------
+  function trySelect(ctx, sq, side, onMove) {
+    // ctx: {pos, sel, targets}; trả về true nếu thay đổi
+    const pos = ctx.pos;
+    if (ctx.sel >= 0 && ctx.targets.indexOf(sq) >= 0) {
+      const m = (ctx.sel << 7) | sq;
+      ctx.sel = -1; ctx.targets = [];
+      onMove(m);
+      return;
+    }
+    const pc = pos.b[sq];
+    if (pc && (pc >> 3) === side && pos.side === side) {
+      ctx.sel = sq;
+      ctx.targets = pos.legalMoves().filter(m => (m >> 7) === sq).map(m => m & 127);
+    } else { ctx.sel = -1; ctx.targets = []; }
+  }
+
+  function toast(msg, kind) {
+    const t = $('#toast'); t.textContent = msg; t.className = 'show ' + (kind || '');
+    clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = ''; }, 2600);
+  }
+
+  // ---------- Đấu máy ----------
+  const Play = {
+    ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: XQ.START_FEN,
+    user: Store.get('play_user', 1), level: Store.get('play_level', 3), warn: Store.get('play_warn', false),
+    last: null, hint: null, thinking: false, over: null, gen: 0,
+    init() {
+      this.board = new Board($('#play-board'), sq => this.onSquare(sq));
+      $('#play-new').onclick = () => this.newGame();
+      $('#play-undo').onclick = () => this.undo();
+      $('#play-hint').onclick = () => this.showHint();
+      $('#play-flip').onclick = () => { this.board.setFlip(!this.board.flip); this.draw(); };
+      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn');
+      sd.value = String(this.user);
+      lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
+      lv.value = String(this.level); wr.checked = !!this.warn;
+      sd.onchange = () => { this.user = +sd.value; Store.set('play_user', this.user); this.newGame(); };
+      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); };
+      wr.onchange = () => { this.warn = wr.checked; Store.set('play_warn', this.warn); };
+      this.newGame();
+    },
+    newGame() {
+      this.gen++;
+      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
+      this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false;
+      this.board.setFlip(this.user === 1);
+      this.draw();
+      if (this.ctx.pos.side !== this.user) this.engineMove();
+    },
+    onSquare(sq) {
+      if (this.thinking || this.over) return;
+      if (this.ctx.pos.side !== this.user) return;
+      this.hint = null;
+      trySelect(this.ctx, sq, this.user, m => this.doMove(m, true));
+      this.draw();
+    },
+    doMove(m, byUser) {
+      const pos = this.ctx.pos;
+      const before = { fen: this.startFen, moves: this.moves.slice() };
+      this.notes.push(pos.notation(m)); pos.make(m); this.moves.push(m);
+      this.last = [m >> 7, m & 127]; this.hint = null;
+      this.checkEnd();
+      this.draw();
+      if (byUser) {
+        if (!this.over) this.engineMove();
+        if (this.warn) this.analyze(before, m);
+      }
+    },
+    checkEnd() {
+      const pos = this.ctx.pos;
+      if (pos.legalMoves().length === 0) {
+        const winner = pos.side ^ 1;
+        this.over = (winner === 0 ? 'Đỏ' : 'Đen') + ' thắng' + (pos.inCheck() ? ' – chiếu bí.' : ' – đối phương hết nước đi.');
+      } else if (pos.repCount() >= 3) this.over = 'Hòa do lặp lại thế cờ ba lần.';
+      else if (this.moves.length >= 300) this.over = 'Hòa (quá dài).';
+    },
+    engineMove() {
+      if (this.over) return;
+      const g = this.gen; this.thinking = true; this.draw();
+      const lv = LEVELS[this.level];
+      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => {
+        if (g !== this.gen) return;
+        this.thinking = false;
+        if (r.move) this.doMove(r.move, false); else this.draw();
+      });
+    },
+    analyze(before, m) {
+      const g = this.gen;
+      Engine.call({ type: 'analyze', fen: before.fen, moves: before.moves, move: m, depth: 4, timeMs: 700 }).then(r => {
+        if (g !== this.gen || r.error) return;
+        const loss = r.s1 - r.s2;
+        if (r.best !== m && loss > 130) toast('Nước vừa rồi có thể yếu (mất ≈ ' + (loss / 100).toFixed(1) + ' điểm). Gợi ý: ' + r.bestNot + ' · ' + vi(r.bestNot), 'warn');
+        else if (r.best === m) toast('Nước tốt.', 'ok');
+      });
+    },
+    undo() {
+      if (this.thinking || !this.moves.length) return;
+      this.gen++;
+      do { this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); } while (this.moves.length && this.ctx.pos.side !== this.user);
+      this.over = null; this.ctx.sel = -1; this.ctx.targets = [];
+      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null; this.hint = null;
+      if (this.ctx.pos.side !== this.user) this.engineMove(); else this.draw();
+    },
+    showHint() {
+      if (this.thinking || this.over || this.ctx.pos.side !== this.user) return;
+      const g = this.gen; this.thinking = true; this.draw();
+      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: { maxDepth: 6, timeMs: 1500 } }).then(r => {
+        if (g !== this.gen) return;
+        this.thinking = false;
+        if (r.move) { this.hint = [r.move >> 7, r.move & 127]; const n = this.ctx.pos.notation(r.move); toast('Gợi ý: ' + n + ' · ' + vi(n)); }
+        this.draw();
+      });
+    },
+    draw() {
+      const c = this.ctx;
+      this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
+      let st;
+      if (this.over) st = '<b>' + esc(this.over) + '</b>';
+      else {
+        const turn = c.pos.side === 0 ? 'Đỏ' : 'Đen';
+        st = (this.thinking ? 'Máy đang nghĩ…' : (c.pos.side === this.user ? 'Đến lượt bạn (' + turn + ')' : 'Lượt máy (' + turn + ')'));
+        if (c.pos.inCheck()) st += ' · <b class="chk-t">Chiếu tướng!</b>';
+      }
+      $('#play-status').innerHTML = st;
+      $('#play-moves').innerHTML = this.notes.length ? moveListHtml(this.notes, 0, this.notes.length - 1, false) : '<span class="muted">Chưa có nước đi.</span>';
+      const mv = $('#play-moves'); mv.scrollTop = mv.scrollHeight;
+      $('#play-undo').disabled = this.thinking || !this.moves.length;
+      $('#play-hint').disabled = this.thinking || !!this.over;
+    }
+  };
+
+  // ---------- Chiếu hết ----------
+  const Puz = {
+    ctx: null, cur: null, remaining: 0, busy: false, solved: false, hintStage: 0, errors: 0, hint: null, last: null, notes: [], gen: 0,
+    done: Store.get('puz_done', {}), filter: Store.get('puz_filter', 0),
+    init() {
+      this.board = new Board($('#puz-board'), sq => this.onSquare(sq));
+      $('#puz-back').onclick = () => this.showList();
+      $('#puz-reset').onclick = () => this.open(this.cur.id);
+      $('#puz-hint').onclick = () => this.showHint();
+      $('#puz-sol').onclick = () => this.playSolution();
+      $('#puz-next').onclick = () => this.next();
+      this.renderList();
+    },
+    renderList() {
+      const f = this.filter;
+      const counts = {}; PUZZLES.forEach(p => { counts[p.n] = counts[p.n] || { t: 0, d: 0 }; counts[p.n].t++; if (this.done[p.id]) counts[p.n].d++; });
+      let h = '<div class="chips">';
+      h += '<button class="chip' + (f === 0 ? ' on' : '') + '" data-f="0">Tất cả</button>';
+      for (let n = 1; n <= 6; n++) if (counts[n]) h += '<button class="chip' + (f === n ? ' on' : '') + '" data-f="' + n + '">' + n + ' nước <small>' + counts[n].d + '/' + counts[n].t + '</small></button>';
+      h += '</div><div class="grid">';
+      PUZZLES.filter(p => !f || p.n === f).forEach(p => {
+        h += '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + p.id + '"><span class="pz-n">' + p.id + '</span><span class="pz-s">' + (p.side === 0 ? '<i class="dot r"></i>Đỏ' : '<i class="dot b"></i>Đen') + ' · ' + p.n + ' nước</span>' + (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>';
+      });
+      h += '</div>';
+      $('#puz-list').innerHTML = h;
+      $$('#puz-list .chip').forEach(b => b.onclick = () => { this.filter = +b.dataset.f; Store.set('puz_filter', this.filter); this.renderList(); });
+      $$('#puz-list .pz').forEach(b => b.onclick = () => this.open(+b.dataset.id));
+    },
+    showList() { this.gen++; $('#puz-play').hidden = true; $('#puz-list-wrap').hidden = false; this.renderList(); },
+    open(id) {
+      this.gen++;
+      const p = PUZZLES.find(x => x.id === id); this.cur = p;
+      this.ctx = { pos: XQ.Pos.fromFen(p.fen), sel: -1, targets: [] };
+      this.remaining = p.n; this.busy = false; this.solved = false; this.hintStage = 0; this.errors = 0; this.hint = null; this.last = null; this.notes = [];
+      this.board.setFlip(p.side === 1);
+      $('#puz-list-wrap').hidden = true; $('#puz-play').hidden = false;
+      this.draw();
+    },
+    next() {
+      const list = PUZZLES.filter(p => !this.filter || p.n === this.filter);
+      const i = list.findIndex(p => p.id === this.cur.id);
+      const nx = list.slice(i + 1).find(p => !this.done[p.id]) || list[(i + 1) % list.length];
+      this.open(nx.id);
+    },
+    onSquare(sq) {
+      if (this.busy || this.solved) return;
+      const p = this.cur; this.hint = null;
+      trySelect(this.ctx, sq, p.side, m => this.attempt(m));
+      this.draw();
+    },
+    attempt(m) {
+      const pos = this.ctx.pos;
+      const good = XQ.mateFirstMoves(pos, this.remaining);
+      if (good.indexOf(m) < 0) {
+        this.errors++;
+        toast('Chưa đúng. Hãy tìm chuỗi nước chiếu dẫn tới chiếu hết trong ' + this.remaining + ' nước.', 'warn');
+        return;
+      }
+      this.notes.push(pos.notation(m)); pos.make(m); this.remaining--; this.last = [m >> 7, m & 127];
+      if (pos.legalMoves().length === 0) { this.finish(); return; }
+      this.busy = true; this.draw();
+      const g = this.gen;
+      setTimeout(() => {
+        if (g !== this.gen) return;
+        const d = XQ.bestDefense(pos, this.remaining);
+        this.notes.push(pos.notation(d)); pos.make(d); this.last = [d >> 7, d & 127];
+        this.busy = false; this.draw();
+      }, 500);
+    },
+    finish() {
+      this.solved = true;
+      if (!this.done[this.cur.id]) { this.done[this.cur.id] = 1; Store.set('puz_done', this.done); }
+      toast(this.errors ? 'Chiếu hết! (sai ' + this.errors + ' lần)' : 'Chiếu hết! Giải đúng ngay lần đầu.', 'ok');
+      this.draw();
+    },
+    showHint() {
+      if (this.busy || this.solved) return;
+      const good = XQ.mateFirstMoves(this.ctx.pos, this.remaining);
+      if (!good.length) return;
+      const m = good[0];
+      if (this.hintStage === 0) { this.hint = [m >> 7, null]; this.hintStage = 1; toast('Gợi ý: hãy dùng quân được đánh dấu.'); }
+      else { this.hint = [m >> 7, m & 127]; this.hintStage = 2; const n = this.ctx.pos.notation(m); toast('Nước đi: ' + n + ' · ' + vi(n)); }
+      this.draw();
+    },
+    playSolution() {
+      if (this.busy || this.solved) return;
+      this.errors++;
+      this.busy = true; const g = this.gen;
+      const step = () => {
+        if (g !== this.gen) return;
+        const pos = this.ctx.pos;
+        const good = XQ.mateFirstMoves(pos, this.remaining);
+        const m = good[0];
+        this.notes.push(pos.notation(m)); pos.make(m); this.remaining--; this.last = [m >> 7, m & 127]; this.hint = null; this.draw();
+        if (pos.legalMoves().length === 0) { this.busy = false; this.solved = true; toast('Đáp án: ' + this.notes.join(' ')); this.draw(); return; }
+        setTimeout(() => {
+          if (g !== this.gen) return;
+          const d = XQ.bestDefense(pos, this.remaining);
+          this.notes.push(pos.notation(d)); pos.make(d); this.last = [d >> 7, d & 127]; this.draw();
+          setTimeout(step, 700);
+        }, 700);
+      };
+      step();
+    },
+    draw() {
+      const c = this.ctx, p = this.cur;
+      this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
+      $('#puz-title').innerHTML = '<b>Bài ' + p.id + '</b> · ' + (p.side === 0 ? 'Đỏ' : 'Đen') + ' đi, chiếu hết trong ' + p.n + ' nước';
+      let st;
+      if (this.solved) st = '<b class="okt">Hoàn thành!</b> ' + (this.notes.length ? esc(this.notes.join(' ')) : '');
+      else st = 'Còn <b>' + this.remaining + '</b> nước chiếu. ' + (this.busy ? 'Đối phương đang đỡ…' : 'Đến lượt bạn.');
+      $('#puz-status').innerHTML = st;
+      $('#puz-next').hidden = !this.solved;
+      $('#puz-hint').disabled = this.busy || this.solved; $('#puz-sol').disabled = this.busy || this.solved;
+    }
+  };
+
+  // ---------- Khai cuộc ----------
+  const Op = {
+    ctx: null, line: null, mode: 'study', k: 0, cands: [], flipPref: true, last: null, hint: null, stats: Store.get('op_stats', {}),
+    mistakes: 0, finished: false, busy: false, gen: 0, noteText: '', pathNotes: [],
+    init() {
+      this.board = new Board($('#op-board'), sq => this.onSquare(sq));
+      $('#op-back').onclick = () => this.showList();
+      $('#op-study').onclick = () => this.setMode('study');
+      $('#op-drill').onclick = () => this.setMode('drill');
+      $('#op-first').onclick = () => this.goto(0);
+      $('#op-prev').onclick = () => this.goto(this.k - 1);
+      $('#op-next').onclick = () => this.goto(this.k + 1);
+      $('#op-last').onclick = () => this.goto(this.line.moves.length);
+      $('#op-flip').onclick = () => { this.board.setFlip(!this.board.flip); this.draw(); };
+      $('#op-hint').onclick = () => this.showHint();
+      $('#op-again').onclick = () => this.startDrill(this.line);
+      $('#op-moves').onclick = e => { const el = e.target.closest('.mv'); if (el && this.mode === 'study') this.goto(+el.dataset.i + 1); };
+      $('#op-overview').innerHTML = OPENINGS.overview.map(t => '<p>' + esc(t) + '</p>').join('');
+      this.renderList();
+    },
+    renderList() {
+      let h = '';
+      OPENINGS.lines.forEach(L => {
+        const s = this.stats[L.id] || { done: 0, mistakes: 0 };
+        h += '<div class="card line"><div class="line-h"><b>' + esc(L.title) + '</b><span class="badge">' + (s.done ? '✓ ' + s.done + ' lần' : 'chưa tập') + '</span></div><p class="muted">' + esc(L.summary) + '</p><div class="row"><button class="btn" data-a="study" data-id="' + L.id + '">Xem</button><button class="btn primary" data-a="drill" data-id="' + L.id + '">Tập chơi Đen</button></div></div>';
+      });
+      h += '<div class="card line"><div class="line-h"><b>Tập ngẫu nhiên</b></div><p class="muted">Máy chọn ngẫu nhiên các nhánh của Đỏ; bạn đáp lại bằng nước đúng của Bình phong mã.</p><div class="row"><button class="btn primary" data-a="random">Bắt đầu</button></div></div>';
+      $('#op-list').innerHTML = h;
+      $$('#op-list button').forEach(b => b.onclick = () => {
+        if (b.dataset.a === 'random') this.startRandom();
+        else this.open(OPENINGS.lines.find(l => l.id === b.dataset.id), b.dataset.a);
+      });
+    },
+    showList() { this.gen++; $('#op-play').hidden = true; $('#op-list-wrap').hidden = false; this.renderList(); },
+    open(L, mode) {
+      this.line = L; $('#op-list-wrap').hidden = true; $('#op-play').hidden = false;
+      this.board.setFlip(true);
+      this.setMode(mode || 'study');
+    },
+    setMode(mode) {
+      this.gen++; this.mode = mode;
+      $('#op-study').classList.toggle('on', mode === 'study'); $('#op-drill').classList.toggle('on', mode === 'drill');
+      if (mode === 'study') { this.cands = [this.line]; this.goto(0); }
+      else this.startDrill(this.line);
+    },
+    posAt(k, L) {
+      const pos = XQ.Pos.fromFen(XQ.START_FEN); const ms = [];
+      for (let i = 0; i < k; i++) { const m = pos.parse(L.moves[i]); ms.push(m); pos.make(m); }
+      return { pos, ms };
+    },
+    goto(k) {
+      const L = this.line;
+      k = Math.max(0, Math.min(L.moves.length, k)); this.k = k;
+      const { pos, ms } = this.posAt(k, L);
+      this.ctx = { pos, sel: -1, targets: [] };
+      const lm = ms[ms.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null; this.hint = null;
+      this.noteText = k > 0 ? (L.notes[k] || '') : 'Thế ban đầu. Bấm ▶ để xem từng nước, hoặc bấm vào nước trong bảng.';
+      this.pathNotes = L.moves.slice(0, L.moves.length);
+      this.finished = false; this.draw();
+    },
+    startRandom() {
+      $('#op-list-wrap').hidden = true; $('#op-play').hidden = false; this.board.setFlip(true);
+      this.line = null; this.mode = 'drill';
+      $('#op-study').classList.remove('on'); $('#op-drill').classList.add('on');
+      this.startDrill(null);
+    },
+    startDrill(L) {
+      this.gen++;
+      this.line = L;
+      this.cands = L ? [L] : OPENINGS.lines.slice();
+      this.ctx = { pos: XQ.Pos.fromFen(XQ.START_FEN), sel: -1, targets: [] };
+      this.k = 0; this.last = null; this.hint = null; this.mistakes = 0; this.finished = false; this.busy = false; this.pathNotes = [];
+      this.noteText = 'Bạn cầm Đen. Hãy đáp lại từng nước của Đỏ bằng nước đúng của Bình phong mã.';
+      this.draw();
+      this.redReply();
+    },
+    redReply() {
+      const pos = this.ctx.pos; if (pos.side !== 0) return;
+      const avail = this.cands.filter(L => L.moves.length > this.k);
+      if (!avail.length) { this.finish(); return; }
+      const pick = avail[(Math.random() * avail.length) | 0], not = pick.moves[this.k];
+      this.cands = avail.filter(L => L.moves[this.k] === not);
+      this.busy = true; const g = this.gen;
+      setTimeout(() => {
+        if (g !== this.gen) return;
+        const m = pos.parse(not); pos.make(m); this.pathNotes.push(not);
+        this.last = [m >> 7, m & 127];
+        this.noteText = 'Đỏ: ' + not + ' · ' + vi(not) + '. ' + (this.cands[0].notes[this.k + 1] || '');
+        this.k++; this.busy = false;
+        if (!this.cands.some(L => L.moves.length > this.k)) { this.draw(); this.finish(); return; }
+        this.draw();
+      }, 450);
+    },
+    onSquare(sq) {
+      if (this.mode !== 'drill' || this.busy || this.finished) return;
+      this.hint = null;
+      trySelect(this.ctx, sq, 1, m => this.userMove(m));
+      this.draw();
+    },
+    userMove(m) {
+      const pos = this.ctx.pos, not = pos.notation(m);
+      const ok = this.cands.filter(L => L.moves[this.k] === not);
+      if (!ok.length) {
+        this.mistakes++;
+        const exp = Array.from(new Set(this.cands.filter(L => L.moves.length > this.k).map(L => L.moves[this.k])));
+        this.noteText = 'Chưa đúng: ' + not + '. Trong sách, nước ở đây là: ' + exp.join(' hoặc ') + '. Hãy thử lại.';
+        toast('Chưa đúng – thử lại.', 'warn');
+        return;
+      }
+      this.cands = ok; pos.make(m); this.pathNotes.push(not); this.last = [m >> 7, m & 127];
+      this.noteText = 'Đúng: ' + not + ' · ' + vi(not) + '. ' + (ok[0].notes[this.k + 1] || '');
+      this.k++;
+      if (!ok.some(L => L.moves.length > this.k)) { this.draw(); this.finish(); return; }
+      this.draw();
+      this.redReply();
+    },
+    finish() {
+      this.finished = true;
+      const L = this.cands[0];
+      const s = this.stats[L.id] || { done: 0, mistakes: 0 };
+      s.done++; s.mistakes += this.mistakes; this.stats[L.id] = s; Store.set('op_stats', this.stats);
+      this.noteText += ' — Hoàn thành biến "' + L.title + '" với ' + this.mistakes + ' lần sai.';
+      toast('Hoàn thành biến! ' + (this.mistakes ? this.mistakes + ' lần sai.' : 'Không sai nước nào.'), 'ok');
+      this.draw();
+    },
+    showHint() {
+      if (this.mode !== 'drill' || this.busy || this.finished) return;
+      const avail = this.cands.filter(L => L.moves.length > this.k);
+      if (!avail.length) return;
+      const not = avail[0].moves[this.k], m = this.ctx.pos.parse(not);
+      this.hint = [m >> 7, m & 127]; this.mistakes++;
+      toast('Nước đúng: ' + not + ' · ' + vi(not)); this.draw();
+    },
+    draw() {
+      const c = this.ctx, L = this.line;
+      this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
+      $('#op-title').textContent = L ? L.title : 'Tập ngẫu nhiên – Bình phong mã đối Pháo đầu';
+      $('#op-note').textContent = this.noteText;
+      const study = this.mode === 'study';
+      $('#op-nav').hidden = !study;
+      $('#op-hint').hidden = study; $('#op-again').hidden = study;
+      $('#op-study').hidden = !L;
+      let notes = [], cur = -1;
+      if (study) { notes = L.moves; cur = this.k - 1; }
+      else { notes = this.pathNotes; cur = notes.length - 1; }
+      $('#op-moves').innerHTML = notes.length ? moveListHtml(notes, 0, cur, study) : '<span class="muted">Chưa có nước đi.</span>';
+      const cu = $('#op-moves .cur'); if (cu && cu.scrollIntoView) { try { cu.scrollIntoView({ block: 'nearest' }); } catch (e) { /* bỏ qua */ } }
+    }
+  };
+
+  // ---------- Điều hướng ----------
+  function showTab(name) {
+    $$('.view').forEach(v => v.hidden = v.id !== 'v-' + name);
+    $$('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
+    Store.set('tab', name);
+    window.scrollTo(0, 0);
+  }
+
+  function boot() {
+    Engine.init();
+    Play.init(); Puz.init(); Op.init();
+    $$('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+    showTab(Store.get('tab', 'play'));
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* bỏ qua */ });
+    }
+  }
+  window.__xq = { Play, Puz, Op, Engine, Board, vi };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+
+</script>
+</body>
+</html>
