@@ -6,6 +6,8 @@ button{font-size:18px;padding:10px 18px;border-radius:12px;border:0;background:#
 pre{background:#fff;padding:12px;border-radius:10px;white-space:pre-wrap;word-break:break-word;font-size:14px}</style></head><body>
 <h2>Thử engine mạnh trên máy bạn</h2>
 <p>Trang này kiểm tra xem điện thoại hoặc trình duyệt của bạn có chạy được engine Fairy-Stockfish (kèm mạng NNUE cờ tướng, khoảng 13 MB) hay không. Lần đầu trang có thể tự tải lại một lần.</p>
+<p>Bộ nhớ tối đa cho engine: <select id="mem"><option value="512" selected>512 MB (nên thử trước)</option><option value="1024">1024 MB</option></select></p>
+<p>Bộ nhớ bảng băm (Hash): <select id="hash"><option value="16" selected>16 MB</option><option value="4">4 MB</option><option value="1">1 MB</option></select></p>
 <button id="go">Chạy thử</button>
 <pre id="out">Chưa chạy.</pre>
 <script>
@@ -26,8 +28,8 @@ document.getElementById('go').onclick=async()=>{
     out.textContent='Trình duyệt: '+navigator.userAgent+'\ncrossOriginIsolated: '+window.crossOriginIsolated+'\nSharedArrayBuffer: '+typeof SharedArrayBuffer;
     if(typeof SharedArrayBuffer==='undefined'){log('KẾT QUẢ: KHÔNG chạy được (thiếu SharedArrayBuffer).');return;}
     const t0=performance.now();
-    log('Đang tải engine…');
-    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='stockfish.js';s.onload=res;s.onerror=()=>rej(new Error('không tải được stockfish.js'));document.head.appendChild(s)});
+    log('Đang tải engine (bộ nhớ tối đa '+document.getElementById('mem').value+' MB)…');
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='stockfish-'+document.getElementById('mem').value+'.js';s.onload=res;s.onerror=()=>rej(new Error('không tải được stockfish.js'));document.head.appendChild(s)});
     const sf=await Stockfish();
     const lines=[];sf.addMessageListener(l=>lines.push(l));
     const wait=re=>new Promise(res=>{const i=setInterval(()=>{const f=lines.find(l=>re.test(l));if(f){clearInterval(i);res(f)}},20)});
@@ -37,7 +39,7 @@ document.getElementById('go').onclick=async()=>{
     const buf=new Uint8Array(await (await fetch('xiangqi-c07e94a5c7cb.nnue')).arrayBuffer());
     sf.FS.writeFile('/xiangqi-c07e94a5c7cb.nnue',buf);
     sf.postMessage('setoption name EvalFile value /xiangqi-c07e94a5c7cb.nnue');
-    sf.postMessage('setoption name Use NNUE value true');
+    sf.postMessage('setoption name Use NNUE value true');sf.postMessage('setoption name Hash value '+document.getElementById('hash').value);
     sf.postMessage('isready');await wait(/^readyok/);
     log('Tải xong sau '+Math.round(performance.now()-t0)+' ms. Đang tính 3 giây…');
     lines.length=0;
@@ -45,7 +47,7 @@ document.getElementById('go').onclick=async()=>{
     const bm=await wait(/^bestmove/);
     const inf=lines.filter(l=>l.startsWith('info')&&/ pv /.test(l)).pop()||'';
     const nps=(inf.match(/nps (\d+)/)||[])[1],dep=(inf.match(/depth (\d+)/)||[])[1];
-    log('Nước đi: '+bm+'\nĐộ sâu: '+dep+'  ·  tốc độ: '+nps+' nút/giây');
+    log('Bộ nhớ engine đang dùng: '+Math.round((sf.HEAPU8?sf.HEAPU8.length:0)/1048576)+' MB');log('Nước đi: '+bm+'\nĐộ sâu: '+dep+'  ·  tốc độ: '+nps+' nút/giây');
     log(dep>=15?'KẾT QUẢ: CHẠY ĐƯỢC, và mạng NNUE đã bật (độ sâu cao).':'KẾT QUẢ: chạy được nhưng độ sâu thấp, NNUE có thể chưa bật.');
   }catch(e){log('KẾT QUẢ: LỖI: '+e);}
 };
