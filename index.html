@@ -113,6 +113,13 @@ a{color:var(--accent)}
     <div class="settings">
       <label>Bạn cầm <select id="play-side"><option value="1">Đen</option><option value="0">Đỏ</option></select></label>
       <label>Cấp độ <select id="play-level"></select></label>
+      <label>Máy mở đầu (khi máy cầm Đỏ) <select id="play-open">
+        <option value="">Ngẫu nhiên</option>
+        <option value="炮二平五">Pháo đầu (hợp luyện Bình phong mã)</option>
+        <option value="兵七進一">Tiên nhân chỉ lộ (Tốt 7)</option>
+        <option value="相三進五">Phi tượng</option>
+        <option value="傌二進三">Khởi mã</option>
+      </select></label>
       <label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label>
     </div>
     <div class="moves" id="play-moves"></div>
@@ -200,7 +207,7 @@ a{color:var(--accent)}
     <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
     <h2>Ghi chú</h2>
     <ul class="tidy">
-      <li>Máy trong bản này là engine tự viết, mạnh ở mức người chơi trung bình đến khá. Nó đủ để kiểm chứng bài chiếu hết và làm đối thủ luyện tập.</li>
+      <li>Cấp 1–5 dùng engine tự viết, mạnh ở mức người chơi trung bình đến khá. Cấp 6 (Cao thủ) dùng engine Fairy-Stockfish kèm mạng NNUE cờ tướng (giấy phép GPL-3.0, mạng do nhóm Pikafish huấn luyện). Cấp này tải khoảng 13 MB ở lần dùng đầu tiên, cần trình duyệt hỗ trợ, và có thể rất mạnh.</li>
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
       <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
       <li>Ký hiệu nước đi hiển thị bằng chữ Hán, kèm bản tiếng Việt khi cần (ví dụ 炮二平五 là Pháo 2 bình 5).</li>
@@ -782,6 +789,28 @@ a{color:var(--accent)}
       this.ttFlag[idx] = best <= origAlpha ? 2 : (best >= beta ? 1 : 0);
       this.ttMove[idx] = bestMove;
       return best;
+    }
+
+    // Khai cuộc đa dạng: chấm điểm mọi nước gốc, chọn ngẫu nhiên trong nhóm nước chênh nhau không quá `margin` điểm.
+    searchVaried(pos, opts, margin) {
+      const moves = pos.legalMoves();
+      if (moves.length < 2) return this.search(pos, opts);
+      const d = Math.max(2, opts.varyDepth || 4);
+      this.deadline = Date.now() + Math.max(opts.timeMs || 1000, 3000); this.stop = false; this.nodes = 0;
+      const hist = this.history; for (let i = 0; i < hist.length; i++) hist[i] >>= 3;
+      const scored = [];
+      for (const m of moves) {
+        pos.make(m);
+        const v = -this.negamax(pos, d - 1, -INF, INF, 1);
+        pos.unmake();
+        if (this.stop) return this.search(pos, Object.assign({}, opts, { vary: 0 }));
+        scored.push([v, m]);
+      }
+      let best = -INF; for (const s of scored) if (s[0] > best) best = s[0];
+      if (Math.abs(best) > MATE - 100) return this.search(pos, Object.assign({}, opts, { vary: 0 }));
+      const pool = scored.filter(s => s[0] >= best - margin);
+      const pick = pool[(Math.random() * pool.length) | 0];
+      return { move: pick[1], score: pick[0], depth: d, nodes: this.nodes };
     }
 
     // opts: {maxDepth, timeMs, noise}
@@ -3541,7 +3570,7 @@ var TACTICS = [
   const HANDLER_SRC = `
 function xqHandle(S, d) {
   function build() { const p = XQ.Pos.fromFen(d.fen); for (const m of d.moves) p.make(m); return p; }
-  if (d.type === 'search') { const p = build(); const r = S.search(p, d.opts); return { move: r.move, score: r.score, depth: r.depth }; }
+  if (d.type === 'search') { const p = build(); const o = d.opts; const r = (o.vary && d.moves.length < (o.varyPlies || 12)) ? S.searchVaried(p, o, o.vary) : S.search(p, o); return { move: r.move, score: r.score, depth: r.depth }; }
   if (d.type === 'analyze') {
     const p = build();
     const r1 = S.search(p, { maxDepth: d.depth, timeMs: d.timeMs });
@@ -3592,7 +3621,8 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
     2: { name: '2 – Sơ cấp', opts: { maxDepth: 2, timeMs: 500, noise: 90 } },
     3: { name: '3 – Trung bình', opts: { maxDepth: 3, timeMs: 800, noise: 25 } },
     4: { name: '4 – Khá', opts: { maxDepth: 6, timeMs: 1500 } },
-    5: { name: '5 – Mạnh', opts: { maxDepth: 9, timeMs: 4000 } }
+    5: { name: '5 – Mạnh', opts: { maxDepth: 9, timeMs: 4000 } },
+    6: { name: '6 – Cao thủ (engine NNUE, tải 13 MB lần đầu)', fsf: { ms: 1500 }, opts: { maxDepth: 9, timeMs: 4000 } }
   };
 
   // ---------- Bàn cờ SVG ----------
@@ -3710,6 +3740,51 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
     clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = ''; }, 2600);
   }
 
+  // ---------- Engine mạnh (Fairy-Stockfish + mạng NNUE cờ tướng) ----------
+  const FSF = {
+    sf: null, p: null, lines: [], failed: false,
+    DIR: 'wasm-demo/', NNUE: 'xiangqi-c07e94a5c7cb.nnue',
+    supported() { return !!(window.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined' && !this.failed); },
+    fen6(f) { const t = f.trim().split(/\s+/); return t[0] + ' ' + (t[1] || 'w') + ' - - 0 1'; },
+    toFsf(u) { return u.replace(/^([a-i])(\d)([a-i])(\d)/, (_, a, b, c, d) => a + (+b + 1) + c + (+d + 1)); },
+    fromFsf(u) { const m = /^([a-i])(\d+)([a-i])(\d+)/.exec(u); return m ? m[1] + (+m[2] - 1) + m[3] + (+m[4] - 1) : ''; },
+    wait(re, ms) {
+      return new Promise((res, rej) => {
+        const t0 = Date.now();
+        const i = setInterval(() => {
+          const f = this.lines.find(l => re.test(l));
+          if (f) { clearInterval(i); res(f); } else if (Date.now() - t0 > ms) { clearInterval(i); rej(new Error('quá thời gian chờ engine')); }
+        }, 25);
+      });
+    },
+    init() {
+      if (this.p) return this.p;
+      this.p = (async () => {
+        await new Promise((res, rej) => { const s = document.createElement('script'); s.src = this.DIR + 'stockfish-512.js'; s.onload = res; s.onerror = () => rej(new Error('không tải được engine')); document.head.appendChild(s); });
+        const sf = await window.Stockfish();
+        sf.addMessageListener(l => { this.lines.push(l); if (this.lines.length > 400) this.lines.splice(0, 200); });
+        this.sf = sf;
+        sf.postMessage('uci'); await this.wait(/^uciok/, 15000);
+        sf.postMessage('setoption name UCI_Variant value xiangqi');
+        const r = await fetch(this.DIR + this.NNUE); if (!r.ok) throw new Error('không tải được mạng NNUE');
+        sf.FS.writeFile('/' + this.NNUE, new Uint8Array(await r.arrayBuffer()));
+        sf.postMessage('setoption name EvalFile value /' + this.NNUE);
+        sf.postMessage('setoption name Use NNUE value true');
+        sf.postMessage('setoption name Hash value 16');
+        this.lines.length = 0; sf.postMessage('isready'); await this.wait(/^readyok/, 20000);
+      })().catch(e => { this.failed = true; this.p = null; throw e; });
+      return this.p;
+    },
+    async best(startFen, uciMoves, ms) {
+      await this.init();
+      const sf = this.sf; this.lines.length = 0;
+      sf.postMessage('position fen ' + this.fen6(startFen) + (uciMoves.length ? ' moves ' + uciMoves.map(u => this.toFsf(u)).join(' ') : ''));
+      sf.postMessage('go movetime ' + ms);
+      const l = await this.wait(/^bestmove/, ms + 15000);
+      return this.fromFsf(l.split(/\s+/)[1] || '');
+    }
+  };
+
   // ---------- Đấu máy ----------
   const Play = {
     ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: XQ.START_FEN,
@@ -3721,7 +3796,8 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
       $('#play-undo').onclick = () => this.undo();
       $('#play-hint').onclick = () => this.showHint();
       $('#play-flip').onclick = () => { this.board.setFlip(!this.board.flip); this.draw(); };
-      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn');
+      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn'), op = $('#play-open');
+      op.value = Store.get('play_open', ''); op.onchange = () => { Store.set('play_open', op.value); };
       sd.value = String(this.user);
       lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
       lv.value = String(this.level); wr.checked = !!this.warn;
@@ -3765,10 +3841,45 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
       } else if (pos.repCount() >= 3) this.over = 'Hòa do lặp lại thế cờ ba lần.';
       else if (this.moves.length >= 300) this.over = 'Hòa (quá dài).';
     },
+    // Sách khai cuộc ngắn cho máy: chọn ngẫu nhiên trong các nước mở đầu hợp lý để mỗi ván một khác.
+    RED_BOOK: ['炮二平五', '炮二平五', '炮二平五', '炮八平五', '兵七進一', '兵七進一', '兵三進一', '相三進五', '相七進五', '傌二進三', '炮二平六'],
+    BLACK_BOOK: {
+      '炮二平五': ['馬8進7', '馬8進7', '馬8進7', '炮8平5', '馬2進3'],
+      '炮八平五': ['馬8進7', '馬8進7', '炮8平5', '馬2進3'],
+      '兵七進一': ['象3進5', '炮8平5', '馬8進7', '馬2進3'],
+      '兵三進一': ['象7進5', '馬2進3', '炮2平5', '炮8平5'],
+      '相三進五': ['炮8平5', '馬8進7', '象3進5'],
+      '相七進五': ['炮8平5', '馬8進7', '象7進5'],
+      '傌二進三': ['馬8進7', '炮8平5', '卒7進1'],
+      '炮二平六': ['馬8進7', '炮8平5', '象3進5']
+    },
+    bookMove() {
+      if (this.level < 3) return 0;
+      const pos = this.ctx.pos, pick = arr => arr[(Math.random() * arr.length) | 0];
+      let s = '';
+      if (this.moves.length === 0 && pos.side === 0) s = $('#play-open').value || pick(this.RED_BOOK);
+      else if (this.moves.length === 1 && pos.side === 1) { const arr = this.BLACK_BOOK[this.notes[0]]; if (arr) s = pick(arr); }
+      if (!s) return 0;
+      const m = pos.parse(s); return m > 0 ? m : 0;
+    },
     engineMove() {
       if (this.over) return;
+      const bm = this.bookMove();
+      if (bm > 0) { const g0 = this.gen, n0 = this.moves.length; setTimeout(() => { if (g0 === this.gen && !this.over && this.moves.length === n0) this.doMove(bm, false); }, 350); return; }
       const g = this.gen; this.thinking = true; this.draw();
       const lv = LEVELS[this.level];
+      if (lv.fsf) {
+        const fallback = msg => { if (msg) toast(msg, 'warn'); Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => { if (g !== this.gen) return; this.thinking = false; if (r.move) this.doMove(r.move, false); else this.draw(); }); };
+        if (!FSF.supported()) { fallback('Trình duyệt chưa bật được engine mạnh (hãy tải lại trang một lần). Tạm dùng cấp 5.'); return; }
+        if (!FSF.sf) toast('Đang tải engine cao thủ (13 MB), lần đầu hơi lâu…');
+        FSF.best(this.startFen, this.moves.map(m => XQ.mvStr(m)), lv.fsf.ms).then(u => {
+          if (g !== this.gen) return;
+          const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u);
+          if (m === undefined) { fallback('Engine mạnh trả nước không hợp lệ, tạm dùng cấp 5.'); return; }
+          this.thinking = false; this.doMove(m, false);
+        }).catch(err => { if (g !== this.gen) return; fallback('Không chạy được engine mạnh (' + (err && err.message || err) + '). Tạm dùng cấp 5.'); });
+        return;
+      }
       Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => {
         if (g !== this.gen) return;
         this.thinking = false;
@@ -4263,10 +4374,14 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
     $$('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
     showTab(Store.get('tab', 'play'));
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-      navigator.serviceWorker.register('sw.js').catch(() => { /* bỏ qua */ });
+      navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(() => {
+        // Lần đầu (hoặc sau khi cập nhật) trang chưa có tiêu đề COOP/COEP: tải lại một lần để bật engine mạnh.
+        let tried = false; try { tried = sessionStorage.getItem('xq_coi') === '1'; } catch (e) { /* bỏ qua */ }
+        if (!window.crossOriginIsolated && !tried) { try { sessionStorage.setItem('xq_coi', '1'); } catch (e) { /* bỏ qua */ } location.reload(); }
+      }).catch(() => { /* bỏ qua */ });
     }
   }
-  window.__xq = { Play, Puz, Tac, Op, Engine, Board, vi };
+  window.__xq = { Play, Puz, Tac, Op, FSF, Engine, Board, vi };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
 
