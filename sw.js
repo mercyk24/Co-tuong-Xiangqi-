@@ -1,5 +1,5 @@
 // Service worker: lưu app để dùng ngoại tuyến, đồng thời thêm hai tiêu đề COOP/COEP để trình duyệt cho phép engine mạnh (SharedArrayBuffer).
-const CACHE = 'xq-v8';
+const CACHE = 'xq-v9';
 const ENGINE = 'xq-engine-v1'; // file engine nặng (13 MB) được giữ riêng, không bị xoá khi cập nhật app
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 function coi(res) {
