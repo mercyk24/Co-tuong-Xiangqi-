@@ -53,3 +53,19 @@ test('phân tích ván: phát hiện nước bỏ Pháo, đưa vào "Lỗi của
   await page.evaluate(() => { const T = window.__xq.Tac; T.attempt(T.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === T.cur.best)); });
   await page.waitForFunction(() => window.__xq.Tac.solved);
 });
+
+test('phân tích ván hai người: nhận xét cả hai bên', async ({ page }) => {
+  await openApp(page);
+  await page.evaluate(() => {
+    const A = window.__xq.Ana;
+    A.games.unshift({ id: 'gpvp', t: Date.now(), user: 0, pvp: true, level: 0, startFen: XQ.START_FEN, moves: ['h2e2', 'h9g7', 'e2e6', 'g7e6', 'h0g2', 'e6d4'], res: '(thử)' });
+    window.__xq.Store.set('games', A.games);
+    window.__xq.Store.set('ana_mode', 'fast');
+    window.__xq.showTab('ana'); A.open('gpvp');
+  });
+  await page.waitForFunction(() => window.__xq.Ana.cur && window.__xq.Ana.cur.ana, null, { timeout: 120_000 });
+  await expect(page.locator('#ana-title')).toContainText('Hai người chơi');
+  await expect(page.locator('#ana-sum')).toContainText('Đỏ đi 3 nước');
+  await expect(page.locator('#ana-sum')).toContainText('Đen đi 3 nước');
+  await expect(page.locator('#ana-list-wrap')).toBeHidden();
+});

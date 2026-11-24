@@ -9,6 +9,8 @@
     for (let j = 0; j < i; j++) { const m = p.legalMoves().find(x => XQ.mvStr(x) === g.moves[j]); if (m === undefined) break; p.make(m); }
     return p;
   }
+  // Nước thứ i có phải của người cần nhận xét không (ván hai người: cả hai bên).
+  const isMine = (g, i) => !!g.pvp || (i % 2) === (g.user === 0 ? 0 : 1);
   const Ana = {
     games: Store.get('games', []), cur: null, k: 0, gen: 0, running: false, showBest: true, notes: [],
     init() {
@@ -42,7 +44,7 @@
       const G = this.games;
       $('#ana-list').innerHTML = G.length ? G.map(g => {
         const n = g.moves.length, st = g.ana ? ' · đã phân tích' : '';
-        return '<button class="pz" data-id="' + g.id + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + '</span><span class="pz-s">' + n + ' nước · cấp ' + g.level + ' · ' + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
+        return '<button class="pz" data-id="' + g.id + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
       }).join('') : '<p class="muted">Chưa có ván nào. Chơi một ván ở tab Đấu máy (từ 4 nước trở lên) rồi quay lại đây.</p>';
       $$('#ana-list .pz').forEach(b => b.onclick = () => this.open(b.dataset.id));
     },
@@ -58,7 +60,7 @@
       if (g.ana) { this.k = this.worst(g); this.draw(); }
       else { this.draw(); this.run(g); }
     },
-    worst(g) { let b = -1, bl = AN.MIST - 1; g.ana.ls.forEach((l, i) => { if (i % 2 === (g.user === 0 ? 0 : 1) && l > bl) { bl = l; b = i; } }); return b >= 0 ? b : 0; },
+    worst(g) { let b = -1, bl = AN.MIST - 1; g.ana.ls.forEach((l, i) => { if (isMine(g, i) && l > bl) { bl = l; b = i; } }); return b >= 0 ? b : 0; },
     go(k) { const g = this.cur; if (!g) return; this.stopLive(); this.k = Math.max(0, Math.min(g.moves.length, k)); this.draw(); },
     MODES: {
       fast: { opp: 350, mine: 700, re: 0, name: 'Nhanh' },
@@ -72,14 +74,14 @@
       this.running = true; this.msg = ''; this.status = '';
       if (!FSF.sf) toast('Đang tải engine cao thủ (13 MB), lần đầu hơi lâu…');
       const stm = [], bm = [], acc = [], pvs = [];
-      const me = g.user, isMine = i => i < N && (i % 2) === (me === 0 ? 0 : 1);
+      const me = g.user, mineAt = i => i < N && isMine(g, i);
       try {
         for (let i = 0; i <= N; i++) {
           if (gen !== this.gen) return;
           this.status = (M.re ? 'Bước 1/2 – quét nhanh ' : 'Đang phân tích ') + 'thế ' + (i + 1) + '/' + (N + 1) + '…'; this.draw();
           const pos = posAt(g, i);
           if (!pos.legalMoves().length) { stm.push(-10000); bm.push(''); acc.push([]); pvs.push([]); continue; }
-          const mine = pos.side === me && i < N;
+          const mine = (g.pvp || pos.side === me) && i < N;
           const L = await FSF.analyse(g.startFen, g.moves.slice(0, i), mine ? M.mine : M.opp, mine ? 3 : 1);
           if (gen !== this.gen) return;
           stm.push(L[0].v); bm.push(L[0].m); pvs.push(L[0].pv);
@@ -88,7 +90,7 @@
         if (M.re) {
           // Bước 2: soi sâu những nước sai nghi ngờ (tối đa 10 nước nặng nhất), cả thế trước và thế sau nước đó.
           const pre = [];
-          for (let i = 0; i < N; i++) if (isMine(i)) { let l = Math.max(0, clampV(stm[i]) - clampV(-stm[i + 1])); if (g.moves[i] === bm[i] || acc[i].indexOf(g.moves[i]) >= 0) l = 0; if (l >= AN.INACC * 0.7) pre.push([i, l]); }
+          for (let i = 0; i < N; i++) if (mineAt(i)) { let l = Math.max(0, clampV(stm[i]) - clampV(-stm[i + 1])); if (g.moves[i] === bm[i] || acc[i].indexOf(g.moves[i]) >= 0) l = 0; if (l >= AN.INACC * 0.7) pre.push([i, l]); }
           pre.sort((x, y) => y[1] - x[1]);
           const flag = pre.slice(0, 10).map(x => x[0]);
           for (let j = 0; j < flag.length; j++) {
@@ -167,7 +169,7 @@
     makePuzzles(g, stm, pvs) {
       const mine = Store.get('mine', []); let added = 0;
       for (let i = 0; i < g.moves.length; i++) {
-        if (i % 2 !== (g.user === 0 ? 0 : 1)) continue;
+        if (!isMine(g, i)) continue;
         if (g.ana.ls[i] < AN.MIST || stm[i] < -900) continue;
         const id = 'm' + g.id.slice(1) + '_' + i; if (mine.some(x => x.id === id)) continue;
         const pos = posAt(g, i), pv = pvs[i], sol = [], q = XQ.Pos.fromFen(pos.fen());
@@ -185,7 +187,7 @@
       const X = i => (n > 1 ? i * W / (n - 1) : 0), Y = v => H / 2 - Math.max(-900, Math.min(900, v * sg)) / 900 * (H / 2 - 4);
       let d = ''; ev.forEach((v, i) => { d += (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); });
       let dots = '';
-      g.ana.ls.forEach((l, i) => { if (i % 2 === (g.user === 0 ? 0 : 1) && l >= AN.MIST) dots += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(ev[i]).toFixed(1) + '" r="3" fill="#c0392b"/>'; });
+      g.ana.ls.forEach((l, i) => { if (isMine(g, i) && l >= AN.MIST) dots += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(ev[i]).toFixed(1) + '" r="3" fill="#c0392b"/>'; });
       return '<svg id="ana-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%;height:70px;display:block;background:var(--card);border:1px solid var(--line);border-radius:12px"><line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#999" stroke-width=".5" stroke-dasharray="3 3"/><path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' + dots + '<line id="ana-cur" x1="' + X(this.k).toFixed(1) + '" y1="0" x2="' + X(this.k).toFixed(1) + '" y2="' + H + '" stroke="#555" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
     },
     draw() {
@@ -197,7 +199,7 @@
       if (k < N) {
         info = '<b>Nước ' + (k + 1) + ' (' + mover + '):</b> ' + esc(ndt(this.notes[k]));
         if (A) {
-          const l = A.ls[k], q = this.quality(l), mine = (k % 2) === (g.user === 0 ? 0 : 1);
+          const l = A.ls[k], q = this.quality(l), mine = isMine(g, k);
           if (q > 0) {
             const bmv = pos.legalMoves().find(x => XQ.mvStr(x) === A.bm[k]);
             const bn = bmv !== undefined ? pos.notation(bmv) : '';
@@ -217,7 +219,7 @@
       if (!A && this.running) info = esc(this.status || 'Đang phân tích…') + '<br><span class="muted">Hãy giữ màn hình sáng và để app ở phía trước cho đến khi xong.</span>';
       if (!A && this.msg) info = esc(this.msg);
       this.board.render({ pos, last: lastM, sel: -1, targets: [], hint });
-      $('#ana-title').textContent = 'Bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + ' · cấp ' + g.level + ' · ' + N + ' nước';
+      $('#ana-title').textContent = (g.pvp ? 'Hai người chơi' : 'Bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + ' · cấp ' + g.level) + ' · ' + N + ' nước';
       $('#ana-info').innerHTML = info;
       $('#ana-deep').disabled = this.running; $('#ana-redo').disabled = this.running; $('#ana-mode').disabled = this.running;
       $('#ana-modeinfo').textContent = A && A.mode ? 'Ván này đã phân tích ở mức: ' + (this.MODES[A.mode] ? this.MODES[A.mode].name : A.mode) + '.' : '';
@@ -227,12 +229,16 @@
       if (A) {
         $('#ana-graph').innerHTML = this.graph(g);
         const svg = $('#ana-svg'); svg.onclick = e => { const r = svg.getBoundingClientRect(); this.go(Math.round((e.clientX - r.left) / r.width * N)); };
-        const c = [0, 0, 0, 0]; let tot = 0, n = 0;
-        A.ls.forEach((l, i) => { if (i % 2 === (g.user === 0 ? 0 : 1)) { c[this.quality(l)]++; tot += Math.min(l, 600); n++; } });
-        $('#ana-sum').innerHTML = 'Bạn đi ' + n + ' nước: <b>' + c[0] + '</b> tốt · <b>' + c[1] + '</b> chưa chính xác (?!) · <b>' + c[2] + '</b> sai lầm (?) · <b>' + c[3] + '</b> sai lầm nặng (??). Mỗi nước mất trung bình ≈ ' + fmtPts(n ? tot / n : 0) + ' điểm.<br>Đường biểu đồ: lên là bạn có lợi, chấm đỏ là chỗ bạn sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.';
-        const mine = g.user === 0 ? 0 : 1;
+        const stat = side => {
+          const c = [0, 0, 0, 0]; let tot = 0, n = 0;
+          A.ls.forEach((l, i) => { if (i % 2 === side) { c[this.quality(l)]++; tot += Math.min(l, 600); n++; } });
+          return n + ' nước: <b>' + c[0] + '</b> tốt · <b>' + c[1] + '</b> chưa chính xác (?!) · <b>' + c[2] + '</b> sai lầm (?) · <b>' + c[3] + '</b> sai lầm nặng (??). Mỗi nước mất trung bình ≈ ' + fmtPts(n ? tot / n : 0) + ' điểm.';
+        };
+        $('#ana-sum').innerHTML = g.pvp
+          ? '<b>Đỏ</b> đi ' + stat(0) + '<br><b>Đen</b> đi ' + stat(1) + '<br>Đường biểu đồ: lên là Đỏ có lợi, xuống là Đen có lợi; chấm đỏ là chỗ sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.'
+          : 'Bạn đi ' + stat(g.user === 0 ? 0 : 1) + '<br>Đường biểu đồ: lên là bạn có lợi, chấm đỏ là chỗ bạn sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.';
         $('#ana-moves').innerHTML = this.notes.map((nt, i) => {
-          const isRed = i % 2 === 0, q = (i % 2 === mine) ? this.quality(A.ls[i]) : 0;
+          const isRed = i % 2 === 0, q = isMine(g, i) ? this.quality(A.ls[i]) : 0;
           return (isRed ? '<span class="mn">' + (i / 2 + 1) + '.</span>' : '') + '<span class="mv ck' + (isRed ? ' red' : '') + (i === k ? ' cur' : '') + (q ? ' q' + q : '') + '" data-i="' + i + '">' + esc(nd1(nt)) + (q ? this.QM[q] : '') + '</span>';
         }).join('');
       } else {

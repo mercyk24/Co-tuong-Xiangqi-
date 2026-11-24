@@ -2,7 +2,7 @@
   // ---------- Bàn cờ SVG ----------
   class Board {
     constructor(host, onSquare) {
-      this.host = host; this.onSquare = onSquare; this.flip = false;
+      this.host = host; this.onSquare = onSquare; this.flip = false; this.face = false;
       this.cell = 70; this.px = 50; this.py = 62;
       this.W = 8 * this.cell + 2 * this.px; this.H = 9 * this.cell + 2 * this.py;
       host.innerHTML = '<svg class="board" viewBox="0 0 ' + this.W + ' ' + this.H + '" role="img" aria-label="Bàn cờ tướng"><g class="static"></g><g class="dyn"></g></svg>';
@@ -80,7 +80,8 @@
         const pc = pos.b[q]; if (!pc) continue;
         const [x, y] = sqXY(q), red = (pc >> 3) === 0;
         if (q === chk) s += '<circle class="chk" cx="' + x + '" cy="' + y + '" r="40"/>';
-        s += '<g class="pc ' + (red ? 'r' : 'b') + '" transform="translate(' + x + ',' + y + ')"><circle class="pc-o" r="32"/><circle class="pc-i" r="27"/><text class="pc-t" y="12" text-anchor="middle">' + glyph(pc) + '</text></g>';
+        const rot = this.face && (red ? this.flip : !this.flip) ? ' rotate(180)' : '';
+        s += '<g class="pc ' + (red ? 'r' : 'b') + '" transform="translate(' + x + ',' + y + ')' + rot + '"><circle class="pc-o" r="32"/><circle class="pc-i" r="27"/><text class="pc-t" y="12" text-anchor="middle">' + glyph(pc) + '</text></g>';
       }
       if (st.targets) {
         for (const q of st.targets) {

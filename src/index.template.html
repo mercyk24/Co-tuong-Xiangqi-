@@ -66,6 +66,10 @@ svg.board{width:100%;height:auto;display:block;user-select:none;-webkit-user-sel
 .mv{margin-right:10px;padding:1px 3px;border-radius:6px}
 .mv.red{color:var(--red)}
 .grp{margin:10px 0}.grp>summary{cursor:pointer;padding:8px 2px;font-size:15px}.grp[open]>summary{border-bottom:1px solid var(--line);margin-bottom:6px}
+.seg{display:flex;gap:6px;margin:0 0 10px}.seg .btn{flex:1}
+.clk{text-align:center;font:600 20px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;padding:6px;margin:6px auto;border:1px solid var(--line);border-radius:12px;background:var(--card);max-width:200px}
+.clk.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.clk.low.on{background:var(--red);border-color:var(--red)}
+.clk.rot,.ask.rot{transform:rotate(180deg)}.ask{margin-top:8px}.ask p{margin:0 0 6px;font-weight:600}
 .mv.q1{color:#b8860b}.mv.q2{color:#d9822b;font-weight:700}.mv.q3{color:#c0392b;font-weight:700}
 .mv.ck{cursor:pointer}.mv.cur{background:rgba(46,107,90,.2);outline:1px solid var(--accent)}
 .settings{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:10px;font-size:14px}
@@ -103,17 +107,31 @@ a{color:var(--accent)}
 <body>
 <main>
   <section class="view" id="v-play" hidden>
-    <h1>Đấu với máy</h1>
+    <h1 id="play-title">Đấu với máy</h1>
+    <div class="seg" id="play-mode"><button class="btn" data-m="ai">Đấu với máy</button><button class="btn" data-m="pvp">Hai người chơi</button></div>
+    <div class="clk" id="play-clk-top" hidden></div>
     <div class="board-wrap" id="play-board"></div>
+    <div class="clk" id="play-clk-bot" hidden></div>
     <div class="status" id="play-status"></div>
+    <div class="card ask" id="play-ask" hidden><p id="play-ask-text"></p><div class="row"><button class="btn primary" id="play-ask-yes"></button><button class="btn" id="play-ask-no"></button></div></div>
     <div class="row">
       <button class="btn primary" id="play-new">Ván mới</button>
       <button class="btn" id="play-undo">Đi lại</button>
       <button class="btn" id="play-hint">Gợi ý</button>
       <button class="btn" id="play-flip">Lật bàn</button>
+      <button class="btn" id="play-draw" hidden>Xin hòa</button>
+      <button class="btn" id="play-resign">Chịu thua</button>
       <button class="btn" id="play-ana">Phân tích ván</button>
     </div>
-    <div class="settings">
+    <div class="settings" id="play-set-pvp" hidden>
+      <label>Hướng bàn <select id="play-orient">
+        <option value="turn">Lật theo lượt (chuyền máy cho nhau)</option>
+        <option value="face">Đối mặt (đặt máy nằm giữa, quân Đen quay ngược)</option>
+        <option value="fixed">Cố định, Đỏ ở dưới</option>
+      </select></label>
+      <label>Đồng hồ <select id="play-clock"></select></label>
+    </div>
+    <div class="settings" id="play-set-ai">
       <label>Bạn cầm <select id="play-side"><option value="1">Đen</option><option value="0">Đỏ</option></select></label>
       <label>Cấp độ <select id="play-level"></select></label>
       <label>Máy mở đầu (khi máy cầm Đỏ) <select id="play-open">
@@ -123,8 +141,8 @@ a{color:var(--accent)}
         <option value="相三進五">Phi tượng</option>
         <option value="傌二進三">Khởi mã</option>
       </select></label>
-      <label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label>
     </div>
+    <div class="settings"><label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label></div>
     <div class="moves" id="play-moves"></div>
   </section>
 
