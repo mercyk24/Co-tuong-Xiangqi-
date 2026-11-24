@@ -2,6 +2,22 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.3.0] – 2026-11-24
+
+### Thêm
+- **Chơi qua mạng** giữa hai thiết bị (tab Đấu máy → "Qua mạng"): tạo phòng với mã 6 ký tự hoặc gửi link mời, chọn bên cầm và thời gian; hai máy nối thẳng bằng WebRTC, không cần tài khoản, nước đi không qua máy chủ.
+  - Mỗi người một thanh ở phía mình; xin hòa, xin đi lại, đấu lại (đổi màu) đều phải được đối thủ đồng ý.
+  - Rớt mạng thì báo rõ, tự nối lại và đồng bộ lại ván; đồng hồ tạm dừng khi mất kết nối; mở lại app (trong 2 giờ) vẫn nối tiếp ván đang dở.
+  - Tự đồng bộ lại khi một nước đi bị rơi trên đường; không tin tin giả "hết giờ" hay giờ khai khống từ máy đối thủ.
+  - Báo lỗi dễ hiểu và đúng nguyên nhân: không tìm thấy phòng, chủ phòng không phản hồi, phòng đã có người, điểm hẹn kết nối bị ngắt, mạng chặn kết nối thẳng, khác phiên bản app.
+  - Điểm hẹn kết nối ngắt đúng lúc đang vào phòng thì tự vào lại, không bắt người chơi chờ rồi báo lỗi.
+  - Tin gửi lên điểm hẹn `0.peerjs.com` đúng dạng thư viện PeerJS chính thức (máy chủ chặn tin sai dạng); bộ kiểm tra tự động cũng kiểm tra dạng tin như máy chủ thật.
+- App xin trình duyệt giữ dữ liệu lâu dài (giảm nguy cơ mất tiến độ).
+- Tài liệu rà soát dự án cho hướng nhiều người dùng / thành ứng dụng: `docs/RA-SOAT.md`.
+
+### Thay đổi
+- Nút chọn chế độ: Với máy · Hai người · Qua mạng.
+
 ## [1.2.0] – 2026-11-24
 
 ### Thay đổi

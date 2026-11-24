@@ -163,6 +163,7 @@
       toast('Nước đúng: ' + not); this.draw();
     },
     draw() {
+      setTimeout(() => Nav.update(), 0);
       const c = this.ctx, L = this.line;
       this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
       $('#op-title').textContent = ndt(L ? L.title : 'Tập ngẫu nhiên' + (this.randGroup && OPENINGS.groups ? ' – ' + OPENINGS.groups[this.randGroup].title : ' – mọi khai cuộc'));

@@ -28,7 +28,7 @@
       const b = document.body, busy = this.busy();
       if (!busy) this.peek = false;
       b.classList.toggle('nav-min', busy && !this.peek);
-      b.classList.toggle('game-play', this.cur() === 'play' && (Play.pvp() ? !Play.setup : Play.active()));
+      b.classList.toggle('game-play', this.cur() === 'play' && (Play.human() ? !Play.setup : Play.active()));
     },
     init() {
       // Bấm nút tròn: thanh điều hướng hiện ra và giữ nguyên; bấm bất kỳ chỗ nào ngoài thanh thì thu lại thành nút.
@@ -49,6 +49,24 @@
     Nav.init();
     $$('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
     showTab(Store.get('tab', 'play'));
+    // Link mời chơi qua mạng: ...#phong=ABC123
+    // Lần đầu mở trang, app có thể tự tải lại một lần (để bật engine mạnh): khi đó chờ tải lại xong rồi mới vào phòng,
+    // nếu không mã phòng sẽ mất giữa chừng.
+    const hm = /[#&]phong=([A-Za-z0-9]{6})/.exec(location.hash);
+    if (hm) {
+      let tried = true; try { tried = sessionStorage.getItem('xq_coi') === '1'; } catch (e) { /* bỏ qua */ }
+      const willReload = !window.crossOriginIsolated && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !tried;
+      const go = () => {
+        try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* bỏ qua */ }
+        showTab('play'); Play.setMode('net'); $('#net-code').value = hm[1].toUpperCase(); Net.join(hm[1]);
+      };
+      if (willReload) setTimeout(go, 5000); else go();  // nếu sau 5 giây trang vẫn chưa tải lại thì vào phòng luôn
+    }
+    // Xin trình duyệt giữ dữ liệu lâu dài (không tự xoá khi máy thiếu dung lượng), nếu trình duyệt hỗ trợ.
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { /* bỏ qua */ }); } catch (e) { /* bỏ qua */ }
+    // iPhone thường ngắt kết nối khi app chạy nền: khi quay lại thì nối lại ngay.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && Play.net()) Net.wake(); });
+    window.addEventListener('online', () => { if (Play.net()) Net.wake(); });
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
       navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(() => {
         // Lần đầu (hoặc sau khi cập nhật) trang chưa có tiêu đề COOP/COEP: tải lại một lần để bật engine mạnh.
@@ -57,5 +75,5 @@
       }).catch(() => { /* bỏ qua */ });
     }
   }
-  window.__xq = { Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Nav, vi, showTab, version: APP_VERSION };
+  window.__xq = { Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Nav, Net, vi, showTab, version: APP_VERSION };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

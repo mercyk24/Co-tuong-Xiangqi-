@@ -104,6 +104,7 @@
       step();
     },
     draw() {
+      setTimeout(() => Nav.update(), 0);
       const c = this.ctx, p = this.cur;
       this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
       $('#puz-title').innerHTML = '<b>Bài ' + p.id + '</b> · ' + (p.side === 0 ? 'Đỏ' : 'Đen') + ' đi, chiếu hết trong ' + p.n + ' nước';

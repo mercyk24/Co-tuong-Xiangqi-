@@ -44,7 +44,7 @@
       const G = this.games;
       $('#ana-list').innerHTML = G.length ? G.map(g => {
         const n = g.moves.length, st = g.ana ? ' · đã phân tích' : '';
-        return '<button class="pz" data-id="' + g.id + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
+        return '<button class="pz" data-id="' + g.id + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : (g.net ? ' · qua mạng' : '') + ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp || g.net ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
       }).join('') : '<p class="muted">Chưa có ván nào. Chơi một ván ở tab Đấu máy (từ 4 nước trở lên) rồi quay lại đây.</p>';
       $$('#ana-list .pz').forEach(b => b.onclick = () => this.open(b.dataset.id));
     },
@@ -219,7 +219,7 @@
       if (!A && this.running) info = esc(this.status || 'Đang phân tích…') + '<br><span class="muted">Hãy giữ màn hình sáng và để app ở phía trước cho đến khi xong.</span>';
       if (!A && this.msg) info = esc(this.msg);
       this.board.render({ pos, last: lastM, sel: -1, targets: [], hint });
-      $('#ana-title').textContent = (g.pvp ? 'Hai người chơi' : 'Bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + ' · cấp ' + g.level) + ' · ' + N + ' nước';
+      $('#ana-title').textContent = (g.pvp ? 'Hai người chơi' : (g.net ? 'Qua mạng · ' : '') + 'Bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + (g.net ? '' : ' · cấp ' + g.level)) + ' · ' + N + ' nước';
       $('#ana-info').innerHTML = info;
       $('#ana-deep').disabled = this.running; $('#ana-redo').disabled = this.running; $('#ana-mode').disabled = this.running;
       $('#ana-modeinfo').textContent = A && A.mode ? 'Ván này đã phân tích ở mức: ' + (this.MODES[A.mode] ? this.MODES[A.mode].name : A.mode) + '.' : '';

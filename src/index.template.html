@@ -78,7 +78,11 @@ svg.board{width:100%;height:auto;display:block;user-select:none;-webkit-user-sel
 .btn.sm{min-height:36px;padding:6px 9px;font-size:13px}.btn.ic{min-height:40px;min-width:44px;font-size:20px;padding:4px 8px}
 .btn.wide{width:100%}
 .setup p{margin:4px 0 8px}.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.tgrid .btn{min-height:54px;font-size:15px}.tgrid .btn small{display:block;font-size:12px;opacity:.75}
-.pm-acts{display:flex;gap:6px}.pm-acts .btn{flex:1}
+.pm-acts{display:flex;gap:6px}
+.joinrow{display:flex;gap:8px;margin:10px 0}.joinrow input{flex:1;min-width:0;font:600 20px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:4px;text-transform:uppercase;text-align:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.netcode{font:700 40px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:8px;text-align:center;margin:6px 0 10px;color:var(--accent)}
+.neterr{color:var(--red);font-weight:600}
+.netbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;padding:8px 10px;border-radius:12px;background:rgba(192,57,43,.12);color:var(--red);font-size:14px;font-weight:600}.pm-acts .btn{flex:1}
 .pbar .pinfo{align-items:flex-start}
 .result{margin-top:8px;text-align:center}.result p{margin:4px 0}#play-result-text{font-weight:700;font-size:17px}
 .sheet-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center}
@@ -133,17 +137,42 @@ a{color:var(--accent)}
 <main>
   <section class="view" id="v-play" hidden>
     <h1 id="play-title">Đấu với máy</h1>
-    <div class="seg" id="play-mode"><button class="btn" data-m="ai">Đấu với máy</button><button class="btn" data-m="pvp">Hai người chơi</button></div>
+    <div class="seg" id="play-mode"><button class="btn" data-m="ai">Với máy</button><button class="btn" data-m="pvp">Hai người</button><button class="btn" data-m="net">Qua mạng</button></div>
     <div class="card setup" id="pvp-setup" hidden>
       <p><b>Ván mới – hai người chơi</b></p>
       <p class="muted">Đặt máy nằm giữa hai người: Đỏ ngồi phía dưới, Đen ngồi phía trên (quân Đen quay về phía Đen). Chọn thời gian để bắt đầu ngay.</p>
       <div class="tgrid" id="pvp-times"></div>
       <button class="btn wide" id="pvp-setup-cancel">Quay lại</button>
     </div>
+    <div class="card setup" id="net-setup" hidden>
+      <div id="net-home">
+        <p><b>Chơi qua mạng</b></p>
+        <p class="muted">Hai máy nối thẳng với nhau qua Internet, không cần tài khoản. Một người tạo phòng rồi gửi mã (hoặc link) cho người kia.</p>
+        <p class="neterr" id="net-err" hidden></p>
+        <button class="btn primary wide" id="net-go-create">Tạo phòng mới</button>
+        <div class="joinrow"><input id="net-code" maxlength="6" placeholder="Mã phòng" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" id="net-join">Vào phòng</button></div>
+        <button class="btn wide" id="net-cancel">Quay lại Đấu với máy</button>
+      </div>
+      <div id="net-create" hidden>
+        <p><b>Tạo phòng</b></p>
+        <label>Bạn cầm <select id="net-side"><option value="r">Ngẫu nhiên</option><option value="0">Đỏ</option><option value="1">Đen</option></select></label>
+        <p class="muted">Chọn thời gian để tạo phòng:</p>
+        <div class="tgrid" id="net-times"></div>
+        <button class="btn wide" id="net-create-back">Quay lại</button>
+      </div>
+      <div id="net-wait" hidden>
+        <p class="muted" id="net-wait-title">Mã phòng</p>
+        <div class="netcode" id="net-code-show"></div>
+        <p id="net-status"></p>
+        <div class="row" id="net-share-row"><button class="btn primary" id="net-share">Gửi link mời</button><button class="btn" id="net-copy">Sao chép mã</button></div>
+        <button class="btn wide" id="net-wait-cancel">Huỷ</button>
+      </div>
+    </div>
     <div class="pbar" id="pbar-top" hidden>
       <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
       <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
     </div>
+    <div class="netbar" id="net-banner" hidden><span id="net-banner-text"></span><button class="btn sm" id="net-banner-leave">Rời phòng</button></div>
     <div class="ask-slot" id="ask-top"></div>
     <div class="board-wrap" id="play-board"></div>
     <div class="ask-slot" id="ask-bot"></div>
@@ -187,6 +216,7 @@ a{color:var(--accent)}
         <div class="sheet-h"><b id="pm-title">Menu</b><button class="btn sm" id="pm-close">Đóng</button></div>
         <div class="pm-acts"><button class="btn" data-act="undo">Xin đi lại</button><button class="btn" data-act="draw">Xin hòa</button><button class="btn" data-act="resign">Chịu thua</button></div>
         <label class="chk2"><input type="checkbox" id="pm-warn"> Báo nước yếu sau mỗi nước đi</label>
+        <p class="muted" id="pm-netinfo" hidden></p>
         <div class="muted">Biên bản ván</div>
         <div class="moves" id="pm-moves"></div>
       </div>
@@ -324,6 +354,7 @@ a{color:var(--accent)}
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
       <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
       <li>Ký hiệu nước đi mặc định ghi bằng tiếng Việt (ví dụ Pháo 2 bình 5); có thể đổi sang chữ Hán (炮二平五) ở mục Cách ghi nước đi.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com) và máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Một số mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp; khi đó hãy thử dùng chung một Wi-Fi.</li>
       <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Chi tiết ghi công xem tệp README và engine/README trong mã nguồn.</li>
     </ul>
   </section>

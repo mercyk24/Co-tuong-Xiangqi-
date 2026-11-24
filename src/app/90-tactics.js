@@ -142,6 +142,7 @@
       $('#tac-title').innerHTML = '<div class="tacbar"><span>' + esc(this.MODES[this.mode][0]) + '</span>' + (this.mode === 'surv' ? '' : '<span class="tm">' + mm + ':' + ss + '</span>') + '<span>Điểm ' + this.score + '</span></div>';
     },
     draw() {
+      setTimeout(() => Nav.update(), 0);
       const c = this.ctx, p = this.cur;
       this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
       if (this.mode === 'free') $('#tac-title').innerHTML = p.id[0] === 'm' ? '<b>Lỗi của bạn</b> · ' + (this.user === 0 ? 'Đỏ' : 'Đen') + ' đi · ván ngày ' + new Date(p.t).toLocaleDateString('vi-VN') : '<b>Bài ' + p.id.slice(1) + '</b> · ' + (this.user === 0 ? 'Đỏ' : 'Đen') + ' đi · hạng ' + p.rating;

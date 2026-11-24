@@ -18,6 +18,7 @@ async function openApp(page, { isolated = true } = {}) {
 
 async function showTab(page, name) {
   // Khi đang đánh/giải bài, thanh điều hướng thu gọn: bấm vạch để mở lại trước.
+  await page.waitForTimeout(100);
   if (await page.locator('#nav-handle').isVisible()) await page.click('#nav-handle');
   await page.locator('.tab[data-tab="' + name + '"]').click();
   await expect(page.locator('#v-' + name)).toBeVisible();

@@ -11,6 +11,7 @@ Web app luyện cờ tướng miễn phí, chạy ngay trên trình duyệt (cà
 - **Giao diện gọn, tránh bấm nhầm**: khi đang đánh, các nút được gom vào menu ☰ và thanh điều hướng thu thành một nút tròn.
 - **Đấu máy** 6 cấp. Cấp 1–5 dùng engine tự viết; cấp 6 (Cao thủ) dùng Fairy-Stockfish với mạng NNUE cờ tướng chạy bằng WebAssembly ngay trong trình duyệt. Máy mở đầu theo sách khai cuộc do Pikafish sinh, nên mỗi ván đổi hướng ở 5–6 nước đầu.
 - **Hai người chơi trên một máy**: đặt máy nằm giữa cho hai người ngồi đối mặt (quân Đen quay về phía Đen), chọn thời gian trước khi vào ván, mỗi người một menu ở phía mình để xin hòa, xin đi lại, chịu thua; ván xong phân tích được cho cả hai bên.
+- **Chơi qua mạng**: tạo phòng bằng mã 6 ký tự hoặc link mời, hai máy nối thẳng (WebRTC) không cần tài khoản; tự nối lại khi rớt mạng.
 - **Phân tích ván**: engine mạnh duyệt lại từng nước, đánh dấu nước chưa chính xác / sai lầm / sai lầm nặng, chỉ nước đúng và đường đi dự kiến, có biểu đồ thế cờ và nút soi sâu một thế. Ba mức: Nhanh, Kỹ, Rất kỹ.
 - **Lỗi của bạn**: những thế bạn đi sai nặng tự thành bài tập riêng; đúng ngay 2 lần liên tiếp thì coi là đã thuộc.
 - **Chiến thuật**: bài tìm nước mạnh nhất theo hạng (700–1400+), chế độ 3 phút, 5 phút và sinh tồn, có lịch sử điểm.
@@ -46,6 +47,7 @@ Các lệnh khác:
 | `npm run test:e2e` | Kiểm tra giao diện bằng Playwright, kể cả engine mạnh và phân tích ván. |
 | `npm run openings` | Dựng lại `data/openings.json` và `data/book.json` từ dữ liệu khai cuộc. |
 | `node scripts/screenshots.js` | Chụp lại ảnh màn hình trong `docs/screenshots/`. |
+| `XQ_NET_REAL=1 npx playwright test net-real` | Thử chơi qua mạng với điểm hẹn thật (cần Internet, không chạy trên CI). |
 
 ### Cấu trúc thư mục
 
@@ -72,6 +74,10 @@ tests/e2e/              Kiểm tra giao diện bằng Playwright
 ## Triển khai
 
 Mỗi lần đẩy lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yml`) chạy toàn bộ kiểm tra; nếu đạt thì tự đăng `dist/` lên GitHub Pages. Pull request chỉ chạy kiểm tra. Trong phần cài đặt Pages của kho, nguồn (Source) phải đặt là **GitHub Actions**.
+
+## Chơi qua mạng
+
+`src/app/45-net.js`: hai máy nối thẳng bằng WebRTC. Để tìm thấy nhau, app dùng điểm hẹn công cộng `0.peerjs.com` (giao thức PeerJS, phần kết nối tự viết) và STUN của Google, Cloudflare; nước đi không qua máy chủ. Chưa có máy chủ chuyển tiếp (TURN), nên một số mạng chặn kết nối thẳng sẽ không chơi được. Xem `docs/RA-SOAT.md` để biết giới hạn và hướng mở rộng.
 
 ## Giấy phép và ghi công
 

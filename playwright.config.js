@@ -18,7 +18,8 @@ module.exports = defineConfig({
     defaultBrowserType: 'chromium',
     baseURL: 'http://localhost:' + PORT + '/',
     trace: 'retain-on-failure',
-    launchOptions: process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}
+    // Cho phép WebRTC nối hai trang trên cùng máy khi kiểm tra chơi qua mạng
+    launchOptions: Object.assign({ args: ['--disable-features=WebRtcHideLocalIpsWithMdns'] }, process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {})
   },
   webServer: {
     command: 'node scripts/serve.js ' + PORT,
