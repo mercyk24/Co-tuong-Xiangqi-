@@ -1,0 +1,238 @@
+### engine ok
+### 0 |  | Thế ban đầu
+info depth 22 seldepth 33 multipv 1 score cp 29 nodes 1797556 nps 1497963 hashfull 155 tbhits 0 time 1200 pv g3g4 c6c5 b2c2 g9e7 b0a2 b9c7 a0b0 a9b9 h2e2 h9f8 i0i1 i9g9 i1f1 f8d7 e2e6 d9e8 f1h1 h7g7 b0b6 c7d5 b6d6 d5e3 c2e2 g6g5
+bestmove g3g4 ponder c6c5
+### 1 | h2e2 | Sau 1 nước: 炮二平五
+info depth 23 seldepth 41 multipv 1 score cp -21 lowerbound nodes 1902173 nps 1585144 hashfull 152 tbhits 0 time 1200 pv h9g7 h0g2
+bestmove h9g7 ponder h0g2
+### 2 | h2e2 h9g7 | Sau 2 nước: 炮二平五 馬8進7
+info depth 23 seldepth 39 multipv 1 score cp 20 nodes 1906174 nps 1588478 hashfull 153 tbhits 0 time 1200 pv h0g2 i9h9 i0h0 g6g5 h0h6 c6c5 b0c2 b9c7 e3e4 b7b6 h6h4 c9e7 g2e3 h7h5 b2b1 a9a8 b1g1 a8f8 a0b0 b6b5 g1g2
+bestmove h0g2 ponder i9h9
+### 3 | h2e2 h9g7 h0g2 | Sau 3 nước: 炮二平五 馬8進7 傌二進三
+info depth 24 seldepth 37 multipv 1 score cp -23 nodes 1661947 nps 1383802 hashfull 119 tbhits 0 time 1201 pv g6g5 i0h0 i9h9 h0h6 b9c7 b0c2 c6c5 e3e4 b7b6 h6h4 c9e7 g2e3 h7h5 b2a2 b6b5 a0b0 h5h8 c3c4 h8b8 h4h9 g7h9 b0a0 h9g7 c4c5 e7c5 g3g4 b8e8 g4g5
+bestmove g6g5 ponder i0h0
+### 4 | h2e2 h9g7 h0g2 i9h9 | Sau 4 nước: 炮二平五 馬8進7 傌二進三 車9平8
+info depth 21 seldepth 38 multipv 1 score cp 17 upperbound nodes 1476734 nps 1230611 hashfull 111 tbhits 0 time 1200 pv c3c4 g6g5
+bestmove c3c4 ponder g6g5
+### 5 | h2e2 h9g7 h0g2 i9h9 i0h0 | Sau 5 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二
+info depth 22 seldepth 37 multipv 1 score cp -17 nodes 1405641 nps 1171367 hashfull 105 tbhits 0 time 1200 pv g6g5 h0h6 b9c7 b0c2 c6c5 e3e4 b7b6 h6h4 c9e7 g2e3 h7h5 b2b1 b6b5 g3g4 g5g4 h4g4 g7f5 c3c4 c5c4 e4e5 h5e5 e2e5 e6e5 e3f5 b5f5 c2e3 a9b9 b1e1 e5e4 g4e4
+bestmove g6g5 ponder h0h6
+### 6 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 | Sau 6 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1
+info depth 22 seldepth 42 multipv 1 score cp 22 lowerbound nodes 1472312 nps 1226926 hashfull 98 tbhits 0 time 1200 pv h0h6 b9c7
+bestmove h0h6 ponder b9c7
+### 7 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 | Sau 7 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六
+info depth 23 seldepth 36 multipv 1 score cp -23 nodes 1363829 nps 1136524 hashfull 100 tbhits 0 time 1200 pv b9c7 e3e4 c6c5 b0c2 b7b6 h6h4 c9e7 g2e3 d9e8 c3c4 a9d9 c4c5 e7c5 g3g4 g5g4 e3g4 h7h5 e4e5 h5g5 h4h9 g7h9 e2g2 g5g7 e5f5 c5e7 a0a1 c7d5 a1h1
+bestmove b9c7 ponder e3e4
+### 8 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 | Sau 8 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3
+info depth 23 seldepth 40 multipv 1 score cp 14 lowerbound nodes 1415984 nps 1179986 hashfull 98 tbhits 0 time 1200 pv e3e4 c6c5
+bestmove e3e4 ponder c6c5
+### 9 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 | Sau 9 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一
+info depth 20 seldepth 37 multipv 1 score cp -15 lowerbound nodes 1325666 nps 1103801 hashfull 116 tbhits 0 time 1201 pv h7i7 h6g6
+bestmove h7i7 ponder h6g6
+### 10 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 | Sau 10 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9
+info depth 21 seldepth 40 multipv 1 score cp 14 nodes 1512226 nps 1260188 hashfull 133 tbhits 0 time 1200 pv h6g6 i7i8 b0c2 d9e8 c2d4 h9h4 b2b4 i8g8 g6f6 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 e2g4 b7b6 f6f8 a9b9 a0b0 b6b8 f8f6 b8d8 b0b9 c7b9
+bestmove h6g6 ponder i7i8
+### 11 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 | Sau 11 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三
+info depth 23 seldepth 37 multipv 1 score cp -17 lowerbound nodes 1759142 nps 1465951 hashfull 152 tbhits 0 time 1200 pv i7i8 b0c2
+bestmove i7i8 ponder b0c2
+### 12 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 | Sau 12 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1
+info depth 22 seldepth 48 multipv 1 score cp 19 lowerbound nodes 1594596 nps 1328830 hashfull 118 tbhits 0 time 1200 pv b0c2 d9e8
+bestmove b0c2 ponder d9e8
+### 13 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 | Sau 13 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七
+info depth 23 seldepth 50 multipv 1 score cp -11 nodes 1509967 nps 1258305 hashfull 110 tbhits 0 time 1200 pv i8g8 g6f6 d9e8 c2d4 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 b7b9 f6g6 b9d9 d2c2 c7d5 g6g4 c5e7 g4g7 d9d4 g7g4 d4d2 e2c4 d2f2 g4d4 f2f7 b0b5 a9d9 c2d2 d5f6 d4d9 e8d9 b5h5 f6h5 d2a2 f9e8 a2a6 h5g3
+bestmove i8g8 ponder g6f6
+### 14 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 | Sau 14 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5
+info depth 22 seldepth 43 multipv 1 score cp 12 nodes 1492785 nps 1243987 hashfull 114 tbhits 0 time 1200 pv c2d4 i8g8 g6f6 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 b7b9 f6g6 b9d9 d2c2 c7d5 g6g4 c5e7 b0b5 d9d4 g4d4 a9d9 b5b3 d5f6 d4f4 h5f5 c2a2 f5f4 g2f4 f6h5 f4h5 g7h5
+bestmove c2d4 ponder i8g8
+### 15 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 | Sau 15 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九
+info depth 20 seldepth 44 multipv 1 score cp -5 nodes 1499106 nps 1249255 hashfull 123 tbhits 0 time 1200 pv a9b9 a0b0 i8g8 g6f6 g7h5 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b5 h5f4 e6e4 f4g2 e4g4 b7h7 b5h5 g2i3 h5h3 h7a7 g4g3 i3h1 c2d4 h1g3 h3h9 c9e7 d4c6
+bestmove a9b9 ponder a0b0
+### 16 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 | Sau 16 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2
+info depth 24 seldepth 40 multipv 1 score cp 18 nodes 1454617 nps 1211171 hashfull 110 tbhits 0 time 1201 pv a0b0 i8g8 g6f6 g7h5 e2e6 c7e6 f6e6 g5g4 g3g4 b7b2 e6g6 b2g2 a2g2 b9b0 c2b0 h5f4 g6g8 f4g2 b0c2 g9e7 g8f8 g2i3 c2e1
+bestmove a0b0 ponder i8g8
+### 17 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 | Sau 17 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八
+info depth 24 seldepth 49 multipv 1 score cp -19 nodes 1543163 nps 1285969 hashfull 117 tbhits 0 time 1200 pv i8g8 g6f6 g7h5 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 h3i3 b2b1 i6i5 b1b7 g2i1 c2d4 g3a3 d4f5 i3i4 g4i4 i5i4 f5h6 i1h3 h6g8 e9d9
+bestmove i8g8 ponder g6f6
+### 18 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 | Sau 18 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7
+info depth 26 seldepth 47 multipv 1 score cp 18 nodes 1814894 nps 1512411 hashfull 143 tbhits 0 time 1200 pv g6f6 g7h5 e2e6 c7e6 f6e6 g5g4 g3g4 b7b2 e6g6 b2g2 a2g2 b9b0 c2b0 h5f4 g6g8 f4g2 b0c2 g9e7 g8f8 h9h3 f8f2 g2i3 c0e2 h3g3 d0e1 i6i5 f2f5
+bestmove g6f6 ponder g7h5
+### 19 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 | Sau 19 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四
+info depth 25 seldepth 40 multipv 1 score cp -16 nodes 1741461 nps 1451217 hashfull 126 tbhits 0 time 1200 pv g7h5 e2e6 c7e6 f6e6 g5g4 g3g4 b7b2 e6g6 b2g2 a2g2 b9b0 c2b0 h5f4 g6g8 f4g2 c0e2 h9h1 f0e1 g9e7 b0c2 h1h3 e1f2 g2f4 i3i4 h3i3 g8f8
+bestmove g7h5 ponder e2e6
+### 20 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 | Sau 20 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8
+info depth 25 seldepth 37 multipv 1 score cp 18 nodes 1545171 nps 1286570 hashfull 93 tbhits 0 time 1201 pv e2e6 c7e6 f6e6 g5g4 g3g4 b7b2 e6g6 b2g2 a2g2 b9b0 c2b0 h5f4 g6g8 f4g2 c0e2 g9e7 b0d1 h9h3 g8g6 g2e3 g6i6 e3g2 a3a4 h3d3 d1f2 d3f3 f0e1 g2i3 g0i2 c6c5 c4c5 e7c5 i6a6 c5e7 a6e6
+bestmove e2e6 ponder c7e6
+### 21 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 | Sau 21 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五
+info depth 20 seldepth 30 multipv 1 score cp 5 lowerbound nodes 1178292 nps 981092 hashfull 97 tbhits 0 time 1201 pv g5g4 f6f8
+bestmove g5g4 ponder f6f8
+### 22 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 | Sau 22 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1
+info depth 20 seldepth 45 multipv 1 score cp -11 upperbound nodes 1090411 nps 908675 hashfull 77 tbhits 0 time 1200 pv f6f5 g4g3
+bestmove f6f5 ponder g4g3
+### 23 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 | Sau 23 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一
+info depth 22 seldepth 45 multipv 1 score cp 13 nodes 1194043 nps 994207 hashfull 92 tbhits 0 time 1201 pv g4g3 c2d4 h5g7 f5f8 b7b8 f8f4 b8b1 f4f8 h9h8 d4c6 b1b8 f8f4 b8a8 b0b9 c7b9 e2b2 h8h5 b2b8 g8b8 f4g4
+bestmove g4g3 ponder c2d4
+### 24 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 | Sau 24 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1
+info depth 23 seldepth 45 multipv 1 score cp -12 nodes 1094078 nps 911731 hashfull 93 tbhits 0 time 1200 pv c2d4 h5g7 f5f8 b7b8 f8f4 b8b1 f4f8 h9h8 g0i2 c9e7 e1c2 b1h1 b0b9 c7b9 a2a1 h1h0 e0e1 g7h5 e2e6 b9c7 e6e4 i6i5
+bestmove c2d4 ponder h5g7
+### 25 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 | Sau 25 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六
+info depth 18 seldepth 40 multipv 1 score cp 13 lowerbound nodes 1141081 nps 950109 hashfull 91 tbhits 0 time 1201 pv c9e7 c2d4
+bestmove c9e7 ponder c2d4
+### 26 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 | Sau 26 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5
+info depth 23 seldepth 51 multipv 1 score cp -2 lowerbound nodes 1233682 nps 1028068 hashfull 91 tbhits 0 time 1200 pv c2d4 h5g7
+bestmove c2d4 ponder h5g7
+### 27 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 | Sau 27 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六
+info depth 26 seldepth 46 multipv 1 score cp 8 nodes 1252499 nps 1043749 hashfull 115 tbhits 0 time 1200 pv h5g7 f5f4 h9h5 b6c6 b7b3 c4c5 h5c5 c6c5 e7c5 d4b3 b9b3 f4f8 g8i8 f8g8 i8i3 e2h2 g3h3 g8g7 c5e7 e1g2 h3h2 a2h2 i3h3 g7h7 h3g3 g0e2 e7g5
+bestmove h5g7 ponder f5f4
+### 28 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 | Sau 28 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9
+info depth 17 seldepth 27 multipv 1 score cp 43 upperbound nodes 1090742 nps 908951 hashfull 93 tbhits 0 time 1200 pv d4e6 b7a7
+bestmove d4e6 ponder b7a7
+### 29 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 | Sau 29 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一
+info depth 24 seldepth 41 multipv 1 score cp 0 nodes 1183825 nps 985699 hashfull 123 tbhits 0 time 1201 pv g8h8 d4e6 h8h0 i2g0 b7a7 b6b9 c7b9 e6f4 h0i0 f4d5 i3h1 f5f1 i0i1 f1f4 i1i0 f4f1
+bestmove g8h8 ponder d4e6
+### 30 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 g8h8 | Sau 30 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一 炮7平8
+info depth 19 seldepth 38 multipv 1 score cp 43 upperbound nodes 1813839 nps 1511532 hashfull 138 tbhits 0 time 1200 pv b6c6 h8h0
+bestmove b6c6 ponder h8h0
+### 31 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 g8h8 e2h2 | Sau 31 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一 炮7平8 炮五平二
+info depth 19 seldepth 44 multipv 1 score cp -39 nodes 1647722 nps 1373101 hashfull 109 tbhits 0 time 1200 pv h8i8 h2e2 h9h4 d4e6 c7e6 e2e6 i3h5 f5g5 i8i2 e6h6 i2i0 e1g0 h4h0 c0e2 h5i3 g5g3 i0g0 e2g0 h0h6 g3i3 e7g5 a2e2 b9b8 i3i2 h6d6 f0e1
+bestmove h8i8 ponder h2e2
+### 32 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 g8h8 e2h2 h8i8 | Sau 32 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一 炮7平8 炮五平二 炮8平9
+info depth 23 seldepth 54 multipv 1 score cp 30 nodes 1402183 nps 1168485 hashfull 94 tbhits 0 time 1200 pv h2e2 h9h4 d4e6 c7e6 e2e6 i3h5 f5g5 i8i2 e6h6 i2i0 e1g0 h4h0 c0e2 h5i3 g5g3 i0g0 e2g0 h0h6 g3i3 e7g5 g0e2 b7i7 b6b9 i7i3 b9c9 e8d9 a2a6 h6h2 e2g0 h2h3 c9c6 h3e3 d0e1 i3i0 a6a9 d9e8 c6c9 e8d9 c9c8 d9e8
+bestmove h2e2 ponder h9h4
+### 33 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 g8h8 e2h2 h8i8 h2d2 | Sau 33 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一 炮7平8 炮五平二 炮8平9 炮二平六
+info depth 18 seldepth 29 multipv 1 score cp 45 lowerbound nodes 1330173 nps 1107554 hashfull 117 tbhits 0 time 1201 pv h9h4 e1c2
+bestmove h9h4 ponder e1c2
+### 34 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 a9b9 a0b0 i8g8 g6f6 g7h5 g2e1 g5g4 f6f5 g4g3 b0b6 g9e7 c2d4 h5i3 g0i2 g8h8 e2h2 h8i8 h2d2 h9h4 | Sau 34 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 車1平2 車九平八 炮9平7 車三平四 馬7進8 傌三退五 卒7進1 車四退一 卒7進1 車八進六 象7進5 傌七進六 馬8進9 相三進一 炮7平8 炮五平二 炮8平9 炮二平六 車8進5
+info depth 26 seldepth 46 multipv 1 score cp -11 nodes 1637219 nps 1364349 hashfull 142 tbhits 0 time 1200 pv d4c6 h4c4 d2d3 g3g2 f5f8 i8i7 d3i3 i7i3 c0e2 c4c5 a2g2 i3g3 e1c2 b7b8 f8f4 b8a8 b6b9 c7b9 c6b8 a6a5 f4b4 c5c3 b4b6 a5a4
+bestmove d4c6 ponder h4c4
+### 35 | h2e2 h9g7 h0g2 b9c7 | Sau 4 nước: 炮二平五 馬8進7 傌二進三 馬2進3
+info depth 21 seldepth 38 multipv 1 score cp 25 upperbound nodes 1397669 nps 1164724 hashfull 119 tbhits 0 time 1200 pv g3g4 c6c5
+bestmove g3g4 ponder c6c5
+### 36 | h2e2 h9g7 h0g2 b9c7 i0h0 | Sau 5 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二
+info depth 21 seldepth 34 multipv 1 score cp -24 lowerbound nodes 1482425 nps 1235354 hashfull 127 tbhits 0 time 1200 pv i9h9 g3g4
+bestmove i9h9 ponder g3g4
+### 37 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 | Sau 6 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8
+info depth 21 seldepth 36 multipv 1 score cp 19 nodes 1352564 nps 1127136 hashfull 113 tbhits 0 time 1200 pv g3g4 c6c5 b2c2 c9e7 b0a2 c7b5 a0a1 a6a5 h0h6 a9a6 g2f4 a6d6 a1f1 h7h8 c2c5 h8f8 h6h9 g7h9 f4e6
+bestmove g3g4 ponder c6c5
+### 38 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 | Sau 7 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一
+info depth 23 seldepth 49 multipv 1 score cp -16 nodes 1483775 nps 1236479 hashfull 123 tbhits 0 time 1200 pv g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 a9b9 a0b0 g7h5 e2e6 c7e6 f6e6 g5g4 g3g4 b7b2 e6g6 b2g2 a2g2 b9b0 c2b0 h5f4 g6g8 f4g2 c0e2 h9h6
+bestmove g6g5 ponder h0h6
+### 39 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 | Sau 8 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1
+info depth 21 seldepth 44 multipv 1 score cp 10 nodes 1675262 nps 1396051 hashfull 132 tbhits 0 time 1200 pv h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 c2d4 i8g8 g6f6 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 b4c4 c7d5 f6f8
+bestmove h0h6 ponder h7i7
+### 40 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 | Sau 9 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六
+info depth 22 seldepth 36 multipv 1 score cp -17 nodes 1495179 nps 1245982 hashfull 123 tbhits 0 time 1200 pv h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 c2d4 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 b4c4 c7d5 d2d5 g5g4 d5d8 g8d8 c4g4 c5e7 d4e6 h5e5 g4g9 e7g9 e6d8 b7d7
+bestmove h7i7 ponder h6g6
+### 41 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 | Sau 10 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9
+info depth 22 seldepth 43 multipv 1 score cp 11 nodes 1457668 nps 1214723 hashfull 104 tbhits 0 time 1200 pv h6g6 i7i8 b0c2 d9e8 c2d4 i8g8 g6f6 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 g0e2 g5g4 b4g4 g8g4 e2g4
+bestmove h6g6 ponder i7i8
+### 42 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 | Sau 11 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三
+info depth 23 seldepth 46 multipv 1 score cp -12 upperbound nodes 1588083 nps 1323402 hashfull 129 tbhits 0 time 1200 pv i7i8 b2d2
+bestmove i7i8 ponder b2d2
+### 43 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 | Sau 12 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1
+info depth 20 seldepth 39 multipv 1 score cp 13 nodes 1720509 nps 1433757 hashfull 131 tbhits 0 time 1200 pv b2d2 a9b9 b0c2 b7a7 a0a2 h9h4 e3e4 c7e8 d2d4 h4h1 e4e5 i8g8 e2e6 g7e6 g6g8 a7e7 c2e3 e7e5 f0e1 e5e4 d4d1 h1h6 a2f2 b9b3 f2f7 e8g7 d1d6 h6h7 g8g9 d9e8
+bestmove b2d2 ponder a9b9
+### 44 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 | Sau 13 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七
+info depth 22 seldepth 38 multipv 1 score cp -10 nodes 1487130 nps 1239275 hashfull 113 tbhits 0 time 1200 pv d9e8 c2d4 i8g8 g6f6 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 b7b9 f6g6 b9d9 d2d9 a9d9 g6g4 d9d7 d4c2 h5d5 b0b7 g7f5 f0e1 c7d9 b7d7 d5d7 g4g9 d9c7
+bestmove d9e8 ponder c2d4
+### 45 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 | Sau 14 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5
+info depth 25 seldepth 48 multipv 1 score cp 13 nodes 1785126 nps 1487605 hashfull 147 tbhits 0 time 1200 pv c2d4 i8g8 g6f6 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 a9b9 e2g4 b7b6 f6f4 c5e7 g2e1 g7i8 d2g2 h5h0
+bestmove c2d4 ponder i8g8
+### 46 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 | Sau 15 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九
+info depth 26 seldepth 9 multipv 1 score cp 0 nodes 1335790 nps 1113158 hashfull 112 tbhits 0 time 1200 pv i8g8 g6f6 a9b9 a0b0 g7h5 f6g6 h5g7 g6f6
+bestmove i8g8 ponder g6f6
+### 47 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 | Sau 16 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7
+info depth 24 seldepth 32 multipv 1 score cp 15 nodes 1258341 nps 1048617 hashfull 100 tbhits 0 time 1200 pv g6f6 a9b9 a0b0 g7h5 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 g2h0 e2g0 g9e7 a2b2 g3i3 b2b7 i3e3 c2e3 h3e3 a3a4 e3e6
+bestmove g6f6 ponder a9b9
+### 48 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 | Sau 17 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7 車三平四
+info depth 23 seldepth 40 multipv 1 score cp -16 upperbound nodes 1809265 nps 1506465 hashfull 112 tbhits 0 time 1201 pv a9b9 a0b0
+bestmove a9b9 ponder a0b0
+### 49 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 g7h5 | Sau 18 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7 車三平四 馬7進8
+info depth 23 seldepth 44 multipv 1 score cp 11 nodes 1571397 nps 1309497 hashfull 109 tbhits 0 time 1200 pv a0b0 a9b9 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 g2i3 c2d4 g3a3 g4g9 h3e3 d4c6 c9e7 g9g6 b7b6 c6d4 e3e4 b4b6 b9b6 g6b6 e4d4 b6b9 e7c9 b9b3 a3a5 b3i3 a5i5 c4c5
+bestmove a0b0 ponder a9b9
+### 50 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 g7h5 a0b0 | Sau 19 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7 車三平四 馬7進8 車九平八
+info depth 22 seldepth 47 multipv 1 score cp -11 nodes 1493818 nps 1243811 hashfull 135 tbhits 0 time 1201 pv a9b9 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 g2i3 b2b7 g3a3 b4b0 h3h9
+bestmove a9b9 ponder e2e6
+### 51 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 g7h5 a0b0 a9b9 | Sau 20 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7 車三平四 馬7進8 車九平八 車1平2
+info depth 23 seldepth 49 multipv 1 score cp 8 nodes 1680731 nps 1400609 hashfull 132 tbhits 0 time 1200 pv e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 g2i3 b2b7 g3a3 b4b0 a3a0 b0a0 b9b7 a0a6 h3h6 g4f4 e8d9 c2d4 f9e8
+bestmove e2e6 ponder c7e6
+### 52 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 d9e8 b2a2 i8g8 g6f6 g7h5 a0b0 a9b9 b0b6 | Sau 21 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 士4進5 炮八平九 炮9平7 車三平四 馬7進8 車九平八 車1平2 車八進六
+info depth 22 seldepth 34 multipv 1 score cp 15 nodes 1224064 nps 1020053 hashfull 98 tbhits 0 time 1200 pv g5g4 f6g6 h5g7 g6f6 g4g3 g2e1 g9e7 c2d4 h9h5 d4e6 b7a7 b6b9 c7b9 e6f4 h5g5 e2h2 g8g9 h2h6 b9c7 h6g6 g9g6 f6g6 g7e6 g6g5 e6g5 f4d5
+bestmove g5g4 ponder f6g6
+### 53 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 | Sau 14 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7
+info depth 25 seldepth 39 multipv 1 score cp 13 nodes 1309180 nps 1090983 hashfull 103 tbhits 0 time 1200 pv g6f6 d9e8 c2d4 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 b7b9 f6g6 b9d9 d2c2 c7d5 g6g4 c5e7 c2c4
+bestmove g6f6 ponder d9e8
+### 54 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 | Sau 15 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四
+info depth 25 seldepth 46 multipv 1 score cp -12 nodes 1446858 nps 1205715 hashfull 117 tbhits 0 time 1200 pv d9e8 c2d4 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 a9b9 e2g4 b7b6 f6f1 c5e7 f1c1 b6d6 b0b9 c7b9 d2d6 h5d5 d4b5 d5b5 d6d1 b5b3 d1g1 g7f5 g0e2 a6a5 g2f4 b9a7
+bestmove d9e8 ponder c2d4
+### 55 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 | Sau 16 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5
+info depth 23 seldepth 50 multipv 1 score cp 9 nodes 1258207 nps 1047632 hashfull 96 tbhits 0 time 1201 pv c2d4 h9h4 b2b4 c9e7 e2d2 c6c5 g3g4 h4h5 c4c5 e7c5 c0e2 g5g4 b4g4 g8g4 a0b0 a9b9 e2g4 b7b6 f6f1 c5e7 f1c1 b6d6 b0b9 c7b9 d4e2
+bestmove c2d4 ponder h9h4
+### 56 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 | Sau 17 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九
+info depth 24 seldepth 43 multipv 1 score cp -7 nodes 1462329 nps 1218607 hashfull 96 tbhits 0 time 1200 pv a9b9 a0b0 g7h5 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 g2i3 b2b7 g3a3 b4b0 a3a0 g4i4 b9b8
+bestmove a9b9 ponder a0b0
+### 57 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 | Sau 18 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8
+info depth 23 seldepth 48 multipv 1 score cp 4 nodes 1348097 nps 1122478 hashfull 100 tbhits 0 time 1201 pv a0b0 a9b9 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 g2i3 b2b7 g3a3 g4g6 a3a0 b4b0 e8f7
+bestmove a0b0 ponder a9b9
+### 58 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 | Sau 19 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八
+info depth 25 seldepth 47 multipv 1 score cp -7 nodes 1513305 nps 1261087 hashfull 105 tbhits 0 time 1200 pv a9b9 e2e6 c7e6 f6e6 g8g3 g0e2 g5g4 b0b4 h5f4 e6e4 f4g2 e4g4 h9h3 d0e1 c9e7 a2b2 g2i3 b2b7 g3a3 b4b0 h3h5 g4g6 a3d3
+bestmove a9b9 ponder e2e6
+### 59 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 | Sau 20 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2
+info depth 22 seldepth 47 multipv 1 score cp 8 lowerbound nodes 1435384 nps 1196153 hashfull 106 tbhits 0 time 1200 pv e2e6 c7e6
+bestmove e2e6 ponder c7e6
+### 60 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 | Sau 21 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二
+info depth 23 seldepth 46 multipv 1 score cp 0 nodes 1252441 nps 1042831 hashfull 97 tbhits 0 time 1201 pv b7b8 f8f3 b8b1 c2d4 g9e7 d4e6 c7e6 e2e6 g5g4 g3g4 g8g2 a2a6 h5g7 e6e5 c6c5 c4c5 h9h6 a6a4 h6d6 c0e2 d6d3 g4g5 e9d9 f3f6 b1b3 c5b5
+bestmove b7b8 ponder f8f3
+### 61 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 | Sau 22 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5
+info depth 20 seldepth 43 multipv 1 score cp 7 upperbound nodes 1204243 nps 1003535 hashfull 105 tbhits 0 time 1200 pv g0i2 b7b3
+bestmove g0i2 ponder b7b3
+### 62 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 g0i2 | Sau 23 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5 相三進一
+info depth 20 seldepth 44 multipv 1 score cp -14 nodes 1265124 nps 1054270 hashfull 97 tbhits 0 time 1200 pv b7b3 c2d4 h5g7 e3e4 b3b4 f8f3 g5g4 i2g4 g3h3 f3d3 g9e7 e2e1 h3h2 c0e2 b4d4 b0b9 c7b9 d3d4 h9h3 d4d5 b9c7
+bestmove b7b3 ponder c2d4
+### 63 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 g0i2 b7b3 | Sau 24 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5 相三進一 炮2進4
+info depth 24 seldepth 40 multipv 1 score cp 9 nodes 1528434 nps 1273695 hashfull 128 tbhits 0 time 1200 pv c2d4 h5g7 e3e4 b3b4 f8f3 h9h3 f3d3 c9e7 e4e5 b4d4 b0b9 c7b9 d3d4 e6e5 a2a6 b9a7 d4d5 g3i3 g2i3 h3i3 d5e5 i6i5
+bestmove c2d4 ponder h5g7
+### 64 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 g0i2 b7b3 e3e4 | Sau 25 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5 相三進一 炮2進4 兵五進一
+info depth 24 seldepth 42 multipv 1 score cp 0 nodes 1480751 nps 1233959 hashfull 121 tbhits 0 time 1200 pv g3c3 e4e5 e6e5 c2e3 h9h7 e2e5 h7e7 e5h5 b3e3 b0b9 c7b9 g2e3 e7e3 a2e2 c9e7 h5h1 e9d9 f8f6 e3d3 h1h9 d3d0 e0e1 d9d8 f6f3
+bestmove g3c3 ponder e4e5
+### 65 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 g0i2 b7b3 e3e4 g3c3 | Sau 26 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5 相三進一 炮2進4 兵五進一 炮7平3
+info depth 24 seldepth 23 multipv 1 score cp 0 nodes 1220303 nps 1016072 hashfull 88 tbhits 0 time 1201 pv g2f4 h5g3 f4e6 c3i3 e6c7 b3e3 e2g2 g3e2 c2e3 e2c1 e3d1 b9b0 f8h8 h9i9 g2g1 i3c3 a2c2 b0b2 h8i8 i9h9 i8h8 c3b3
+bestmove g2f4 ponder h5g3
+### 66 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 g8g3 g0i2 b7b3 e3e4 g3c3 g2f4 | Sau 27 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮7進5 相三進一 炮2進4 兵五進一 炮7平3 傌三進四
+info depth 27 seldepth 22 multipv 1 score cp 0 nodes 1297482 nps 1081235 hashfull 102 tbhits 0 time 1200 pv h5g3 f4e6 c3i3 e6c7 b3e3 e2g2 g3e2 c2e3 e2c1 e3d1 b9b0 f8h8 h9i9 g2g1 i3c3 a2c2 b0b2 h8i8 i9h9 i8h8 h9i9
+bestmove h5g3 ponder f4e6
+### 67 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 | Sau 22 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1
+info depth 28 seldepth 6 multipv 1 score cp 0 nodes 1213002 nps 1010835 hashfull 106 tbhits 0 time 1200 pv f8f3 b8b1 f3f8 b1b8 f8f3
+bestmove f8f3 ponder b8b1
+### 68 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 | Sau 23 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三
+info depth 22 seldepth 43 multipv 1 score cp 10 nodes 1250724 nps 1042270 hashfull 105 tbhits 0 time 1200 pv c9e7 b0b7 h5g3 f5f3 g8g7 a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2d2 h1c1 g0e2 g3i2 f0e1 g5g4 f3f2
+bestmove c9e7 ponder b0b7
+### 69 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 | Sau 24 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5
+info depth 22 seldepth 41 multipv 1 score cp -11 nodes 1406327 nps 1171939 hashfull 113 tbhits 0 time 1200 pv b0b7 h5g3 f5f3 g8g7 a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2d2 h1b1 e6d4 b1b6 a6c6 a8d8 d2c2 b9a7 c0e2 d8c8 e3e4 g5g4 c4c5
+bestmove b0b7 ponder h5g3
+### 70 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 | Sau 25 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七
+info depth 22 seldepth 40 multipv 1 score cp 11 nodes 1498404 nps 1248670 hashfull 116 tbhits 0 time 1200 pv h5g3 f5f3 g8g7 a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2a2 h1c1 g0e2 g5g4 f0e1 c1c3 e6g7 g4f4 f3f4 g3e2 c0e2 c3a3 e1f2
+bestmove h5g3 ponder f5f3
+### 71 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 h5g3 | Sau 26 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七 馬8進7
+info depth 22 seldepth 43 multipv 1 score cp -4 nodes 1298968 nps 1082473 hashfull 94 tbhits 0 time 1200 pv f5f3 g8g7 a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2a2 h1c1 g0e2 g5g4 f0e1 c1c3 e6g7 g4f4 f3f4 g3e2 c0e2 c3a3 e2c0 a3a6 g2h4 c6c5 a2a8 g8a8 h4f5
+bestmove f5f3 ponder g8g7
+### 72 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 h5g3 f5f3 | Sau 27 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七 馬8進7 車四退二
+info depth 22 seldepth 42 multipv 1 score cp 4 nodes 1269349 nps 1057790 hashfull 102 tbhits 0 time 1200 pv g8g7 a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2a2 h1c1 g0e2 g5g4 f0e1 c1c3 e6g7 g4f4 f3f4 g3e2 c0e2 c3a3 e2c0 a3a6 g2h4 c6c5 a2a8 g8a8 c4c5 b9c7 f4d4 a8c8 c0e2 c8c5 e3e4
+bestmove g8g7 ponder a2a6
+### 73 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 h5g3 f5f3 g8g7 | Sau 28 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七 馬8進7 車四退二 炮7進1
+info depth 22 seldepth 42 multipv 1 score cp -5 nodes 1262835 nps 1052362 hashfull 121 tbhits 0 time 1200 pv a2a6 b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2a2 h1c1 g0e2 g5g4 f0e1 c1c3 e6g7 g4f4 f3f4 g3e2 c0e2 c3a3 e2c0 a3a6 g2h4 a8b8
+bestmove a2a6 ponder b8a8
+### 74 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 h5g3 f5f3 g8g7 c2d4 | Sau 29 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七 馬8進7 車四退二 炮7進1 傌七進六
+info depth 23 seldepth 43 multipv 1 score cp 13 nodes 1292278 nps 1076001 hashfull 105 tbhits 0 time 1201 pv b9d9 d4e6 c7e6 b7b8 e6d4 e3e4 h9h4 f0e1 h4e4 e2d2 e4e5 f3f8 d4f3 f8f3 d9d2 b8b9 d2d9 b9d9 e8d9 g2e3 d9e8 a2g2 i6i5 f3f6
+bestmove b9d9 ponder d4e6
+### 75 | h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 c3c4 g6g5 h0h6 h7i7 h6g6 i7i8 b0c2 i8g8 g6f6 d9e8 b2a2 g7h5 a0b0 a9b9 f6f8 b7b8 f8f5 c9e7 b0b7 h5g3 f5f3 g8g7 a2a6 | Sau 29 nước: 炮二平五 馬8進7 傌二進三 馬2進3 車一平二 車9平8 兵七進一 卒7進1 車二進六 炮8平9 車二平三 炮9退1 傌八進七 炮9平7 車三平四 士4進5 炮八平九 馬7進8 車九平八 車1平2 車四進二 炮2退1 車四退三 象3進5 車八進七 馬8進7 車四退二 炮7進1 炮九進四
+info depth 24 seldepth 40 multipv 1 score cp -1 nodes 1344826 nps 1119755 hashfull 111 tbhits 0 time 1201 pv b8a8 b7b9 c7b9 c2d4 h9h1 d4e6 g7g8 e2d2 h1b1 e6g7 b1b6 a6a4 b6b3 g0e2 b3a3 f3g3 a3a4 g3f3 c6c5 c4c5 a4a6 g7f5 a6a5 e3e4 a5c5 f5e3 a8c8
+bestmove b8a8 ponder b7b9
+### 76 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 e3e4 | Sau 13 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 兵五進一
+info depth 24 seldepth 39 multipv 1 score cp 9 nodes 1427807 nps 1189839 hashfull 132 tbhits 0 time 1200 pv c7e8 b2b6 c6c5 c4c5 i8g8 e2e6 c9e7 g6f6 g7e6 f6e6 a9c9 e6f6 e8g7 c0e2 c9c5 b0d1 g5g4 g3g4 g7h5 g4g5 c5g5 g2e3 g5g0 e2g0 h5f6 b6e6 g8e8 e6e8 f9e8 a0b0
+bestmove c7e8 ponder b2b6
+### 77 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 e3e4 c7e8 | Sau 14 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 兵五進一 馬3退5
+info depth 24 seldepth 42 multipv 1 score cp -10 nodes 1192760 nps 993139 hashfull 101 tbhits 0 time 1201 pv b2b6 c6c5 c4c5 i8g8 e2e6 c9e7 g6f6 g7e6 f6e6 a9c9 e6f6 e8g7 b0c2 c9c5 c2e3 g7f5 c0e2 f5d4 a0a1 d4b3 a1d1 h9h2 e4e5 d9e8
+bestmove b2b6 ponder c6c5
+### 78 | h2e2 h9g7 h0g2 i9h9 i0h0 g6g5 h0h6 b9c7 c3c4 h7i7 h6g6 i7i8 e3e4 c7e8 b2b6 | Sau 15 nước: 炮二平五 馬8進7 傌二進三 車9平8 車一平二 卒7進1 車二進六 馬2進3 兵七進一 炮8平9 車二平三 炮9退1 兵五進一 馬3退5 炮八進四
+info depth 23 seldepth 43 multipv 1 score cp 5 nodes 1632947 nps 1360789 hashfull 144 tbhits 0 time 1200 pv c6c5 c4c5 i8g8 e2e6 c9e7 g6f6 g7e6 f6e6 a9c9 e6f6 c9c5 b6e6 c5c6 e4e5 b7b6 c0e2 g8g3 g2e3 h9h3 i3i4 b6e6 f6e6 c6c5 e5f5 h3h0
+bestmove c6c5 ponder c4c5

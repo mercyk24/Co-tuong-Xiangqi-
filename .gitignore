@@ -1,0 +1,14 @@
+# Thư viện và bản dựng
+node_modules/
+dist/
+.build/
+# Kết quả kiểm tra
+test-results/
+playwright-report/
+blob-report/
+# Tệp tạm khi sinh dữ liệu bằng Pikafish
+data/cothe_verified.json
+data/cothe_report.txt
+*.log
+.DS_Store
+Thumbs.db

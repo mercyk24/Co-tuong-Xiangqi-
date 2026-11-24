@@ -1,0 +1,5 @@
+# Giữ xuống dòng kiểu LF cho mọi tệp văn bản (tránh khác biệt giữa Windows và máy chủ GitHub)
+* text=auto eol=lf
+*.png binary
+*.wasm binary
+*.nnue binary

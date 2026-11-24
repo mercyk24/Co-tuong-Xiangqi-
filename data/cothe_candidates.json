@@ -1,0 +1,8 @@
+[
+  {
+    "id": "mau-1",
+    "name": "Thế mẫu (kiểm tra công cụ)",
+    "fen": "4kaR2/4a4/3hR4/7H1/9/9/9/9/4Ap1r1/3AK3c w - - 0 1",
+    "note": "Đây chỉ là thế ví dụ lấy từ tài liệu định dạng FEN, dùng để thử công cụ. Xoá khi thêm thế thật."
+  }
+]

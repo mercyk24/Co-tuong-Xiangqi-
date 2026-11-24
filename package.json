@@ -1,0 +1,24 @@
+{
+  "name": "co-tuong-luyen-tap",
+  "version": "1.0.0",
+  "description": "Web app luyện cờ tướng miễn phí: đấu máy, chiếu hết, chiến thuật, khai cuộc và phân tích ván bằng engine NNUE.",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "serve": "node scripts/serve.js",
+    "start": "npm run build && npm run serve",
+    "lint": "npm run build && eslint .",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:e2e": "npm run build && playwright test",
+    "test": "npm run lint && npm run test:unit && npm run test:e2e",
+    "openings": "node tools/build_openings.js && node tools/build_openings_gen.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "eslint": "10.15.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
