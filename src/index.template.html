@@ -67,9 +67,28 @@ svg.board{width:100%;height:auto;display:block;user-select:none;-webkit-user-sel
 .mv.red{color:var(--red)}
 .grp{margin:10px 0}.grp>summary{cursor:pointer;padding:8px 2px;font-size:15px}.grp[open]>summary{border-bottom:1px solid var(--line);margin-bottom:6px}
 .seg{display:flex;gap:6px;margin:0 0 10px}.seg .btn{flex:1}
-.clk{text-align:center;font:600 20px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;padding:6px;margin:6px auto;border:1px solid var(--line);border-radius:12px;background:var(--card);max-width:200px}
-.clk.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.clk.low.on{background:var(--red);border-color:var(--red)}
-.clk.rot,.ask.rot{transform:rotate(180deg)}.ask{margin-top:8px}.ask p{margin:0 0 6px;font-weight:600}
+.pbar{display:flex;align-items:center;gap:6px;margin:6px 0;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.pbar.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.pbar.rot,.ask.rot,.sheet.rot{transform:rotate(180deg)}
+.pinfo{flex:1;display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;min-width:0}
+.pl1{display:flex;align-items:baseline;gap:6px}.pst{font-size:12px;color:var(--muted);white-space:nowrap}.pbar.on .pst{color:var(--accent);font-weight:600}.pst.chk{color:var(--red)!important}
+.pname{font-weight:700;font-size:16px}
+.pclk{font:600 18px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}.pclk:empty{display:none}
+.pbar.low .pclk{color:var(--red)}
+.btn.sm{min-height:36px;padding:6px 9px;font-size:13px}.btn.ic{min-height:40px;min-width:44px;font-size:20px;padding:4px 8px}
+.btn.wide{width:100%}
+.setup p{margin:4px 0 8px}.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.tgrid .btn{min-height:54px;font-size:15px}.tgrid .btn small{display:block;font-size:12px;opacity:.75}
+.pm-acts{display:flex;gap:6px}.pm-acts .btn{flex:1}
+.pbar .pinfo{align-items:flex-start}
+.result{margin-top:8px;text-align:center}.result p{margin:4px 0}#play-result-text{font-weight:700;font-size:17px}
+.sheet-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet-back.top{align-items:flex-start}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:80vh;overflow:auto;padding:14px 14px calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.sheet.rot{border-radius:0 0 18px 18px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}
+.sheet label{display:flex;flex-direction:column;gap:4px}.sheet label.chk2{flex-direction:row;align-items:center}
+
+.ask{margin-top:8px}.ask p{margin:0 0 6px;font-weight:600}
 .mv.q1{color:#b8860b}.mv.q2{color:#d9822b;font-weight:700}.mv.q3{color:#c0392b;font-weight:700}
 .mv.ck{cursor:pointer}.mv.cur{background:rgba(46,107,90,.2);outline:1px solid var(--accent)}
 .settings{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:10px;font-size:14px}
@@ -94,8 +113,14 @@ label.chk2{display:flex;align-items:center;gap:6px}
 .badge{font-size:12px;color:var(--muted);white-space:nowrap}
 .note{background:var(--card);border-left:4px solid var(--accent);border-radius:8px;padding:8px 12px;margin-top:10px;font-size:15px;min-height:48px}
 .title{font-weight:700;margin:4px 2px 6px;font-size:16px}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 .tab{flex:1;border:0;background:none;padding:9px 4px 8px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-handle{display:none;position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.18);align-items:center;justify-content:center;font-size:22px;line-height:1;cursor:pointer;z-index:6}
+body.nav-min nav.tabs{background:none;border:0;padding:0}body.nav-min nav.tabs .tab{display:none}body.nav-min .nav-handle{display:flex}
+body.nav-min{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+body.game-play #play-title{display:none}
+body.game-play #v-play{display:flex;flex-direction:column;justify-content:center;min-height:calc(100dvh - 94px - env(safe-area-inset-bottom))}
+.pbar .ic[hidden]{display:none}
 .tab b{font-family:var(--han);font-size:22px;font-weight:700;line-height:1.1}
 .tab.on{color:var(--accent)}
 #toast{position:fixed;left:50%;top:12px;transform:translate(-50%,-80px);opacity:0;visibility:hidden;pointer-events:none;max-width:92vw;background:#2a2118;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;transition:transform .25s,opacity .25s,visibility .25s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.3)}
@@ -109,41 +134,63 @@ a{color:var(--accent)}
   <section class="view" id="v-play" hidden>
     <h1 id="play-title">Đấu với máy</h1>
     <div class="seg" id="play-mode"><button class="btn" data-m="ai">Đấu với máy</button><button class="btn" data-m="pvp">Hai người chơi</button></div>
-    <div class="clk" id="play-clk-top" hidden></div>
+    <div class="card setup" id="pvp-setup" hidden>
+      <p><b>Ván mới – hai người chơi</b></p>
+      <p class="muted">Đặt máy nằm giữa hai người: Đỏ ngồi phía dưới, Đen ngồi phía trên (quân Đen quay về phía Đen). Chọn thời gian để bắt đầu ngay.</p>
+      <div class="tgrid" id="pvp-times"></div>
+      <button class="btn wide" id="pvp-setup-cancel">Quay lại</button>
+    </div>
+    <div class="pbar" id="pbar-top" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
+    <div class="ask-slot" id="ask-top"></div>
     <div class="board-wrap" id="play-board"></div>
-    <div class="clk" id="play-clk-bot" hidden></div>
-    <div class="status" id="play-status"></div>
+    <div class="ask-slot" id="ask-bot"></div>
+    <div class="pbar" id="pbar-bot" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
     <div class="card ask" id="play-ask" hidden><p id="play-ask-text"></p><div class="row"><button class="btn primary" id="play-ask-yes"></button><button class="btn" id="play-ask-no"></button></div></div>
-    <div class="row">
-      <button class="btn primary" id="play-new">Ván mới</button>
-      <button class="btn" id="play-undo">Đi lại</button>
-      <button class="btn" id="play-hint">Gợi ý</button>
-      <button class="btn" id="play-flip">Lật bàn</button>
-      <button class="btn" id="play-draw" hidden>Xin hòa</button>
-      <button class="btn" id="play-resign">Chịu thua</button>
-      <button class="btn" id="play-ana">Phân tích ván</button>
+    <div class="card result" id="play-result" hidden>
+      <p id="play-result-text"></p>
+      <div class="row"><button class="btn primary" id="play-result-ana">Phân tích ván</button><button class="btn" id="play-result-new">Ván mới</button><button class="btn" id="play-result-mode">Đấu với máy</button></div>
+      <p class="muted" id="play-result-note"></p>
     </div>
-    <div class="settings" id="play-set-pvp" hidden>
-      <label>Hướng bàn <select id="play-orient">
-        <option value="turn">Lật theo lượt (chuyền máy cho nhau)</option>
-        <option value="face">Đối mặt (đặt máy nằm giữa, quân Đen quay ngược)</option>
-        <option value="fixed">Cố định, Đỏ ở dưới</option>
-      </select></label>
-      <label>Đồng hồ <select id="play-clock"></select></label>
+    <div class="sheet-back" id="am-back" hidden>
+      <div class="sheet" id="am" role="dialog" aria-label="Tùy chọn ván">
+        <div class="sheet-h"><b>Tùy chọn ván</b><button class="btn sm" id="am-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" id="play-hint">Gợi ý</button><button class="btn" id="play-undo">Đi lại</button><button class="btn" id="play-flip">Lật bàn</button></div>
+        <button class="btn wide" id="play-resign">Chịu thua</button>
+        <label>Cấp độ (đổi được giữa ván) <select id="play-level"></select></label>
+        <label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label>
+        <div id="am-new">
+          <div class="muted">Ván mới</div>
+          <label>Bạn cầm <select id="play-side"><option value="1">Đen</option><option value="0">Đỏ</option></select></label>
+          <label>Máy mở đầu (khi máy cầm Đỏ) <select id="play-open">
+            <option value="">Ngẫu nhiên</option>
+            <option value="炮二平五">Pháo đầu (hợp luyện Bình phong mã)</option>
+            <option value="兵七進一">Tiên nhân chỉ lộ (Tốt 7)</option>
+            <option value="相三進五">Phi tượng</option>
+            <option value="傌二進三">Khởi mã</option>
+          </select></label>
+          <button class="btn primary wide" id="play-new">Bắt đầu ván mới</button>
+          <button class="btn wide" id="am-pvp">Chuyển sang Hai người chơi</button>
+        </div>
+        <p class="muted" id="am-note">Đang giữa ván nên không có Ván mới, tránh bấm nhầm. Muốn đổi ván thì Chịu thua trước.</p>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="play-moves"></div>
+      </div>
     </div>
-    <div class="settings" id="play-set-ai">
-      <label>Bạn cầm <select id="play-side"><option value="1">Đen</option><option value="0">Đỏ</option></select></label>
-      <label>Cấp độ <select id="play-level"></select></label>
-      <label>Máy mở đầu (khi máy cầm Đỏ) <select id="play-open">
-        <option value="">Ngẫu nhiên</option>
-        <option value="炮二平五">Pháo đầu (hợp luyện Bình phong mã)</option>
-        <option value="兵七進一">Tiên nhân chỉ lộ (Tốt 7)</option>
-        <option value="相三進五">Phi tượng</option>
-        <option value="傌二進三">Khởi mã</option>
-      </select></label>
+    <div class="sheet-back" id="pm-back" hidden>
+      <div class="sheet" id="pm" role="dialog" aria-label="Menu ván hai người">
+        <div class="sheet-h"><b id="pm-title">Menu</b><button class="btn sm" id="pm-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" data-act="undo">Xin đi lại</button><button class="btn" data-act="draw">Xin hòa</button><button class="btn" data-act="resign">Chịu thua</button></div>
+        <label class="chk2"><input type="checkbox" id="pm-warn"> Báo nước yếu sau mỗi nước đi</label>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="pm-moves"></div>
+      </div>
     </div>
-    <div class="settings"><label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label></div>
-    <div class="moves" id="play-moves"></div>
   </section>
 
   <section class="view" id="v-ana" hidden>
@@ -283,6 +330,7 @@ a{color:var(--accent)}
 </main>
 
 <nav class="tabs">
+  <button class="nav-handle" id="nav-handle" aria-label="Mở thanh điều hướng" title="Mở thanh điều hướng">▦</button>
   <button class="tab" data-tab="play"><b>帥</b>Đấu máy</button>
   <button class="tab" data-tab="puz"><b>殺</b>Chiếu hết</button>
   <button class="tab" data-tab="tac"><b>戰</b>Chiến thuật</button>

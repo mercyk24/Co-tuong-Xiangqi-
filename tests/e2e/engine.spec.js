@@ -2,16 +2,13 @@
 // Các bài này chậm hơn (tải 13 MB engine và cho engine nghĩ), nên được giới hạn 3 phút mỗi bài.
 'use strict';
 const { test } = require('@playwright/test');
-const { openApp, showTab, expect } = require('./helpers');
+const { openApp, showTab, aiNewGame, expect } = require('./helpers');
 
 test.describe.configure({ timeout: 180_000 });
 
 test('cấp 6 (Cao thủ) dùng engine mạnh và đi nước hợp lệ', async ({ page }) => {
   const errors = await openApp(page);
-  await page.selectOption('#play-side', '1');
-  await page.selectOption('#play-level', '6');
-  await page.selectOption('#play-open', '');
-  await page.click('#play-new');
+  await aiNewGame(page, { side: 1, level: 6, open: '' });
   await page.waitForFunction(() => window.__xq.Play.notes.length === 1);
   // Một nước lạ (Tốt biên) để ra khỏi sách khai cuộc, buộc máy phải dùng engine mạnh.
   await page.evaluate(() => { const P = window.__xq.Play; P.doMove(P.ctx.pos.parse('卒1進1'), true); });

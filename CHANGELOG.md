@@ -2,6 +2,24 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.2.0] – 2026-11-24
+
+### Thay đổi
+- **Hai người chơi** luôn ngồi đối mặt: Đỏ phía dưới, Đen phía trên, quân Đen quay về phía người cầm Đen. Bỏ các lựa chọn hướng bàn khác.
+- Bấm "Hai người chơi" (hoặc Ván mới ở thẻ kết quả) sẽ hiện màn **chọn thời gian** trước; chọn xong là vào ván ngay và đồng hồ của Đỏ chạy luôn.
+- Giao diện gọn: trên và dưới bàn cờ mỗi người chỉ có một thanh nhỏ (nút ☰, tên bên, trạng thái, đồng hồ); thanh, câu hỏi và menu phía Đen quay ngược.
+- Mọi chức năng gom vào menu ☰ của từng người: Xin đi lại, Xin hòa, Chịu thua (tính cho bên mở menu), báo nước yếu, biên bản ván. Trong lúc đánh không có nút Ván mới hay Đấu với máy, tránh bấm nhầm; hai nút này nằm ở thẻ kết quả khi ván xong.
+- Bàn cờ hai người nằm giữa màn hình.
+- Xin đi lại khi chơi hai người phải được bên kia đồng ý; gỡ đúng nước gần nhất của bên xin.
+- Nút "Phân tích ván" của ván hai người chỉ hiện trong thẻ kết quả khi ván đã xong.
+- Ván phải có ít nhất 5 nước mỗi bên (10 nước tính cả hai bên) mới được lưu và phân tích, áp dụng cho cả hai chế độ.
+
+- **Đấu với máy** gọn lại theo cùng kiểu: trên bàn cờ là thanh của máy (bên, cấp độ, đang nghĩ), dưới là thanh của bạn. Mọi nút gom vào mục **Tùy chọn ván** (nút ☰ ở thanh của bạn): Gợi ý, Đi lại, Lật bàn, Chịu thua, Cấp độ, Báo nước yếu, biên bản ván. Phần Ván mới (bên cầm, nước mở đầu của máy, chuyển sang Hai người chơi) chỉ hiện khi chưa vào ván hoặc ván đã xong.
+- Khi ván xong (cả hai chế độ), thẻ kết quả hiện Phân tích ván (nếu đủ 5 nước mỗi bên), Ván mới và nút đổi chế độ.
+
+### Thêm
+- Thanh điều hướng dưới cùng tự thu thành một **nút tròn** nhỏ ở góc dưới bên phải khi đang đánh (cả hai chế độ), đang giải bài chiếu hết / chiến thuật hoặc đang tập khai cuộc, để khỏi bấm nhầm. Bấm nút tròn để mở lại thanh; bấm ra ngoài thanh thì thanh thu lại thành nút.
+
 ## [1.1.0] – 2026-11-24
 
 ### Thêm

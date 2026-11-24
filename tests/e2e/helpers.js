@@ -17,6 +17,8 @@ async function openApp(page, { isolated = true } = {}) {
 }
 
 async function showTab(page, name) {
+  // Khi đang đánh/giải bài, thanh điều hướng thu gọn: bấm vạch để mở lại trước.
+  if (await page.locator('#nav-handle').isVisible()) await page.click('#nav-handle');
   await page.locator('.tab[data-tab="' + name + '"]').click();
   await expect(page.locator('#v-' + name)).toBeVisible();
 }
@@ -36,4 +38,20 @@ async function clickMove(page, boardSel, obj, m) {
   await clickSquare(page, boardSel, obj, m & 127);
 }
 
-module.exports = { openApp, showTab, clickSquare, clickMove, expect };
+// Đấu với máy: mở "Tùy chọn ván", chọn cấp độ / nước mở đầu / bên cầm rồi bắt đầu ván mới.
+async function aiNewGame(page, { side, level, open } = {}) {
+  await page.locator('#pbar-bot [data-act="menu"]').click();
+  await expect(page.locator('#am')).toBeVisible();
+  if (level !== undefined) await page.selectOption('#play-level', String(level));
+  if (open !== undefined) await page.selectOption('#play-open', open);
+  if (side !== undefined) await page.selectOption('#play-side', String(side));
+  await page.click('#play-new');
+  await expect(page.locator('#am-back')).toBeHidden();
+}
+// Mở "Tùy chọn ván" rồi bấm một nút trong đó.
+async function aiMenu(page, id) {
+  await page.locator('#pbar-bot [data-act="menu"]').click();
+  await page.click(id);
+}
+
+module.exports = { openApp, showTab, clickSquare, clickMove, aiNewGame, aiMenu, expect };

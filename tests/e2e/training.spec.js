@@ -1,30 +1,41 @@
 // Kiểm tra các chế độ luyện tập: đấu máy (engine tự viết), chiếu hết, chiến thuật, khai cuộc.
 'use strict';
 const { test } = require('@playwright/test');
-const { openApp, showTab, clickMove, expect } = require('./helpers');
+const { openApp, showTab, clickMove, aiNewGame, aiMenu, expect } = require('./helpers');
 
 test('đấu máy cấp 3: máy mở đầu theo sách, đi nước bằng cách bấm bàn cờ, máy đáp lại, đi lại được', async ({ page }) => {
   const errors = await openApp(page);
-  await page.selectOption('#play-side', '1');
-  await page.selectOption('#play-level', '3');
-  await page.click('#play-new');
+  await aiNewGame(page, { side: 1, level: 3 });
   await page.waitForFunction(() => window.__xq.Play.notes.length === 1 && !window.__xq.Play.thinking);
+  await expect(page.locator('#pbar-bot .pname')).toHaveText('Bạn · Đen');
+  await expect(page.locator('#pbar-top [data-act="menu"]')).toBeHidden();
   const m = await page.evaluate(() => { const p = window.__xq.Play.ctx.pos; return p.parse('馬8進7') > 0 ? p.parse('馬8進7') : p.legalMoves()[0]; });
   await clickMove(page, '#play-board', 'Play', m);
   await page.waitForFunction(() => window.__xq.Play.notes.length === 3 && !window.__xq.Play.thinking, null, { timeout: 30_000 });
-  await page.click('#play-undo');
+  await aiMenu(page, '#play-undo');
   await page.waitForFunction(() => window.__xq.Play.notes.length === 1);
+  // chưa đi nước nào: menu còn Ván mới; đi một nước rồi thì giữa ván: không có Ván mới, có Chịu thua
+  await page.locator('#pbar-bot [data-act="menu"]').click();
+  await expect(page.locator('#play-new')).toBeVisible();
+  await page.click('#am-close');
+  await clickMove(page, '#play-board', 'Play', m);
+  await page.waitForFunction(() => window.__xq.Play.notes.length === 3 && !window.__xq.Play.thinking, null, { timeout: 30_000 });
+  await page.locator('#pbar-bot [data-act="menu"]').click();
+  await expect(page.locator('#play-new')).toBeHidden();
+  await expect(page.locator('#play-resign')).toBeVisible();
+  await page.click('#play-resign');
+  await page.click('#play-ask-yes');
+  await expect(page.locator('#play-result-text')).toHaveText('Đen chịu thua – Đỏ thắng.');
+  await expect(page.locator('#play-result-new')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test('máy đổi khai cuộc giữa các ván (ít nhất 3 cách khác nhau trong 8 ván)', async ({ page }) => {
   await openApp(page);
-  await page.selectOption('#play-side', '1');
-  await page.selectOption('#play-level', '3');
-  await page.selectOption('#play-open', '');
+  await aiNewGame(page, { side: 1, level: 3, open: '' });
   const firsts = new Set();
   for (let i = 0; i < 8; i++) {
-    await page.click('#play-new');
+    await page.evaluate(() => window.__xq.Play.newGame());
     await page.waitForFunction(() => window.__xq.Play.notes.length >= 1);
     firsts.add(await page.evaluate(() => window.__xq.Play.notes[0]));
   }
@@ -96,4 +107,25 @@ test('khai cuộc: đủ các nhóm, tập hết một biến, nước tương �
   });
   expect(r.mistakes).toBe(0);
   expect(r.note).toContain('cũng là nước tốt');
+});
+
+test('thanh điều hướng thu gọn khi đang đánh với máy, giải bài, tập khai cuộc; hiện lại khi xong', async ({ page }) => {
+  await openApp(page);
+  const tabs = page.locator('.tab[data-tab="about"]');
+  await aiNewGame(page, { side: 0, level: 1 });
+  await expect(tabs).toBeVisible();
+  await page.evaluate(() => { const P = window.__xq.Play; P.doMove(P.ctx.pos.parse('炮二平五'), true); });
+  await expect(tabs).toBeHidden();
+  await page.click('#nav-handle');
+  await showTab(page, 'puz');
+  await expect(tabs).toBeVisible();
+  await page.evaluate(() => window.__xq.Puz.open(1));
+  await expect(tabs).toBeHidden();
+  await page.evaluate(() => { const P = window.__xq.Puz; P.solved = true; });
+  await expect(tabs).toBeVisible();
+  await showTab(page, 'op');
+  await page.evaluate(() => window.__xq.Op.open(OPENINGS.lines[0], 'drill'));
+  await expect(tabs).toBeHidden();
+  await page.evaluate(() => window.__xq.Op.open(OPENINGS.lines[0], 'study'));
+  await expect(tabs).toBeVisible();
 });

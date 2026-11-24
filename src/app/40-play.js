@@ -1,42 +1,65 @@
-  // 40-play.js — Tab Đấu máy: ván với máy hoặc hai người trên một máy (hướng bàn, đồng hồ, xin hòa, chịu thua),
-  // sách khai cuộc của máy, gợi ý, đi lại, lưu ván để phân tích.
+  // 40-play.js — Tab Đấu máy: ván với máy, hoặc hai người ngồi đối mặt trên một máy (Đỏ phía dưới, Đen phía trên;
+  // chọn thời gian trước khi vào ván, mỗi người một thanh điều khiển và menu ☰ ở phía mình: xin hòa / xin đi lại /
+  // chịu thua); sách khai cuộc của máy; lưu ván để phân tích.
   // ---------- Đấu máy ----------
+  const MIN_PLIES = 10; // ván phải có ít nhất 5 nước mỗi bên mới được lưu và phân tích
+  const SIDE = ['Đỏ', 'Đen'];
   const Play = {
     ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: XQ.START_FEN,
     user: Store.get('play_user', 1), level: Store.get('play_level', 3), warn: Store.get('play_warn', false),
     last: null, hint: null, thinking: false, over: null, gen: 0, rec: null,
-    mode: Store.get('play_mode', 'ai'), orient: Store.get('play_orient', 'turn'), clockSet: Store.get('play_clock', '0'),
-    clock: null, ask: null,
+    mode: Store.get('play_mode', 'ai'), clockSet: Store.get('play_clock', '0'),
+    clock: null, ask: null, menuFrom: null, setup: false,
     pvp() { return this.mode === 'pvp'; },
+    // Đang giữa ván (dùng để thu gọn thanh điều hướng, tránh bấm nhầm)
+    // Đấu máy: tính là "đang đánh" từ khi người chơi đã đi ít nhất một nước (nước mở đầu của máy chưa tính).
+    active() { return this.pvp() ? !this.setup && !this.over : !this.over && this.moves.some((m, i) => i % 2 === this.user); },
     // Đồng hồ: "phút+giây cộng thêm mỗi nước", '0' là không tính giờ.
-    CLOCKS: { '0': 'Không tính giờ', '3+2': '3 phút +2 giây/nước', '5+0': '5 phút', '10+0': '10 phút', '10+5': '10 phút +5 giây/nước', '15+10': '15 phút +10 giây/nước', '30+0': '30 phút' },
+    CLOCKS: { '0': ['Không tính giờ', ''], '3+2': ['3 phút', '+2 giây mỗi nước'], '5+0': ['5 phút', ''], '10+0': ['10 phút', ''], '10+5': ['10 phút', '+5 giây mỗi nước'], '15+10': ['15 phút', '+10 giây mỗi nước'], '30+0': ['30 phút', ''] },
     init() {
       this.board = new Board($('#play-board'), sq => this.onSquare(sq));
-      $('#play-ana').onclick = () => Ana.openCurrent();
-      $('#play-new').onclick = () => this.newGame();
-      $('#play-undo').onclick = () => this.undo();
-      $('#play-hint').onclick = () => this.showHint();
-      $('#play-flip').onclick = () => { this.board.setFlip(!this.board.flip); this.draw(); };
-      $('#play-resign').onclick = () => this.askResign();
-      $('#play-draw').onclick = () => this.askDraw();
+      $('#play-result-ana').onclick = () => Ana.openCurrent();
+      $('#play-result-new').onclick = () => (this.pvp() ? this.showSetup() : this.newGame());
+      $('#play-result-mode').onclick = () => this.setMode(this.pvp() ? 'ai' : 'pvp');
+      // Menu "Tùy chọn ván" khi đấu với máy: làm xong việc thì đóng menu để thấy bàn cờ.
+      $('#am-close').onclick = () => this.closeMenu();
+      $('#am-back').onclick = e => { if (e.target === $('#am-back')) this.closeMenu(); };
+      $('#play-new').onclick = () => { this.closeMenu(); this.newGame(); };
+      $('#play-undo').onclick = () => { this.closeMenu(); this.undo(); };
+      $('#play-hint').onclick = () => { this.closeMenu(); this.showHint(); };
+      $('#play-flip').onclick = () => { this.closeMenu(); this.board.setFlip(!this.board.flip); this.draw(); };
+      $('#play-resign').onclick = () => this.askResign(this.user);
+      $('#am-pvp').onclick = () => { this.closeMenu(); this.setMode('pvp'); };
       $('#play-ask-yes').onclick = () => { const a = this.ask; this.ask = null; if (a) a.yes(); this.draw(); };
       $('#play-ask-no').onclick = () => { this.ask = null; this.draw(); };
       $$('#play-mode .btn').forEach(b => b.onclick = () => this.setMode(b.dataset.m));
-      const or = $('#play-orient'), ck = $('#play-clock');
-      ck.innerHTML = Object.keys(this.CLOCKS).map(k => '<option value="' + k + '">' + this.CLOCKS[k] + '</option>').join('');
-      or.value = this.orient; ck.value = this.clockSet;
-      or.onchange = () => { this.orient = or.value; Store.set('play_orient', this.orient); this.applyOrient(); this.draw(); };
-      ck.onchange = () => { this.clockSet = ck.value; Store.set('play_clock', this.clockSet); this.newGame(); };
-      this.tick = setInterval(() => this.onTick(), 250);
-      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn'), op = $('#play-open');
+      // Thanh điều khiển của từng người (trên/dưới bàn cờ)
+      for (const pos of ['top', 'bot']) $('#pbar-' + pos + ' [data-act="menu"]').onclick = () => this.openMenu(pos);
+      // Các việc của một bên (xin đi lại, xin hòa, chịu thua) nằm trong menu, tính cho bên đã mở menu.
+      $$('#pm [data-act]').forEach(b => b.onclick = () => {
+        const side = this.barSide(this.menuFrom || 'bot'), act = b.dataset.act;
+        if (act === 'undo') this.askUndo(side);
+        else if (act === 'draw') this.askDraw(side);
+        else if (act === 'resign') this.askResign(side);
+      });
+      // Menu ☰
+      $('#pm-close').onclick = () => this.closeMenu();
+      $('#pm-back').onclick = e => { if (e.target === $('#pm-back')) this.closeMenu(); };
+      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn'), pw = $('#pm-warn'), op = $('#play-open');
       op.value = Store.get('play_open', ''); op.onchange = () => { Store.set('play_open', op.value); };
       sd.value = String(this.user);
       lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
-      lv.value = String(this.level); wr.checked = !!this.warn;
-      sd.onchange = () => { this.user = +sd.value; Store.set('play_user', this.user); this.newGame(); };
+      lv.value = String(this.level); wr.checked = pw.checked = !!this.warn;
+      sd.onchange = () => { this.user = +sd.value; Store.set('play_user', this.user); if (!this.moves.length) this.newGame(); };
       lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); };
-      wr.onchange = () => { this.warn = wr.checked; Store.set('play_warn', this.warn); };
+      wr.onchange = pw.onchange = e => { this.warn = e.target.checked; wr.checked = pw.checked = this.warn; Store.set('play_warn', this.warn); };
+      // Màn chọn thời gian cho ván hai người
+      $('#pvp-times').innerHTML = Object.keys(this.CLOCKS).map(k => '<button class="btn" data-k="' + k + '">' + this.CLOCKS[k][0] + (this.CLOCKS[k][1] ? '<small>' + this.CLOCKS[k][1] + '</small>' : '') + '</button>').join('');
+      $$('#pvp-times .btn').forEach(b => b.onclick = () => this.startPvp(b.dataset.k));
+      $('#pvp-setup-cancel').onclick = () => this.setMode('ai');
+      this.tick = setInterval(() => this.onTick(), 250);
       this.newGame();
+      if (this.pvp()) this.showSetup();
     },
     newGame() {
       this.saveGame(); this.rec = null;
@@ -52,17 +75,49 @@
       this.draw();
       if (!this.pvp() && this.ctx.pos.side !== this.user) this.engineMove();
     },
-    setMode(m) {
-      if (m === this.mode) return;
-      this.mode = m; Store.set('play_mode', m); this.newGame();
+    // Hai người: hiện màn chọn thời gian; chọn xong thì vào ván ngay.
+    showSetup() {
+      this.setup = true; this.ask = null; this.closeMenu();
+      $('#pvp-setup-cancel').textContent = 'Quay lại Đấu với máy';
+      $$('#pvp-times .btn').forEach(b => b.classList.toggle('primary', b.dataset.k === this.clockSet));
+      this.draw();
     },
-    // Hướng bàn khi hai người chơi: cố định (Đỏ ở dưới), lật theo lượt, hoặc đối mặt (đặt máy nằm giữa, quân Đen quay ngược).
+    startPvp(k) {
+      this.clockSet = k; Store.set('play_clock', k);
+      this.setup = false;
+      this.newGame();
+      if (this.clock) this.clock.at = Date.now(); // đồng hồ chạy ngay khi vào ván
+      this.draw();
+    },
+    setMode(m) {
+      if (m === this.mode) { if (m === 'pvp' && !this.setup) this.showSetup(); return; }
+      this.mode = m; Store.set('play_mode', m);
+      if (m === 'pvp') { this.saveGame(); this.newGame(); this.showSetup(); } else { this.setup = false; this.newGame(); }
+    },
+    // Hai người luôn ngồi đối mặt: Đỏ ở dưới, quân Đen quay về phía người cầm Đen.
     applyOrient() {
       const b = this.board;
       if (!this.pvp()) { b.face = false; b.setFlip(this.user === 1); return; }
-      b.face = this.orient === 'face';
-      const want = this.orient === 'turn' ? this.ctx.pos.side === 1 : false;
-      if (b.flip !== want) b.setFlip(want);
+      b.face = true;
+      if (b.flip) b.setFlip(false);
+    },
+    barSide(pos) { const top = this.board.flip ? 0 : 1; return pos === 'top' ? top : top ^ 1; },
+    sidePos(side) { return this.barSide('top') === side ? 'top' : 'bot'; },
+    openMenu(from) {
+      if (!this.pvp()) { this.menuFrom = from; $('#am-back').hidden = false; this.draw(); return; }
+      this.menuFrom = from;
+      const rot = this.board.face && from === 'top';
+      $('#pm-back').hidden = false; $('#pm-back').classList.toggle('top', rot); $('#pm').classList.toggle('rot', rot);
+      this.draw(); this.drawMenu();
+    },
+    closeMenu() { $('#pm-back').hidden = true; $('#am-back').hidden = true; this.menuFrom = null; },
+    drawMenu() {
+      if (!this.menuFrom) return;
+      const side = this.barSide(this.menuFrom), busy = !!this.over || !!this.ask;
+      $('#pm-title').textContent = 'Menu · bên ' + SIDE[side];
+      $('#pm [data-act="undo"]').disabled = busy || !this.moves.some((m, i) => i % 2 === side);
+      $('#pm [data-act="draw"]').disabled = busy || !this.moves.length;
+      $('#pm [data-act="resign"]').disabled = busy || !this.moves.length;
     },
     // Trừ giờ bên đang đi; hết giờ thì thua.
     onTick() {
@@ -71,41 +126,34 @@
       c.left[side] -= now - c.at; c.at = now;
       if (c.left[side] <= 0) {
         c.left[side] = 0;
-        this.over = (side === 0 ? 'Đỏ' : 'Đen') + ' hết giờ – ' + (side === 0 ? 'Đen' : 'Đỏ') + ' thắng.';
+        this.over = SIDE[side] + ' hết giờ – ' + SIDE[side ^ 1] + ' thắng.';
         this.finish();
       }
-      this.drawClocks();
+      this.drawBars();
     },
     fmtClock(ms) { const t = Math.max(0, Math.ceil(ms / 1000)), m = Math.floor(t / 60), sec = t % 60; return m + ':' + (sec < 10 ? '0' : '') + sec; },
-    drawClocks() {
-      const c = this.clock, top = $('#play-clk-top'), bot = $('#play-clk-bot');
-      if (!c) { top.hidden = bot.hidden = true; return; }
-      top.hidden = bot.hidden = false;
-      const topSide = this.board.flip ? 0 : 1, side = this.over ? -1 : this.ctx.pos.side;
-      const one = (el, sd) => {
-        el.textContent = (sd === 0 ? 'Đỏ ' : 'Đen ') + this.fmtClock(c.left[sd]);
-        el.className = 'clk' + (sd === side && c.at ? ' on' : '') + (c.left[sd] < 20000 ? ' low' : '') + (el === top && this.board.face ? ' rot' : '');
-      };
-      one(top, topSide); one(bot, topSide ^ 1);
+    // Hỏi bên kia (hoặc chính bên đó, khi chịu thua). Câu hỏi hiện ở phía người phải trả lời.
+    setAsk(who, text, yesLabel, noLabel, yes) { this.ask = { who, text, yesLabel, noLabel, yes }; this.closeMenu(); this.draw(); },
+    askDraw(side) {
+      if (this.over || !this.pvp() || !this.moves.length) return;
+      this.setAsk(side ^ 1, SIDE[side] + ' xin hòa. ' + SIDE[side ^ 1] + ' có đồng ý không?', SIDE[side ^ 1] + ' đồng ý hòa', 'Không', () => { this.over = 'Hòa – hai bên đồng ý.'; this.finish(); });
     },
-    askDraw() {
-      if (this.over || !this.pvp()) return;
-      const s = this.ctx.pos.side, me = s === 0 ? 'Đỏ' : 'Đen', other = s === 0 ? 'Đen' : 'Đỏ';
-      this.ask = { who: s ^ 1, text: me + ' xin hòa. ' + other + ' có đồng ý không?', yes: () => { this.over = 'Hòa – hai bên đồng ý.'; this.finish(); }, yesLabel: other + ' đồng ý hòa', noLabel: 'Không' };
-      this.draw();
+    askUndo(side) {
+      if (this.over || !this.pvp() || !this.moves.some((m, i) => i % 2 === side)) return;
+      this.setAsk(side ^ 1, SIDE[side] + ' xin đi lại nước vừa rồi. ' + SIDE[side ^ 1] + ' có đồng ý không?', 'Cho đi lại', 'Không', () => this.undoFor(side));
     },
-    askResign() {
-      if (this.over || !this.moves.length) return;
-      const s = this.pvp() ? this.ctx.pos.side : this.user, me = s === 0 ? 'Đỏ' : 'Đen', other = s === 0 ? 'Đen' : 'Đỏ';
-      this.ask = { who: s, text: (this.pvp() ? me + ' chịu thua?' : 'Bạn chịu thua ván này?'), yes: () => { this.gen++; this.thinking = false; this.over = me + ' chịu thua – ' + other + ' thắng.'; this.finish(); }, yesLabel: 'Chịu thua', noLabel: 'Đánh tiếp' };
-      this.draw();
+    askResign(side) {
+      if (this.over || !this.moves.length || this.thinking) return;
+      const text = this.pvp() ? SIDE[side] + ' chịu thua?' : 'Bạn chịu thua ván này?';
+      this.setAsk(side, text, 'Chịu thua', 'Đánh tiếp', () => { this.gen++; this.thinking = false; this.over = SIDE[side] + ' chịu thua – ' + SIDE[side ^ 1] + ' thắng.'; this.finish(); });
     },
     finish() {
-      if (this.moves.length >= 4) { this.saveGame(); toast('Ván đã kết thúc. Bấm "Phân tích ván" để xem ' + (this.pvp() ? 'lại cả hai bên.' : 'bạn sai ở đâu.')); }
+      this.closeMenu();
+      if (this.moves.length >= MIN_PLIES) this.saveGame();
       this.draw();
     },
     onSquare(sq) {
-      if (this.thinking || this.over || this.ask) return;
+      if (this.thinking || this.over || this.ask || (this.pvp() && this.setup)) return;
       const side = this.pvp() ? this.ctx.pos.side : this.user;
       if (this.ctx.pos.side !== side) return;
       this.hint = null;
@@ -133,14 +181,14 @@
       const pos = this.ctx.pos;
       if (pos.legalMoves().length === 0) {
         const winner = pos.side ^ 1;
-        this.over = (winner === 0 ? 'Đỏ' : 'Đen') + ' thắng' + (pos.inCheck() ? ' – chiếu bí.' : ' – đối phương hết nước đi.');
+        this.over = SIDE[winner] + ' thắng' + (pos.inCheck() ? ' – chiếu bí.' : ' – đối phương hết nước đi.');
       } else if (pos.repCount() >= 3) this.over = 'Hòa do lặp lại thế cờ ba lần.';
       else if (this.moves.length >= 300) this.over = 'Hòa (quá dài).';
       if (this.over) this.finish();
     },
     // Lưu ván vào bộ nhớ máy (tối đa 20 ván gần nhất) để phân tích sau.
     saveGame() {
-      if (this.moves.length < 4) return null;
+      if (this.moves.length < MIN_PLIES) return null;
       let g = this.rec;
       if (!g) {
         g = this.rec = this.pvp() ? { id: 'g' + Date.now(), t: Date.now(), user: 0, pvp: true, level: 0, startFen: this.startFen }
@@ -210,16 +258,29 @@
         else if (r.best === m) toast('Nước tốt.', 'ok');
       });
     },
+    // Đi lại khi đấu với máy: lùi về lượt của người chơi.
     undo() {
       if (this.thinking || !this.moves.length) return;
       this.gen++; this.ask = null;
-      if (this.pvp()) { this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); }
-      else do { this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); } while (this.moves.length && this.ctx.pos.side !== this.user);
+      do { this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); } while (this.moves.length && this.ctx.pos.side !== this.user);
+      this.afterUndo();
+      if (this.ctx.pos.side !== this.user) this.engineMove(); else this.draw();
+    },
+    // Đi lại khi hai người chơi: bỏ các nước cho tới khi gỡ được nước gần nhất của bên xin đi lại.
+    undoFor(side) {
+      let n = 0;
+      while (this.moves.length) {
+        const by = (this.moves.length - 1) % 2; // nước cuối do bên nào đi (Đỏ đi trước)
+        this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); n++;
+        if (by === side) break;
+      }
+      this.gen++; this.afterUndo(); this.applyOrient(); this.draw();
+      return n;
+    },
+    afterUndo() {
       this.over = null; this.ctx.sel = -1; this.ctx.targets = [];
       const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null; this.hint = null;
       if (this.clock) this.clock.at = this.moves.length ? Date.now() : 0;
-      if (this.pvp()) { this.applyOrient(); this.draw(); return; }
-      if (this.ctx.pos.side !== this.user) this.engineMove(); else this.draw();
     },
     showHint() {
       if (this.thinking || this.over || this.pvp() || this.ctx.pos.side !== this.user) return;
@@ -231,35 +292,57 @@
         this.draw();
       });
     },
-    draw() {
-      const c = this.ctx;
-      this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
-      let st;
-      if (this.over) st = '<b>' + esc(this.over) + '</b>';
-      else {
-        const turn = c.pos.side === 0 ? 'Đỏ' : 'Đen';
-        st = this.pvp() ? 'Lượt <b>' + turn + '</b>' + (this.moves.length ? '' : ' (Đỏ đi trước)')
-          : (this.thinking ? 'Máy đang nghĩ…' : (c.pos.side === this.user ? 'Đến lượt bạn (' + turn + ')' : 'Lượt máy (' + turn + ')'));
-        if (c.pos.inCheck()) st += ' · <b class="chk-t">Chiếu tướng!</b>';
-      }
-      $('#play-status').innerHTML = st;
-      $('#play-moves').innerHTML = this.notes.length ? moveListHtml(this.notes, 0, this.notes.length - 1, false) : '<span class="muted">Chưa có nước đi.</span>';
-      const mv = $('#play-moves'); mv.scrollTop = mv.scrollHeight;
-      $('#play-undo').disabled = this.thinking || !this.moves.length;
-      $('#play-hint').disabled = this.thinking || !!this.over;
-      $('#play-ana').disabled = this.moves.length < 4;
+    drawBars() {
       const pvp = this.pvp();
+      for (const pos of ['top', 'bot']) {
+        const bar = $('#pbar-' + pos); bar.hidden = pvp && this.setup; if (bar.hidden) continue;
+        const side = this.barSide(pos), pz = this.ctx.pos, c = this.clock, myTurn = !this.over && pz.side === side;
+        const isUser = !pvp && side === this.user, isEngine = !pvp && side !== this.user;
+        let st = '';
+        if (this.over) st = /Hòa/.test(this.over) ? 'Hòa' : (this.over.indexOf(SIDE[side] + ' thắng') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' chịu thua') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' hết giờ') >= 0 ? 'Thắng' : 'Thua');
+        else if (isEngine) st = this.thinking ? 'Đang nghĩ…' : (myTurn ? 'Sắp đi' : 'Chờ bạn');
+        else if (myTurn) st = pz.inCheck() ? 'Bị chiếu!' : (isUser ? 'Đến lượt bạn' : 'Đến lượt');
+        else st = 'Chờ đối thủ';
+        bar.querySelector('.pname').textContent = pvp ? SIDE[side] : (isUser ? 'Bạn · ' + SIDE[side] : 'Máy · ' + SIDE[side] + ' · ' + LEVELS[this.level].name.split(' – ')[1].split(' (')[0]);
+        const pst = bar.querySelector('.pst'); pst.textContent = st; pst.classList.toggle('chk', st === 'Bị chiếu!');
+        bar.querySelector('.pclk').textContent = c ? this.fmtClock(c.left[side]) : '';
+        bar.querySelector('[data-act="menu"]').hidden = isEngine;
+        bar.classList.toggle('on', myTurn);
+        bar.classList.toggle('low', !!(c && c.left[side] < 20000));
+        bar.classList.toggle('rot', this.board.face && pos === 'top');
+      }
+    },
+    draw() {
+      const c = this.ctx, pvp = this.pvp(), active = this.active();
+      this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
+      const ml = this.notes.length ? moveListHtml(this.notes, 0, this.notes.length - 1, false) : '<span class="muted">Chưa có nước đi.</span>';
+      const mv = $(pvp ? '#pm-moves' : '#play-moves'); mv.innerHTML = ml; mv.scrollTop = mv.scrollHeight;
+      // Menu "Tùy chọn ván": giữa ván không có Ván mới / đổi chế độ, tránh bấm nhầm.
+      $('#play-undo').disabled = this.thinking || !this.moves.length || !!this.over;
+      $('#play-hint').disabled = this.thinking || !!this.over || c.pos.side !== this.user;
+      $('#play-resign').hidden = !active; $('#play-resign').disabled = this.thinking;
+      $('#am-new').hidden = active; $('#am-note').hidden = !active;
       $('#play-title').textContent = pvp ? 'Hai người chơi' : 'Đấu với máy';
       $$('#play-mode .btn').forEach(b => b.classList.toggle('primary', b.dataset.m === this.mode));
-      $('#play-hint').hidden = pvp; $('#play-draw').hidden = !pvp;
-      $('#play-resign').disabled = !!this.over || !this.moves.length || this.thinking;
-      $('#play-draw').disabled = !!this.over || !this.moves.length;
-      $$('#play-set-ai').forEach(e => { e.hidden = pvp; }); $$('#play-set-pvp').forEach(e => { e.hidden = !pvp; });
+      $('#play-mode').hidden = pvp || active;
+      $('#pvp-setup').hidden = !(pvp && this.setup);
+      // Câu hỏi (xin hòa, xin đi lại, chịu thua) hiện ở phía người phải trả lời; khi đối mặt, phía trên quay ngược.
       const ask = $('#play-ask'); ask.hidden = !this.ask;
-      // Chơi đối mặt: câu hỏi dành cho người ngồi phía trên (Đen) thì quay ngược lại cho họ đọc.
-      ask.classList.toggle('rot', !!(this.ask && pvp && this.board.face && this.ask.who === 1));
-      if (this.ask) { $('#play-ask-text').textContent = this.ask.text; $('#play-ask-yes').textContent = this.ask.yesLabel; $('#play-ask-no').textContent = this.ask.noLabel; }
-      this.drawClocks();
+      if (this.ask) {
+        const where = pvp ? this.sidePos(this.ask.who) : 'bot';
+        $('#ask-' + where).appendChild(ask);
+        ask.classList.toggle('rot', pvp && this.board.face && where === 'top');
+        $('#play-ask-text').textContent = this.ask.text; $('#play-ask-yes').textContent = this.ask.yesLabel; $('#play-ask-no').textContent = this.ask.noLabel;
+      }
+      // Thẻ kết quả khi ván xong (cả hai chế độ): phân tích, ván mới, đổi chế độ
+      const res = $('#play-result'); res.hidden = !(this.over && !(pvp && this.setup));
+      if (!res.hidden) {
+        $('#play-result-text').textContent = this.over;
+        const ok = this.moves.length >= MIN_PLIES;
+        $('#play-result-ana').hidden = !ok;
+        $('#play-result-mode').textContent = pvp ? 'Đấu với máy' : 'Hai người chơi';
+        $('#play-result-note').textContent = ok ? '' : 'Ván có dưới 5 nước mỗi bên nên không lưu để phân tích.';
+      }
+      this.drawBars();
     }
   };
-

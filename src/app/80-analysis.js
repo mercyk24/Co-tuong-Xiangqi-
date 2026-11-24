@@ -35,7 +35,7 @@
     QM: ['', '?!', '?', '??'],
     openCurrent() {
       const g = Play.saveGame();
-      if (!g) { toast('Ván cần ít nhất 4 nước mới phân tích được.', 'warn'); return; }
+      if (!g) { toast('Ván cần ít nhất 5 nước mỗi bên mới phân tích được.', 'warn'); return; }
       showTab('ana'); this.open(g.id);
     },
     show() { this.gen++; this.renderList(); },
