@@ -19,7 +19,7 @@ test('sau lần mở đầu, app vẫn mở được khi mất mạng', async ({
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(() => window.__xq && window.__xq.Play);
-  await expect(page.locator('#play-board svg')).toBeVisible();
+  await expect(page.locator('#play-home')).toBeVisible();
   await context.setOffline(false);
 });
 

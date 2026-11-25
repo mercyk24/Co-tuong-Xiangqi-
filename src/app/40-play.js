@@ -1,6 +1,8 @@
-  // 40-play.js — Tab Đấu máy: ván với máy, hoặc hai người ngồi đối mặt trên một máy (Đỏ phía dưới, Đen phía trên;
-  // chọn thời gian trước khi vào ván, mỗi người một thanh điều khiển và menu ☰ ở phía mình: xin hòa / xin đi lại /
-  // chịu thua); sách khai cuộc của máy; lưu ván để phân tích.
+  // 40-play.js — Tab Trang chủ: chọn cách chơi rồi vào ván. Ba màn hình nối tiếp, không bao giờ chồng lên nhau:
+  //   'home'  : trang chủ (chọn Đấu với máy / Hai người một máy / Chơi qua mạng; tiếp tục ván đang dở; lối tắt luyện tập)
+  //   'setup' : chọn bên, cấp độ, thời gian, tạo/vào phòng… (không có bàn cờ)
+  //   'game'  : chỉ bàn cờ và thanh của hai bên; mọi việc khác nằm trong menu ☰
+  // Hai người ngồi đối mặt (Đỏ dưới, Đen trên), mỗi người một menu ở phía mình; sách khai cuộc của máy; lưu ván để phân tích.
   // ---------- Đấu máy ----------
   const MIN_PLIES = 10; // ván phải có ít nhất 5 nước mỗi bên mới được lưu và phân tích
   const SIDE = ['Đỏ', 'Đen'];
@@ -9,36 +11,58 @@
     user: Store.get('play_user', 1), level: Store.get('play_level', 3), warn: Store.get('play_warn', false),
     last: null, hint: null, thinking: false, over: null, gen: 0, rec: null,
     mode: Store.get('play_mode', 'ai'), clockSet: Store.get('play_clock', '0'),
-    clock: null, ask: null, menuFrom: null, setup: false,
+    clock: null, ask: null, menuFrom: null,
+    screen: 'home', started: false, paused: false,
+    aiSide: Store.get('ai_side', String(Store.get('play_user', 1))),
+    // "setup" = đang ở màn chuẩn bị (giữ tên cũ vì phần chơi qua mạng dùng)
+    get setup() { return this.screen === 'setup'; },
+    set setup(v) { this.screen = v ? 'setup' : 'game'; },
     pvp() { return this.mode === 'pvp'; },
     net() { return this.mode === 'net'; },
     human() { return this.mode !== 'ai'; },  // không có máy đi (hai người hoặc qua mạng)
     netView: 'home',
     // Đang giữa ván (dùng để thu gọn thanh điều hướng, tránh bấm nhầm)
     // Đấu máy: tính là "đang đánh" từ khi người chơi đã đi ít nhất một nước (nước mở đầu của máy chưa tính).
-    active() { return this.human() ? !this.setup && !this.over : !this.over && this.moves.some((m, i) => i % 2 === this.user); },
+    active() { return this.screen === 'game' && !this.over; },
+    // Có ván (hoặc phòng) đang dở để hiện "Tiếp tục" ở trang chủ
+    hasGame() {
+      if (this.net()) return ['opening', 'waiting', 'joining', 'playing', 'lost', 'ended'].includes(Net.state);
+      return this.started && !this.over;
+    },
     // Đồng hồ: "phút+giây cộng thêm mỗi nước", '0' là không tính giờ.
     CLOCKS: { '0': ['Không tính giờ', ''], '3+2': ['3 phút', '+2 giây mỗi nước'], '5+0': ['5 phút', ''], '10+0': ['10 phút', ''], '10+5': ['10 phút', '+5 giây mỗi nước'], '15+10': ['15 phút', '+10 giây mỗi nước'], '30+0': ['30 phút', ''] },
     init() {
       this.board = new Board($('#play-board'), sq => this.onSquare(sq));
       $('#play-result-ana').onclick = () => Ana.openCurrent();
-      $('#play-result-new').onclick = () => (this.net() ? this.netRematch() : this.pvp() ? this.showSetup() : this.newGame());
-      $('#play-result-mode').onclick = () => (this.net() ? this.netLeave() : this.setMode(this.pvp() ? 'ai' : 'pvp'));
+      $('#play-result-new').onclick = () => (this.net() ? this.netRematch() : this.pvp() ? this.showSetup() : this.showAiSetup());
+      $('#play-result-mode').onclick = () => { if (this.net()) { this.netLeave(); return; } this.started = false; this.goHome(); };
       // Menu "Tùy chọn ván" khi đấu với máy: làm xong việc thì đóng menu để thấy bàn cờ.
       $('#am-close').onclick = () => this.closeMenu();
       $('#am-back').onclick = e => { if (e.target === $('#am-back')) this.closeMenu(); };
-      $('#play-new').onclick = () => { this.closeMenu(); this.newGame(); };
       $('#play-undo').onclick = () => { this.closeMenu(); this.undo(); };
       $('#play-hint').onclick = () => { this.closeMenu(); this.showHint(); };
       $('#play-flip').onclick = () => { this.closeMenu(); this.board.setFlip(!this.board.flip); this.draw(); };
       $('#play-resign').onclick = () => this.askResign(this.user);
-      $('#am-pvp').onclick = () => { this.closeMenu(); this.setMode('pvp'); };
+      $('#am-home').onclick = $('#pm-home').onclick = () => this.goHome();
+      // Trang chủ
+      $$('#play-mode .mode').forEach(b => b.onclick = () => this.pickMode(b.dataset.m));
+      $$('#play-home .drill').forEach(b => b.onclick = () => showTab(b.dataset.go));
+      $('#home-resume-go').onclick = () => this.resume();
+      $('#home-resume-drop').onclick = () => this.dropGame();
+      $('#play-back').onclick = () => this.goHome();
+      // Màn chuẩn bị ván với máy
+      $$('#ai-side .chip').forEach(b => b.onclick = () => { this.aiSide = b.dataset.v; Store.set('ai_side', this.aiSide); this.drawAiSetup(); });
+      $('#ai-levels').innerHTML = Object.keys(LEVELS).map(k => {
+        const nm = LEVELS[k].name.split(' – ')[1], i = nm.indexOf(' (');
+        return '<button class="lvl" data-v="' + k + '"><b>' + k + ' · ' + (i > 0 ? nm.slice(0, i) : nm) + '</b>' + (i > 0 ? '<small>' + nm.slice(i + 2, -1) + '</small>' : '') + '</button>';
+      }).join('');
+      $$('#ai-levels .lvl').forEach(b => b.onclick = () => { this.level = +b.dataset.v; Store.set('play_level', this.level); $('#play-level').value = String(this.level); this.drawAiSetup(); });
+      $('#ai-start').onclick = () => this.startAi();
       $('#play-ask-yes').onclick = () => { const a = this.ask; this.ask = null; if (a) a.yes(); this.draw(); };
       $('#play-ask-no').onclick = () => { const a = this.ask; this.ask = null; if (a && a.no) a.no(); this.draw(); };
       // Chơi qua mạng
       $('#net-go-create').onclick = () => { this.netView = 'create'; Net.err = ''; this.draw(); };
       $('#net-create-back').onclick = () => { this.netView = 'home'; this.draw(); };
-      $('#net-cancel').onclick = () => this.setMode('ai');
       $('#net-side').value = Store.get('net_side', 'r');
       $('#net-side').onchange = e => Store.set('net_side', e.target.value);
       $('#net-times').innerHTML = Object.keys(this.CLOCKS).map(k => '<button class="btn" data-k="' + k + '">' + this.CLOCKS[k][0] + (this.CLOCKS[k][1] ? '<small>' + this.CLOCKS[k][1] + '</small>' : '') + '</button>').join('');
@@ -62,22 +86,80 @@
       // Menu ☰
       $('#pm-close').onclick = () => this.closeMenu();
       $('#pm-back').onclick = e => { if (e.target === $('#pm-back')) this.closeMenu(); };
-      const sd = $('#play-side'), lv = $('#play-level'), wr = $('#play-warn'), pw = $('#pm-warn'), op = $('#play-open');
+      const lv = $('#play-level'), wr = $('#play-warn'), pw = $('#pm-warn'), aw = $('#ai-warn'), op = $('#play-open');
       op.value = Store.get('play_open', ''); op.onchange = () => { Store.set('play_open', op.value); };
-      sd.value = String(this.user);
       lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
-      lv.value = String(this.level); wr.checked = pw.checked = !!this.warn;
-      sd.onchange = () => { this.user = +sd.value; Store.set('play_user', this.user); if (!this.moves.length) this.newGame(); };
-      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); };
-      wr.onchange = pw.onchange = e => { this.warn = e.target.checked; wr.checked = pw.checked = this.warn; Store.set('play_warn', this.warn); };
+      lv.value = String(this.level); wr.checked = pw.checked = aw.checked = !!this.warn;
+      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); this.drawBars(); };
+      wr.onchange = pw.onchange = aw.onchange = e => { this.warn = e.target.checked; wr.checked = pw.checked = aw.checked = this.warn; Store.set('play_warn', this.warn); };
       // Màn chọn thời gian cho ván hai người
       $('#pvp-times').innerHTML = Object.keys(this.CLOCKS).map(k => '<button class="btn" data-k="' + k + '">' + this.CLOCKS[k][0] + (this.CLOCKS[k][1] ? '<small>' + this.CLOCKS[k][1] + '</small>' : '') + '</button>').join('');
       $$('#pvp-times .btn').forEach(b => b.onclick = () => this.startPvp(b.dataset.k));
-      $('#pvp-setup-cancel').onclick = () => this.setMode('ai');
       this.tick = setInterval(() => this.onTick(), 250);
+      this.screen = 'home';
       this.newGame();
-      if (this.pvp()) this.showSetup();
-      if (this.net()) { this.setup = true; Net.resumeSaved(); this.draw(); }
+      if (this.net()) { this.netView = 'home'; Net.resumeSaved(); this.draw(); }  // mở lại app giữa ván qua mạng: vào lại ván
+    },
+    // ---- Trang chủ
+    goHome() {
+      this.closeMenu();
+      // Hai người: dừng đồng hồ khi rời bàn cờ, chạy lại khi quay vào
+      const c = this.clock;
+      if (this.pvp() && c && c.at && !this.over) { this.onTick(); c.at = 0; this.paused = true; }
+      this.screen = 'home'; this.draw(); window.scrollTo(0, 0);
+    },
+    resume() {
+      if (this.net()) {
+        const st = Net.state;
+        this.screen = (st === 'opening' || st === 'waiting' || st === 'joining') ? 'setup' : 'game';
+      } else this.screen = 'game';
+      if (this.paused && this.clock) { this.clock.at = Date.now(); this.paused = false; }
+      this.draw(); window.scrollTo(0, 0);
+    },
+    dropGame() {
+      if (this.net()) { this.netLeave(); return; }
+      this.saveGame(); this.started = false; this.paused = false;
+      this.newGame();
+    },
+    pickMode(m) {
+      if (this.hasGame()) {
+        toast('Bạn đang có ' + (this.net() ? 'phòng' : 'ván') + ' dở: bấm "Tiếp tục" hoặc "Bỏ ván" ở trên trước.', 'warn');
+        const r = $('#home-resume'); r.classList.remove('pulse'); void r.offsetWidth; r.classList.add('pulse');
+        return;
+      }
+      this.setMode(m);
+    },
+    // Đấu với máy: màn chuẩn bị (bên cầm, cấp độ, nước mở đầu của máy)
+    showAiSetup() { this.screen = 'setup'; this.ask = null; this.closeMenu(); this.draw(); },
+    startAi() {
+      const v = this.aiSide;
+      this.user = v === 'r' ? (Math.random() < 0.5 ? 0 : 1) : +v; Store.set('play_user', this.user);
+      this.started = true; this.screen = 'game';
+      this.newGame();
+      if (v === 'r') toast('Bạn cầm quân ' + SIDE[this.user] + (this.user === 0 ? ', đi trước.' : '.'));
+    },
+    drawAiSetup() {
+      $$('#ai-side .chip').forEach(b => b.classList.toggle('on', b.dataset.v === this.aiSide));
+      $$('#ai-levels .lvl').forEach(b => b.classList.toggle('on', +b.dataset.v === this.level));
+      $('#ai-open-row').hidden = this.aiSide === '0';
+    },
+    drawHome() {
+      const has = this.hasGame(), r = $('#home-resume');
+      r.hidden = !has; if (!has) return;
+      let t = '', sub = '';
+      const n = Math.ceil(this.moves.length / 2), clk = this.clock ? ' · ' + this.CLOCKS[this.net() ? Net.clockSet || '0' : this.clockSet][0] : '';
+      if (this.net()) {
+        const st = Net.state;
+        if (st === 'opening' || st === 'waiting') { t = 'Phòng ' + (Net.code || '') + ' đang chờ đối thủ'; sub = 'Bấm Tiếp tục để xem mã phòng và gửi link mời.'; }
+        else if (st === 'joining') { t = 'Đang vào phòng ' + Net.code; sub = Net.msgText || ''; }
+        else { t = 'Ván qua mạng · phòng ' + Net.code; sub = (this.over ? 'Đã xong' : st === 'lost' ? 'Đang mất kết nối, đang nối lại' : 'Đang đánh, nước ' + n) + clk; }
+        $('#home-resume-drop').textContent = 'Rời phòng';
+      } else {
+        t = this.pvp() ? 'Ván hai người đang dở' : 'Ván với máy đang dở';
+        sub = (this.pvp() ? 'Đỏ – Đen' : 'Bạn cầm ' + SIDE[this.user] + ' · cấp ' + this.level) + ' · nước ' + n + clk + (this.paused ? ' · đồng hồ đang dừng' : '');
+        $('#home-resume-drop').textContent = 'Bỏ ván';
+      }
+      $('#home-resume-title').textContent = t; $('#home-resume-sub').textContent = sub;
     },
     newGame() {
       this.saveGame(); this.rec = null;
@@ -91,36 +173,38 @@
       }
       this.applyOrient();
       this.draw();
-      if (this.mode === 'ai' && this.ctx.pos.side !== this.user) this.engineMove();
+      if (this.mode === 'ai' && this.screen === 'game' && this.ctx.pos.side !== this.user) this.engineMove();
     },
     // Hai người: hiện màn chọn thời gian; chọn xong thì vào ván ngay.
     showSetup() {
       this.setup = true; this.ask = null; this.closeMenu();
-      $('#pvp-setup-cancel').textContent = 'Quay lại Đấu với máy';
       $$('#pvp-times .btn').forEach(b => b.classList.toggle('primary', b.dataset.k === this.clockSet));
       this.draw();
     },
     startPvp(k) {
       this.clockSet = k; Store.set('play_clock', k);
-      this.setup = false;
+      this.setup = false; this.started = true; this.paused = false;
       this.newGame();
       if (this.clock) this.clock.at = Date.now(); // đồng hồ chạy ngay khi vào ván
       this.draw();
     },
+    // Chọn chế độ ở trang chủ: vào màn chuẩn bị của chế độ đó (chưa có bàn cờ).
     setMode(m) {
-      if (m === this.mode) { if (m === 'pvp' && !this.setup) this.showSetup(); return; }
-      if (this.net()) Net.leave();
-      this.saveGame();
+      if (this.net() && m !== 'net') Net.leave();
+      if (m !== this.mode || this.screen !== 'setup') this.saveGame();
       this.mode = m; Store.set('play_mode', m);
-      if (m === 'pvp') { this.newGame(); this.showSetup(); }
-      else if (m === 'net') { this.newGame(); this.setup = true; this.netView = 'home'; Net.err = ''; this.closeMenu(); this.draw(); }
-      else { this.setup = false; this.newGame(); }
+      this.started = false; this.paused = false; this.screen = 'setup';
+      if (!(m === 'net' && this.hasGame())) this.newGame();
+      if (m === 'pvp') this.showSetup();
+      else if (m === 'net') { this.netView = 'home'; Net.err = ''; this.closeMenu(); this.draw(); }
+      else this.showAiSetup();
+      window.scrollTo(0, 0);
     },
     // ---- Chơi qua mạng: các hàm Net gọi vào
     netSide() { return Net.mySide; },
     netStart(mySide, clockSet) {
       this.saveGame(); this.rec = null;
-      this.setup = false; this.closeMenu();
+      this.setup = false; this.started = true; this.closeMenu();
       this.gen++;
       this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false; this.ask = null;
@@ -130,7 +214,7 @@
     },
     // Dựng lại ván từ danh sách nước (khi nối lại hoặc mở lại app)
     netLoad(list, left, over, running) {
-      this.setup = false; this.gen++;
+      this.setup = false; this.started = true; this.gen++;
       this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.ask = null; this.hint = null; this.thinking = false;
       for (const u of list || []) {
@@ -184,7 +268,7 @@
       if (!Net.connected()) { toast('Đối thủ đã rời phòng hoặc mất kết nối.', 'warn'); return; }
       Net.ask('rematch'); toast('Đã gửi lời mời đấu lại, chờ đối thủ…');
     },
-    netLeave() { Net.leave(); this.newGame(); this.setup = true; this.netView = 'home'; this.draw(); },
+    netLeave() { Net.leave(); this.started = false; this.screen = 'home'; this.netView = 'home'; this.newGame(); },
     netShare() {
       const url = Net.joinLink(), text = 'Vào chơi cờ tướng với mình nhé! Mã phòng: ' + Net.code;
       if (navigator.share) navigator.share({ title: 'Cờ Tướng Luyện Tập', text, url }).catch(() => { /* người dùng huỷ */ });
@@ -272,7 +356,7 @@
       this.draw();
     },
     onSquare(sq) {
-      if (this.thinking || this.over || this.ask || (this.human() && this.setup)) return;
+      if (this.thinking || this.over || this.ask || this.screen !== 'game') return;
       if (this.net() && !Net.connected()) { toast('Đang mất kết nối với đối thủ, chờ nối lại…', 'warn'); return; }
       const side = this.pvp() ? this.ctx.pos.side : this.net() ? Net.mySide : this.user;
       if (this.ctx.pos.side !== side) return;
@@ -418,7 +502,7 @@
     drawBars() {
       const pvp = this.pvp(), net = this.net(), ai = this.mode === 'ai';
       for (const pos of ['top', 'bot']) {
-        const bar = $('#pbar-' + pos); bar.hidden = this.human() && this.setup; if (bar.hidden) continue;
+        const bar = $('#pbar-' + pos); bar.hidden = this.screen !== 'game'; if (bar.hidden) continue;
         const side = this.barSide(pos), pz = this.ctx.pos, c = this.clock, myTurn = !this.over && pz.side === side;
         const isUser = ai && side === this.user, isEngine = ai && side !== this.user;
         const isMe = net && side === Net.mySide, isOpp = net && side !== Net.mySide;
@@ -439,22 +523,26 @@
       }
     },
     draw() {
-      const c = this.ctx, pvp = this.pvp(), net = this.net(), human = this.human(), active = this.active();
+      const c = this.ctx, pvp = this.pvp(), net = this.net(), human = this.human(), scr = this.screen;
       this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
       const ml = this.notes.length ? moveListHtml(this.notes, 0, this.notes.length - 1, false) : '<span class="muted">Chưa có nước đi.</span>';
       const mv = $(human ? '#pm-moves' : '#play-moves'); mv.innerHTML = ml; mv.scrollTop = mv.scrollHeight;
+      // Ba màn hình: trang chủ, chuẩn bị, bàn cờ — chỉ hiện một
+      $('#play-home').hidden = scr !== 'home';
+      $('#play-head').hidden = scr !== 'setup';
+      $('#play-board').hidden = scr !== 'game';
+      if (scr === 'home') this.drawHome();
       // Menu "Tùy chọn ván": giữa ván không có Ván mới / đổi chế độ, tránh bấm nhầm.
       $('#play-undo').disabled = this.thinking || !this.moves.length || !!this.over;
       $('#play-hint').disabled = this.thinking || !!this.over || c.pos.side !== this.user;
-      $('#play-resign').hidden = !active; $('#play-resign').disabled = this.thinking;
-      $('#am-new').hidden = active; $('#am-note').hidden = !active;
-      $('#play-title').textContent = net ? 'Chơi qua mạng' : pvp ? 'Hai người chơi' : 'Đấu với máy';
-      $$('#play-mode .btn').forEach(b => b.classList.toggle('primary', b.dataset.m === this.mode));
-      $('#play-mode').hidden = human || active;
-      $('#pvp-setup').hidden = !(pvp && this.setup);
+      $('#play-resign').hidden = !!this.over || !this.moves.length; $('#play-resign').disabled = this.thinking;
+      $('#play-title').textContent = net ? 'Chơi qua mạng' : pvp ? 'Hai người một máy' : 'Đấu với máy';
+      $('#ai-setup').hidden = !(this.mode === 'ai' && scr === 'setup');
+      if (!$('#ai-setup').hidden) this.drawAiSetup();
+      $('#pvp-setup').hidden = !(pvp && scr === 'setup');
       this.drawNet();
       // Câu hỏi (xin hòa, xin đi lại, chịu thua) hiện ở phía người phải trả lời; khi đối mặt, phía trên quay ngược.
-      const ask = $('#play-ask'); ask.hidden = !this.ask;
+      const ask = $('#play-ask'); ask.hidden = !this.ask || scr !== 'game';
       if (this.ask) {
         const where = human ? this.sidePos(this.ask.who) : 'bot';
         $('#ask-' + where).appendChild(ask);
@@ -462,12 +550,12 @@
         $('#play-ask-text').textContent = this.ask.text; $('#play-ask-yes').textContent = this.ask.yesLabel; $('#play-ask-no').textContent = this.ask.noLabel;
       }
       // Thẻ kết quả khi ván xong (cả hai chế độ): phân tích, ván mới, đổi chế độ
-      const res = $('#play-result'); res.hidden = !(this.over && !(human && this.setup));
+      const res = $('#play-result'); res.hidden = !(this.over && scr === 'game');
       if (!res.hidden) {
         $('#play-result-text').textContent = this.over;
         const ok = this.moves.length >= MIN_PLIES;
         $('#play-result-ana').hidden = !ok;
-        $('#play-result-mode').textContent = net ? 'Rời phòng' : pvp ? 'Đấu với máy' : 'Hai người chơi';
+        $('#play-result-mode').textContent = net ? 'Rời phòng' : 'Trang chủ';
         $('#play-result-new').textContent = net ? 'Đấu lại' : 'Ván mới';
         $('#play-result-new').disabled = net && (!Net.connected() || !!Net.waitAsk);
         $('#play-result-note').textContent = ok ? '' : 'Ván có dưới 5 nước mỗi bên nên không lưu để phân tích.';
@@ -480,7 +568,7 @@
       const net = this.net(), st = Net.state;
       const setupShown = net && this.setup;
       $('#net-setup').hidden = !setupShown;
-      const banner = $('#net-banner'); banner.hidden = !(net && !this.setup && st === 'lost');
+      const banner = $('#net-banner'); banner.hidden = !(net && this.screen === 'game' && st === 'lost');
       if (!banner.hidden) $('#net-banner-text').textContent = Net.msgText || 'Mất kết nối, đang nối lại…';
       if (!setupShown) return;
       const waiting = st === 'opening' || st === 'waiting' || st === 'joining';

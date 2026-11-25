@@ -15,9 +15,9 @@ async function act(page, pos, a) {
   await bar(page, pos).locator('[data-act="menu"]').click();
   await page.locator('#pm [data-act="' + a + '"]').click();
 }
-// Bấm "Hai người chơi", chọn thời gian (mặc định không tính giờ) để vào ván.
+// Ở trang chủ bấm "Hai người một máy", chọn thời gian (mặc định không tính giờ) để vào ván.
 async function pvp(page, time = '0') {
-  await page.locator('#play-mode .btn[data-m="pvp"]').click();
+  await page.locator('.mode[data-m="pvp"]').click();
   await expect(page.locator('#pvp-setup')).toBeVisible();
   await expect(bar(page, 'bot')).toBeHidden();
   await page.locator('#pvp-times .btn[data-k="' + time + '"]').click();
@@ -29,7 +29,8 @@ const TEN = ['炮二平五', '馬8進7', '傌二進三', '車9平8', '車一平�
 test('hai người: chọn thời gian rồi vào ván; luôn đối mặt, Đỏ dưới, quân Đen quay ngược; máy không tự đi', async ({ page }) => {
   const errors = await openApp(page);
   await pvp(page);
-  await expect(page.locator('#play-title')).toHaveText('Hai người chơi');
+  await expect(page.locator('#play-title')).toHaveText('Hai người một máy');
+  await expect(page.locator('#play-home')).toBeHidden();
   await expect(page.locator('#am-back')).toBeHidden();
   await expect(page.locator('#play-mode')).toBeHidden();
   await expect(page.locator('#play-orient')).toHaveCount(0);
@@ -143,10 +144,13 @@ test('bàn cờ hai người nằm giữa màn hình, thanh điều hướng thu
   await expect(page.locator('#nav-handle')).toBeVisible();
 });
 
-test('ván xong: thẻ kết quả có Ván mới (chọn lại thời gian) và Đấu với máy; thanh điều hướng hiện lại', async ({ page }) => {
+test('ván xong: thẻ kết quả có Ván mới (chọn lại thời gian) và Trang chủ; thanh điều hướng hiện lại', async ({ page }) => {
   await openApp(page);
-  await page.locator('#play-mode .btn[data-m="pvp"]').click();
-  await page.click('#pvp-setup-cancel');
+  await expect(page.locator('#play-home')).toBeVisible();
+  await expect(page.locator('#play-board')).toBeHidden();
+  await page.locator('.mode[data-m="pvp"]').click();
+  await expect(page.locator('#play-board')).toBeHidden();    // màn chọn thời gian không có bàn cờ
+  await page.click('#play-back');
   await expect(page.locator('#play-mode')).toBeVisible();
   await pvp(page);
   await play(page, ['炮二平五']);
@@ -159,10 +163,43 @@ test('ván xong: thẻ kết quả có Ván mới (chọn lại thời gian) và
   await play(page, ['炮二平五']);
   await act(page, 'top', 'resign');
   await page.click('#play-ask-yes');
-  await expect(page.locator('#play-result-mode')).toHaveText('Đấu với máy');
+  await expect(page.locator('#play-result-mode')).toHaveText('Trang chủ');
   await page.click('#play-result-mode');
   await expect(page.locator('#play-mode')).toBeVisible();
   await aiNewGame(page, { side: 1, level: 2 });
   await page.waitForFunction(() => window.__xq.Play.notes.length === 1);
   await expect(page.locator('#play-title')).toHaveText('Đấu với máy');
+});
+
+test('trang chủ: về trang chủ giữa ván thì giữ ván (đồng hồ dừng), Tiếp tục để chơi tiếp, Bỏ ván để chọn chế độ khác', async ({ page }) => {
+  const errors = await openApp(page);
+  await pvp(page, '5+0');
+  await play(page, ['炮二平五', '馬8進7']);
+  await bar(page, 'bot').locator('[data-act="menu"]').click();
+  await page.click('#pm-home');
+  await expect(page.locator('#play-home')).toBeVisible();
+  await expect(page.locator('#play-board')).toBeHidden();
+  await expect(page.locator('#home-resume-title')).toHaveText('Ván hai người đang dở');
+  await expect(page.locator('#home-resume-sub')).toContainText('đồng hồ đang dừng');
+  const left = await page.evaluate(() => window.__xq.Play.clock.left.slice());
+  await page.waitForTimeout(1500);
+  expect(await page.evaluate(() => window.__xq.Play.clock.left.slice())).toEqual(left);
+  // Đang có ván dở thì chưa chọn được chế độ khác
+  await page.locator('.mode[data-m="ai"]').click();
+  await expect(page.locator('#toast')).toContainText('Tiếp tục');
+  await expect(page.locator('#play-home')).toBeVisible();
+  await page.click('#home-resume-go');
+  await expect(page.locator('#play-board')).toBeVisible();
+  expect((await P(page)).n).toBe(2);
+  await play(page, ['傌二進三']);
+  expect((await P(page)).n).toBe(3);
+  // Bấm tab Trang chủ cũng về trang chủ; Bỏ ván thì hết thẻ ván dở
+  await page.click('#nav-handle');
+  await page.locator('.tab[data-tab="play"]').click();
+  await expect(page.locator('#home-resume')).toBeVisible();
+  await page.click('#home-resume-drop');
+  await expect(page.locator('#home-resume')).toBeHidden();
+  await page.locator('.mode[data-m="ai"]').click();
+  await expect(page.locator('#ai-setup')).toBeVisible();
+  expect(errors).toEqual([]);
 });

@@ -18,7 +18,7 @@ const st = p => p.evaluate(() => ({ state: window.__xq.Net.state, err: window.__
 const move = (p, s) => p.evaluate(x => { const P = window.__xq.Play; P.doMove(P.ctx.pos.parse(x), true); }, s);
 async function room(context, errors, { side = '0', clock = '0' } = {}) {
   const A = await device(context, errors);
-  await A.locator('#play-mode .btn[data-m="net"]').click();
+  await A.locator('.mode[data-m="net"]').click();
   await A.click('#net-go-create');
   await A.selectOption('#net-side', side);
   await A.locator('#net-times .btn[data-k="' + clock + '"]').click();

@@ -39,15 +39,18 @@ async function clickMove(page, boardSel, obj, m) {
   await clickSquare(page, boardSel, obj, m & 127);
 }
 
-// Đấu với máy: mở "Tùy chọn ván", chọn cấp độ / nước mở đầu / bên cầm rồi bắt đầu ván mới.
+// Đấu với máy: về trang chủ (bỏ ván đang dở nếu có), chọn "Đấu với máy", chọn bên cầm / cấp độ / nước mở đầu rồi Bắt đầu.
 async function aiNewGame(page, { side, level, open } = {}) {
-  await page.locator('#pbar-bot [data-act="menu"]').click();
-  await expect(page.locator('#am')).toBeVisible();
-  if (level !== undefined) await page.selectOption('#play-level', String(level));
-  if (open !== undefined) await page.selectOption('#play-open', open);
-  if (side !== undefined) await page.selectOption('#play-side', String(side));
-  await page.click('#play-new');
-  await expect(page.locator('#am-back')).toBeHidden();
+  await showTab(page, 'play');
+  if (await page.locator('#home-resume').isVisible()) await page.click('#home-resume-drop');
+  await page.click('.mode[data-m="ai"]');
+  await expect(page.locator('#ai-setup')).toBeVisible();
+  if (side !== undefined) await page.click('#ai-side .chip[data-v="' + side + '"]');
+  if (level !== undefined) await page.click('#ai-levels .lvl[data-v="' + level + '"]');
+  if (open !== undefined && String(side) !== '0') await page.selectOption('#play-open', open);
+  await page.click('#ai-start');
+  await expect(page.locator('#play-board')).toBeVisible();
+  await expect(page.locator('#ai-setup')).toBeHidden();
 }
 // Mở "Tùy chọn ván" rồi bấm một nút trong đó.
 async function aiMenu(page, id) {

@@ -2,6 +2,15 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.5.0] – 2026-11-25
+
+### Thay đổi
+- **Trang chủ chọn cách chơi:** Đấu với máy, Hai người một máy, Chơi qua mạng, kèm lối tắt luyện tập (Chiếu hết, Chiến thuật, Khai cuộc, Phân tích ván). Tab đầu tiên đổi tên thành "Trang chủ".
+- **Ba màn hình nối tiếp, không chồng lên nhau:** trang chủ → màn chuẩn bị (không có bàn cờ) → bàn cờ (chỉ bàn cờ và thanh của hai bên).
+- **Đấu với máy có màn chuẩn bị riêng:** chọn bên cầm (Đỏ, Đen hoặc ngẫu nhiên), cấp độ và nước mở đầu của máy rồi mới vào ván. Máy không tự đi khi chưa bấm Bắt đầu.
+- **Về trang chủ giữa ván:** menu ☰ có "Về trang chủ (giữ ván)". Trang chủ hiện thẻ ván đang dở với hai nút Tiếp tục và Bỏ ván; ván hai người thì đồng hồ dừng trong lúc ở trang chủ.
+- **Thẻ kết quả:** nút "Ván mới" mở lại màn chuẩn bị của chế độ đang chơi; nút "Trang chủ" về màn chọn cách chơi.
+
 ## [1.4.0] – 2026-11-25
 
 ### Thêm

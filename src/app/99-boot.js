@@ -28,7 +28,7 @@
       const b = document.body, busy = this.busy();
       if (!busy) this.peek = false;
       b.classList.toggle('nav-min', busy && !this.peek);
-      b.classList.toggle('game-play', this.cur() === 'play' && (Play.human() ? !Play.setup : Play.active()));
+      b.classList.toggle('game-play', this.cur() === 'play' && Play.screen === 'game');
     },
     init() {
       // Bấm nút tròn: thanh điều hướng hiện ra và giữ nguyên; bấm bất kỳ chỗ nào ngoài thanh thì thu lại thành nút.
@@ -47,7 +47,8 @@
     $('#set-nmode').onchange = e => applyNmode(e.target.value); applyNmode(noteMode());
     Backup.init();
     Nav.init();
-    $$('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+    // Bấm "Trang chủ" luôn về màn chọn cách chơi (ván đang dở được giữ, có nút Tiếp tục)
+    $$('.tab').forEach(t => t.onclick = () => { showTab(t.dataset.tab); if (t.dataset.tab === 'play') Play.goHome(); });
     showTab(Store.get('tab', 'play'));
     // Link mời chơi qua mạng: ...#phong=ABC123
     // Lần đầu mở trang, app có thể tự tải lại một lần (để bật engine mạnh): khi đó chờ tải lại xong rồi mới vào phòng,

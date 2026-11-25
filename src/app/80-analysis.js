@@ -15,7 +15,7 @@
     games: Store.get('games', []), cur: null, k: 0, gen: 0, running: false, showBest: true, notes: [],
     init() {
       this.board = new Board($('#ana-board'), () => { });
-      $('#ana-toplay').onclick = () => { this.cancel(); showTab('play'); };
+      $('#ana-toplay').onclick = () => { this.cancel(); showTab('play'); Play.goHome(); };
       $('#ana-back').onclick = () => { this.cancel(); this.renderList(); };
       $('#ana-deep').onclick = () => this.toggleLive();
       $('#ana-nm').onclick = () => applyNmode({ vi: 'both', both: 'han', han: 'vi' }[noteMode()]);

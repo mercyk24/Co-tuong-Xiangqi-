@@ -14,14 +14,14 @@ test('đấu máy cấp 3: máy mở đầu theo sách, đi nước bằng cách
   await page.waitForFunction(() => window.__xq.Play.notes.length === 3 && !window.__xq.Play.thinking, null, { timeout: 30_000 });
   await aiMenu(page, '#play-undo');
   await page.waitForFunction(() => window.__xq.Play.notes.length === 1);
-  // chưa đi nước nào: menu còn Ván mới; đi một nước rồi thì giữa ván: không có Ván mới, có Chịu thua
+  // Menu giữa ván không có Ván mới hay đổi chế độ, chỉ có "Về trang chủ (giữ ván)"
   await page.locator('#pbar-bot [data-act="menu"]').click();
-  await expect(page.locator('#play-new')).toBeVisible();
+  await expect(page.locator('#am')).not.toContainText('Ván mới');
+  await expect(page.locator('#am-home')).toBeVisible();
   await page.click('#am-close');
   await clickMove(page, '#play-board', 'Play', m);
   await page.waitForFunction(() => window.__xq.Play.notes.length === 3 && !window.__xq.Play.thinking, null, { timeout: 30_000 });
   await page.locator('#pbar-bot [data-act="menu"]').click();
-  await expect(page.locator('#play-new')).toBeHidden();
   await expect(page.locator('#play-resign')).toBeVisible();
   await page.click('#play-resign');
   await page.click('#play-ask-yes');
@@ -112,8 +112,9 @@ test('khai cuộc: đủ các nhóm, tập hết một biến, nước tương �
 test('thanh điều hướng thu gọn khi đang đánh với máy, giải bài, tập khai cuộc; hiện lại khi xong', async ({ page }) => {
   await openApp(page);
   const tabs = page.locator('.tab[data-tab="about"]');
+  await expect(tabs).toBeVisible();            // trang chủ: thanh điều hướng hiện đủ
   await aiNewGame(page, { side: 0, level: 1 });
-  await expect(tabs).toBeVisible();
+  await expect(tabs).toBeHidden();             // vào bàn cờ là thu gọn ngay
   await page.evaluate(() => { const P = window.__xq.Play; P.doMove(P.ctx.pos.parse('炮二平五'), true); });
   await expect(tabs).toBeHidden();
   await page.click('#nav-handle');
