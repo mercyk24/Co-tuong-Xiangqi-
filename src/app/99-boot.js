@@ -6,7 +6,7 @@
     if (name !== 'ana') Store.set('tab', name);
     if (name === 'tac') Tac.renderList();
     if (name === 'ana' && !Ana.cur) Ana.renderList();
-    if (name === 'about') Backup.render();
+    if (name === 'about') { Backup.render(); Privacy.render(); }
     Nav.peek = false; Nav.update();
     window.scrollTo(0, 0);
   }
@@ -46,6 +46,7 @@
     Play.init(); Puz.init(); Tac.init(); Op.init(); Ana.init();
     $('#set-nmode').onchange = e => applyNmode(e.target.value); applyNmode(noteMode());
     Backup.init();
+    Privacy.init();
     Nav.init();
     // Bấm "Trang chủ" luôn về màn chọn cách chơi (ván đang dở được giữ, có nút Tiếp tục)
     $$('.tab').forEach(t => t.onclick = () => { showTab(t.dataset.tab); if (t.dataset.tab === 'play') Play.goHome(); });
@@ -76,5 +77,5 @@
       }).catch(() => { /* bỏ qua */ });
     }
   }
-  window.__xq = { Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Nav, Net, vi, showTab, version: APP_VERSION };
+  window.__xq = { Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Privacy, Consent, Nav, Net, vi, showTab, version: APP_VERSION };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

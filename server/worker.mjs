@@ -8,6 +8,16 @@
 import { DurableObject } from 'cloudflare:workers';
 import { checkJoin, paramsOf, onConnect, onMessage, onClose, HEARTBEAT } from './core.mjs';
 
+// Giới hạn số lần mở kết nối từ một địa chỉ IP (mặc định 120 lần / phút, đặt trong wrangler.jsonc): chặn kẻ xấu mở ồ ạt
+// kết nối để làm tốn tài nguyên hay dò mã phòng để vào xem trộm. Mức này rộng để nhiều người dùng chung một IP
+// (4G, mạng trường học) vẫn chơi bình thường. Dịch vụ đếm của Cloudflare lỗi thì cho qua, không chặn người chơi.
+async function underLimit(req, env) {
+  if (!env.CONN_LIMIT) return true;                    // chưa cấu hình (chạy thử trên máy)
+  const ip = req.headers.get('CF-Connecting-IP');
+  if (!ip) return true;
+  try { return (await env.CONN_LIMIT.limit({ key: 'ws:' + ip })).success; } catch (e) { return true; }
+}
+
 function allowedOrigin(req, env) {
   const list = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   if (!list.length) return true;                       // chưa cấu hình: cho mọi nơi (chạy thử)
@@ -21,6 +31,7 @@ export default {
     if (url.pathname === '/peerjs') {
       if (req.headers.get('Upgrade') !== 'websocket') return new Response('Cần kết nối WebSocket', { status: 426 });
       if (!allowedOrigin(req, env)) return new Response('Không được phép', { status: 403 });
+      if (!(await underLimit(req, env))) return new Response('Quá nhiều kết nối, hãy thử lại sau một phút', { status: 429 });
       const p = paramsOf(req.url);
       const bad = checkJoin(p);
       if (bad) return new Response(bad, { status: 400 });

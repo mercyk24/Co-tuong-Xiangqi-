@@ -4,6 +4,15 @@ Dữ liệu trong `data/` được sinh trên máy tính có [Pikafish](https://
 
 Sau khi sinh lại bất kỳ dữ liệu nào, chạy `npm test`: bộ kiểm tra `tests/unit/data.test.js` báo ngay nếu có bài hay biến khai cuộc sai luật.
 
+## Bài chiếu hết – `data/puzzles.json`
+
+```bash
+node tools/gen_puzzles.js 120000 /tmp/puzzles_raw.json   # chạy 120 giây
+node tools/build_puzzles.js /tmp/puzzles_raw.json          # ghi data/puzzles.json
+```
+
+Không cần Pikafish. `gen_puzzles.js` đặt quân ngẫu nhiên (Tướng, Sĩ, Tượng và vài quân tấn công), dùng bộ giải chiếu hết của lõi luật cờ (`src/core/xq.js`) để giữ những thế chỉ có **đúng một** nước chiếu dẫn tới chiếu hết trong n nước. `build_puzzles.js` sắp theo số nước, xoay bàn cờ cho một phần bài để có cả bài Đen đi, kiểm tra lại từng bài rồi đánh số. Bài do công cụ tự sinh, không lấy từ sách hay trang web nào.
+
 ## Bài chiến thuật – `data/tactics.json`
 
 ```bash

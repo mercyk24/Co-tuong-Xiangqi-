@@ -1,0 +1,62 @@
+Cờ Tướng Luyện Tập
+Bản quyền mã nguồn của app: người phát triển dự án (tài khoản GitHub mercyk24) và những người đóng góp.
+Phát hành theo GNU General Public License phiên bản 3 hoặc mới hơn (GPL-3.0-or-later), xem tệp LICENSE.
+
+Tệp này liệt kê các thành phần của bên thứ ba có trong app hoặc được dùng để tạo dữ liệu của app,
+cùng giấy phép và nguồn gốc. Khi thêm hoặc đổi thành phần bên thứ ba, cập nhật tệp này.
+
+------------------------------------------------------------------------------
+1. THÀNH PHẦN PHÂN PHỐI KÈM APP
+------------------------------------------------------------------------------
+
+Fairy-Stockfish, bản WebAssembly (engine cấp 6 và phân tích ván)
+  Tệp:      engine/stockfish-512.js, engine/stockfish.wasm, engine/stockfish.worker.js
+  Nguồn:    gói npm fairy-stockfish-nnue.wasm 1.1.12
+            https://github.com/fairy-stockfish/Fairy-Stockfish
+            https://github.com/fairy-stockfish/fairy-stockfish.wasm
+  Giấy phép: GNU GPL-3.0
+  Bản quyền: các tác giả Stockfish và Fairy-Stockfish
+  Chỉnh sửa: stockfish-512.js giảm giới hạn bộ nhớ dùng chung từ 2 GB xuống 512 MB
+            (chi tiết và mã băm SHA-256 trong engine/README.md, engine/SHA256SUMS).
+
+Mạng NNUE cờ tướng
+  Tệp:      engine/xiangqi-c07e94a5c7cb.nnue
+  Nguồn:    danh sách mạng NNUE của Fairy-Stockfish, https://fairy-stockfish.github.io/nnue/
+  Giấy phép: CHƯA XÁC MINH. Cần hỏi tác giả mạng trước khi dùng cho mục đích thương mại
+            (xem docs/PHAP-LY.md, mục giấy phép phần mềm).
+
+------------------------------------------------------------------------------
+2. DỮ LIỆU CỦA APP
+------------------------------------------------------------------------------
+
+Bài chiếu hết (data/puzzles.json)
+  Do công cụ của dự án tự sinh: tools/gen_puzzles.js tạo thế ngẫu nhiên, lõi luật cờ của app
+  (src/core/xq.js) giải và chỉ giữ thế có đúng một nước giải; tools/build_puzzles.js sắp xếp.
+  Không lấy từ sách hay trang web nào.
+
+Bài chiến thuật, cây khai cuộc, sách khai cuộc của máy
+  (data/tactics.json, data/opening_tree.json, data/opening_lines.json, data/openings.json, data/book.json)
+  Sinh trên máy tính của người phát triển bằng Pikafish (GPL-3.0, https://github.com/official-pikafish/Pikafish).
+  Pikafish không phân phối kèm app; dữ liệu là kết quả phân tích (thế cờ, nước đi, điểm đánh giá).
+  Cách sinh: docs/data.md.
+
+Chú giải khai cuộc Bình phong mã (data/openings_src.js)
+  Chuỗi nước đi lấy từ lý thuyết khai cuộc phổ biến (thông tin thực tế về nước đi, không sao chép văn bản).
+  Lời giải thích do người phát triển tự viết bằng tiếng Việt.
+
+------------------------------------------------------------------------------
+3. DỊCH VỤ BÊN NGOÀI KHI CHƠI QUA MẠNG (không phân phối kèm app)
+------------------------------------------------------------------------------
+
+Cloudflare Workers và Durable Objects (Cloudflare, Inc.): điểm hẹn và chuyển tin của app.
+0.peerjs.com (dự án PeerJS, https://peerjs.com): điểm hẹn dự phòng; app tự viết phần kết nối
+  theo giao thức của PeerJS, không dùng thư viện PeerJS.
+Máy chủ STUN của Google (stun.l.google.com) và Cloudflare (stun.cloudflare.com).
+Chỉ dùng khi người dùng đã đồng ý chơi qua mạng; xem chính sách quyền riêng tư trong app
+và docs/CHINH-SACH-RIENG-TU.md.
+
+------------------------------------------------------------------------------
+4. CÔNG CỤ PHÁT TRIỂN (không phân phối kèm app)
+------------------------------------------------------------------------------
+
+Playwright (Apache-2.0), ESLint (MIT), Wrangler (MIT OR Apache-2.0).

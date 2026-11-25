@@ -2,6 +2,8 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<!--__CSP__-->
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cờ Tướng Luyện Tập</title>
 <meta name="theme-color" content="#2e6b5a">
@@ -156,6 +158,9 @@ body.game-play #v-play{display:flex;flex-direction:column;justify-content:center
 .setup #ai-start{margin-top:14px;min-height:50px;font-size:17px}
 ul.tidy{padding-left:18px}.tidy li{margin:4px 0}
 a{color:var(--accent)}
+details.policy{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+details.policy summary{cursor:pointer;font-weight:600;padding:6px 0}
+details.policy p,details.policy li{font-size:14px}
 </style>
 </head>
 <body>
@@ -201,6 +206,19 @@ a{color:var(--accent)}
       <div class="tgrid" id="pvp-times"></div>
     </div>
     <div class="card setup" id="net-setup" hidden>
+      <div id="net-consent" hidden>
+        <p><b>Trước khi chơi qua mạng</b></p>
+        <p id="net-consent-code" hidden></p>
+        <p class="muted">Để hai máy tìm thấy và nối với nhau, app phải gửi một số thông tin kết nối ra khỏi máy của bạn:</p>
+        <ul class="tidy">
+          <li><b>Địa chỉ IP</b> của bạn: đối thủ biết được khi hai máy nối thẳng; các máy chủ trung gian cũng xử lý nó (điểm hẹn của app trên Cloudflare, điểm hẹn dự phòng 0.peerjs.com, máy chủ STUN của Google và Cloudflare). Các máy chủ này có thể đặt ở nước ngoài.</li>
+          <li><b>Mã phòng, nước đi và đồng hồ</b>: đi qua điểm hẹn của app khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ chuyển tin, không lưu ván cờ.</li>
+          <li>App không hỏi tên, số điện thoại hay tài khoản nào.</li>
+        </ul>
+        <p class="muted">Nếu bạn dưới 16 tuổi, hãy hỏi ý kiến cha mẹ trước khi đồng ý. Bạn rút lại sự đồng ý được bất cứ lúc nào ở mục Giới thiệu › Quyền riêng tư. Không đồng ý thì vẫn dùng được mọi chế độ khác.</p>
+        <div class="row"><button class="btn primary" id="net-consent-yes">Tôi đồng ý</button><button class="btn" id="net-consent-no">Không, quay lại</button></div>
+        <button class="btn wide" id="net-consent-policy">Đọc chính sách quyền riêng tư</button>
+      </div>
       <div id="net-home">
         <p class="muted">Hai máy nối thẳng với nhau qua Internet, không cần tài khoản. Một người tạo phòng rồi gửi mã (hoặc link) cho người kia.</p>
         <p class="neterr" id="net-err" hidden></p>
@@ -380,7 +398,7 @@ a{color:var(--accent)}
     <h1>Giới thiệu</h1>
     <div class="card"><label>Cách ghi nước đi <select id="set-nmode" style="width:100%;max-width:100%"><option value="vi">Tiếng Việt (Mã 8 tiến 7)</option><option value="both">Chữ Hán và tiếng Việt</option><option value="han">Chữ Hán (馬8進7)</option></select></label></div>
     <div class="card">
-      <p><b>Cờ Tướng Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản và không thu thập dữ liệu. Tiến độ được lưu trên máy của bạn.</p>
+      <p><b>Cờ Tướng Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản. Tiến độ được lưu trên máy của bạn; app không gửi dữ liệu đi đâu, trừ thông tin kết nối khi bạn chơi qua mạng (xem mục Quyền riêng tư).</p>
       <p class="muted" id="app-version">Phiên bản __VERSION__ · bản dựng __BUILD_DATE__</p>
     </div>
     <h2>Dữ liệu của bạn</h2>
@@ -394,6 +412,35 @@ a{color:var(--accent)}
         <div class="row"><button class="btn primary" id="bk-apply">Khôi phục</button><button class="btn" id="bk-cancel">Huỷ</button></div>
       </div>
     </div>
+    <h2 id="privacy">Quyền riêng tư</h2>
+    <div class="card">
+      <p class="muted" id="pv-status"></p>
+      <button class="btn wide" id="pv-revoke" hidden>Rút lại đồng ý chơi qua mạng</button>
+      <p class="muted">Xoá toàn bộ dữ liệu của app trên máy này: tiến độ, ván đã lưu, cài đặt và sự đồng ý. Không lấy lại được nếu chưa sao lưu.</p>
+      <button class="btn wide" id="pv-wipe">Xoá dữ liệu trên máy này</button>
+      <div id="pv-wipe-confirm" hidden>
+        <p><b>Xoá hết dữ liệu của app trên máy này?</b></p>
+        <div class="row"><button class="btn primary" id="pv-wipe-yes">Xoá hết</button><button class="btn" id="pv-wipe-no">Huỷ</button></div>
+      </div>
+      <details class="policy">
+        <summary>Chính sách quyền riêng tư (bản ngày 25/11/2026)</summary>
+        <p><b>1. Ai xử lý dữ liệu.</b> Người phát triển app Cờ Tướng Luyện Tập (tài khoản GitHub mercyk24). Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn github.com/mercyk24/Co-tuong-Xiangqi-. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.</p>
+        <p><b>2. Dữ liệu trên máy của bạn.</b> Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt và sự đồng ý của bạn được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu ở trên.</p>
+        <p><b>3. Khi chơi qua mạng (chỉ khi bạn đồng ý).</b> Dữ liệu được xử lý: địa chỉ IP, mã phòng, mã kết nối ngẫu nhiên, nước đi và đồng hồ của ván. Mục đích duy nhất: nối hai máy với nhau và chuyển nước đi. Bên nhận:</p>
+        <ul class="tidy">
+          <li>Đối thủ của bạn: biết địa chỉ IP của bạn khi hai máy nối thẳng (WebRTC).</li>
+          <li>Điểm hẹn của app chạy trên Cloudflare (Cloudflare, Inc., Hoa Kỳ; máy chủ đặt ở nhiều nước): nhận IP và tin kết nối, chuyển nước đi khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ giữ thông tin trong lúc đang kết nối, không lưu ván cờ, và đã tắt ghi nhật ký từng lượt truy cập.</li>
+          <li>Điểm hẹn dự phòng 0.peerjs.com (dự án PeerJS, máy chủ ở nước ngoài): chỉ dùng khi điểm hẹn của app không vào được.</li>
+          <li>Máy chủ STUN của Google và Cloudflare: giúp mỗi máy biết địa chỉ IP công khai của mình.</li>
+          <li>Người xem trận: nhận thế cờ và đồng hồ qua điểm hẹn của app, không biết địa chỉ IP của người chơi.</li>
+        </ul>
+        <p><b>4. Chuyển ra nước ngoài.</b> Các máy chủ ở mục 3 có thể đặt ngoài Việt Nam, nên địa chỉ IP của bạn có thể được xử lý ở nước ngoài trong lúc kết nối. Đây là lý do app xin bạn đồng ý trước khi chơi qua mạng.</p>
+        <p><b>5. Quyền của bạn.</b> Bạn có quyền được biết, đồng ý hoặc không đồng ý, rút lại sự đồng ý (nút ở trên), xem, sao chép và xoá dữ liệu trên máy (nút Sao lưu và Xoá dữ liệu), yêu cầu hạn chế xử lý, phản đối và khiếu nại theo Luật Bảo vệ dữ liệu cá nhân. Rút lại đồng ý không ảnh hưởng các lần kết nối trước đó; sau khi rút lại, app không kết nối qua mạng nữa cho đến khi bạn đồng ý lại.</p>
+        <p><b>6. Trẻ em.</b> App không hỏi tuổi. Người dưới 16 tuổi nên hỏi ý kiến cha mẹ trước khi chơi qua mạng.</p>
+        <p><b>7. Không dùng cho mục đích khác.</b> App không có quảng cáo, không theo dõi hành vi, không bán hay chia sẻ dữ liệu cho bên thứ ba ngoài các bên ở mục 3.</p>
+        <p><b>8. Thay đổi.</b> Khi chính sách thay đổi về nội dung chính, app sẽ hỏi lại sự đồng ý trước lần chơi qua mạng tiếp theo.</p>
+      </details>
+    </div>
     <h2>Cài lên iPhone</h2>
     <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
     <h2>Ghi chú</h2>
@@ -404,8 +451,8 @@ a{color:var(--accent)}
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
       <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
       <li>Ký hiệu nước đi mặc định ghi bằng tiếng Việt (ví dụ Pháo 2 bình 5); có thể đổi sang chữ Hán (炮二平五) ở mục Cách ghi nước đi.</li>
-      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn của app (trên Cloudflare, nếu có) hoặc điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com), cùng máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Nếu mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app; máy chủ chỉ chuyển tin, không lưu ván cờ. Người vào xem trận nhận thế cờ qua điểm hẹn của app, không biết địa chỉ IP của hai người chơi.</li>
-      <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Chi tiết ghi công xem tệp README và engine/README trong mã nguồn.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC); nếu mạng chặn kết nối trực tiếp (thường là 4G hoặc mạng công ty), nước đi được chuyển qua điểm hẹn của app. Dữ liệu được gửi đi và nơi nhận: xem mục Quyền riêng tư ở trên.</li>
+      <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Danh sách thành phần bên thứ ba và ghi công: tệp NOTICE trong mã nguồn.</li>
     </ul>
   </section>
 </main>
@@ -422,7 +469,7 @@ a{color:var(--accent)}
 
 <script id="core-src" type="text/plain">/*__CORE__*/</script>
 <script>
-(function(){ (0, eval)(document.getElementById('core-src').textContent); })();
+/*__CORE__*/
 var APP_VERSION = '__VERSION__';
 var PUZZLES = /*__PUZZLES__*/;
 var OPENINGS = /*__OPENINGS__*/;

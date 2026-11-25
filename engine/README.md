@@ -9,6 +9,8 @@ Các tệp trong thư mục này được chép nguyên sang `dist/engine/` khi 
 | `stockfish.worker.js` | gói npm `fairy-stockfish-nnue.wasm` 1.1.12, giữ nguyên | `067be484ac62f728b0dad28496997e5862f3c61f9091f59bb35d9d1b1ed14573` |
 | `xiangqi-c07e94a5c7cb.nnue` | mạng NNUE cờ tướng trong [danh sách mạng của Fairy-Stockfish](https://fairy-stockfish.github.io/nnue/) | `c07e94a5c7cbeae443ed79a8fa412875d833a7f8e04333815e39729c59d52e11` |
 
+Mã băm cũng nằm trong `SHA256SUMS`; bộ kiểm tra `tests/unit/engine-integrity.test.js` so từng tệp với danh sách này, nên tệp engine bị thay là kiểm tra báo lỗi ngay. Cố ý cập nhật engine thì sửa cả `SHA256SUMS` và bảng trên.
+
 ## Chỉnh sửa so với bản gốc
 
 Bản gốc khai báo bộ nhớ dùng chung tối đa 2 GB (`maximum: 32768` trang), khiến Safari trên iPhone báo `RangeError: Out of memory`. Trong `stockfish-512.js`, giá trị này được đổi thành `maximum: 8192` (512 MB). Engine thực tế dùng khoảng 460 MB; mức 256 MB hoặc 384 MB làm engine lỗi `memory access out of bounds`. Ngoài ra không có thay đổi nào khác.

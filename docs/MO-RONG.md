@@ -167,10 +167,7 @@ Muốn không bao giờ bị ngắt vì hạn mức thì nâng lên gói 5 USD/t
 
 ## 7. Còn lại (chưa cần cho "ván diễn ra bình thường")
 
-- **Giới hạn số kết nối theo địa chỉ IP:** dùng Workers Rate Limiting, để chống một người mở hàng nghìn kết nối. Hiện có giới hạn theo phòng và theo tốc độ tin, cộng chống DDoS sẵn có của Cloudflare.
-- **Bảng theo dõi:** `observability` đã bật trong `wrangler.jsonc`, xem trong trang quản trị Cloudflare.
-  - Mỗi tin WebSocket là một sự kiện nhật ký. Gói miễn phí lưu 200 000 sự kiện/ngày; riêng các lần thử tải ngày 25/11 đã tạo khoảng 180 000.
-  - Vì vậy chỉ lưu 5% (`head_sampling_rate: 0.05`).
-  - Vượt mức thì chỉ ngừng lưu nhật ký tới 7 giờ sáng (giờ Việt Nam), máy chủ vẫn chạy.
+- **Giới hạn số kết nối theo địa chỉ IP (đã làm, bản 1.7.0):** Workers Rate Limiting (`CONN_LIMIT` trong `wrangler.jsonc`), 120 lần mở kết nối mỗi phút cho một IP. Mức rộng để nhiều người dùng chung IP (4G, trường học) không bị chặn. Vượt mức thì máy chủ trả 429 và app tự chuyển sang điểm hẹn dự phòng.
+- **Nhật ký (đổi ở bản 1.7.0):** tắt nhật ký từng lượt truy cập (`invocation_logs: false`), vì nhật ký đó chứa địa chỉ IP, địa chỉ kết nối kèm mã phòng và thẻ phiên. Chỉ còn ghi lỗi. Số lượt truy cập, lỗi, thời gian chạy vẫn xem được ở mục **Metrics** của worker trong trang quản trị Cloudflare. Trang Observability sẽ gần như trống, đó là bình thường.
 - **Chống gian lận, tài khoản, xếp hạng, ghép cặp với người lạ:** cần máy chủ làm trọng tài. Đây là bước sau, xem `docs/RA-SOAT.md`.
 - **Thử thật trên hai điện thoại ở hai mạng khác nhau:** chưa làm.

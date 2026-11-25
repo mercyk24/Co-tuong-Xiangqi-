@@ -61,7 +61,13 @@
       $('#ai-start').onclick = () => this.startAi();
       $('#play-ask-yes').onclick = () => { const a = this.ask; this.ask = null; if (a) a.yes(); this.draw(); };
       $('#play-ask-no').onclick = () => { const a = this.ask; this.ask = null; if (a && a.no) a.no(); this.draw(); };
-      // Chơi qua mạng
+      // Chơi qua mạng: lần đầu phải đồng ý cho gửi thông tin kết nối ra ngoài máy
+      $('#net-consent-yes').onclick = () => {
+        Consent.give(); const code = Net.pendingJoin; Net.pendingJoin = '';
+        if (code) { $('#net-code').value = code; Net.join(code); } else this.draw();
+      };
+      $('#net-consent-no').onclick = () => { Net.pendingJoin = ''; this.goHome(); };
+      $('#net-consent-policy').onclick = () => { showTab('about'); const el = $('#privacy'); if (el) el.scrollIntoView(); };
       $('#net-go-create').onclick = () => { this.netView = 'create'; Net.err = ''; this.draw(); };
       $('#net-create-back').onclick = () => { this.netView = 'home'; this.draw(); };
       $('#net-side').value = Store.get('net_side', 'r');
@@ -598,8 +604,12 @@
       $('#net-watch-ask').hidden = !(net && st === 'error' && Net.canWatch);
       if (!setupShown) return;
       const waiting = st === 'opening' || st === 'waiting' || st === 'joining';
-      $('#net-home').hidden = waiting || this.netView !== 'home';
-      $('#net-create').hidden = waiting || this.netView !== 'create';
+      const ask = !Consent.ok() && !waiting;
+      $('#net-consent').hidden = !ask;
+      $('#net-consent-code').hidden = !(ask && Net.pendingJoin);
+      if (ask && Net.pendingJoin) $('#net-consent-code').textContent = 'Bạn được mời vào phòng ' + Net.pendingJoin + '. Đồng ý thì app vào phòng ngay.';
+      $('#net-home').hidden = ask || waiting || this.netView !== 'home';
+      $('#net-create').hidden = ask || waiting || this.netView !== 'create';
       $('#net-wait').hidden = !waiting;
       $('#net-err').hidden = !(st === 'error' && Net.err); $('#net-err').textContent = Net.err || '';
       $$('#net-times .btn').forEach(b => b.classList.toggle('primary', b.dataset.k === Store.get('play_clock', '0')));

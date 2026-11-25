@@ -38,6 +38,8 @@ test('phân tích ván: phát hiện nước bỏ Pháo, đưa vào "Lỗi của
   await expect(page.locator('#ana-info')).toContainText(/Sai lầm/);
   await expect(page.locator('#ana-info')).toContainText('Engine dự kiến');
   expect(await page.evaluate(() => window.__xq.Store.get('mine', []).length)).toBeGreaterThanOrEqual(1);
+  // dữ liệu thật (ván đã phân tích, "Lỗi của bạn") phải qua được bộ lọc khi khôi phục từ tệp sao lưu
+  expect(await page.evaluate(() => !!window.__xq.Backup.clean(window.__xq.Backup.collect()))).toBe(true);
   // soi sâu vài giây rồi dừng
   await page.click('#ana-deep');
   await expect(page.locator('#ana-live')).toContainText('độ sâu', { timeout: 20_000 });

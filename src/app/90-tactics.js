@@ -24,7 +24,7 @@
       $('#tac-stats').textContent = 'Đã giải ' + nd + '/' + total + ' bài.';
       const mp = this.minePool().length, mt = this.mine.length;
       $('#tac-mine').innerHTML = mt ? '<button class="pz' + (mp ? '' : ' ok') + '" id="tac-mine-go"><span class="pz-n">Lỗi của bạn</span><span class="pz-s">' + mp + ' thế cần luyện lại · ' + (mt - mp) + ' đã thuộc (đúng ngay 2 lần liên tiếp)</span></button>'
-        : '<p class="muted">Chơi một ván rồi bấm "Phân tích ván" ở tab Đấu máy: các thế bạn đi sai sẽ thành bài tập riêng ở đây.</p>';
+        : '<p class="muted">Chơi một ván rồi bấm "Phân tích ván" khi ván kết thúc: các thế bạn đi sai sẽ thành bài tập riêng ở đây.</p>';
       const mg = $('#tac-mine-go'); if (mg) mg.onclick = () => { const l = this.minePool(); if (!l.length) { toast('Bạn đã thuộc hết các lỗi đang có. Chơi và phân tích thêm ván mới nhé.'); return; } this.mode = 'free'; this.open(l[0].id); };
       $('#tac-bands').innerHTML = this.BANDS.map((b, i) => '<button class="chip' + (i === this.band ? ' on' : '') + '" data-b="' + i + '">' + b[0] + '</button>').join('');
       $$('#tac-bands .chip').forEach(c => c.onclick = () => { this.band = +c.dataset.b; Store.set('tac_band', this.band); this.renderList(); });
@@ -34,7 +34,7 @@
       }).join('');
       $$('#tac-modes .pz').forEach(b => b.onclick = () => this.startMode(b.dataset.m));
       const pl = this.pool();
-      $('#tac-grid').innerHTML = pl.length ? pl.map(p => '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + p.id + '"><span class="pz-n">Bài ' + p.id.slice(1) + '</span><span class="pz-s">' + (p.side === 'w' ? '<i class="dot r"></i>Đỏ' : '<i class="dot b"></i>Đen') + ' đi<span class="rate">' + p.rating + '</span></span>' + (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>').join('') : '<p class="muted">Chưa có bài trong mức này.</p>';
+      $('#tac-grid').innerHTML = pl.length ? pl.map(p => '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + esc(p.id) + '"><span class="pz-n">Bài ' + p.id.slice(1) + '</span><span class="pz-s">' + (p.side === 'w' ? '<i class="dot r"></i>Đỏ' : '<i class="dot b"></i>Đen') + ' đi<span class="rate">' + p.rating + '</span></span>' + (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>').join('') : '<p class="muted">Chưa có bài trong mức này.</p>';
       $$('#tac-grid .pz').forEach(b => b.onclick = () => { this.mode = 'free'; this.open(b.dataset.id); });
       const H = this.hist.slice(-10).reverse();
       $('#tac-hist').innerHTML = H.length ? H.map(h => '<div class="hrow"><span>' + new Date(h.t).toLocaleDateString('vi-VN') + ' · ' + esc(this.MODES[h.m][0]) + '</span><b>' + h.s + ' bài</b></div>').join('') : 'Chưa có lượt chơi nào.';

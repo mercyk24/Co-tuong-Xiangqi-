@@ -13,7 +13,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 | 5 | Kiểm tra tự động chỉ chạy trên Chromium, người dùng chính dùng Safari iPhone | 🟠 | Lỗi riêng của Safari có thể lọt qua |
 | 6 | `40-play.js` ôm ba chế độ chơi (~900 dòng) | 🟠 | Khó sửa, dễ sinh lỗi khi thêm tính năng |
 | 7 | Dữ liệu người dùng chỉ nằm trong trình duyệt | 🟢 | Đổi máy là mất nếu không sao lưu |
-| 8 | Chưa có chính sách quyền riêng tư, theo dõi lỗi, gắn tag phiên bản | 🟢 | Cần khi lên kho ứng dụng / có người dùng thật |
+| 8 | Chính sách quyền riêng tư và xin đồng ý: **đã có** (bản 1.7.0). Còn thiếu theo dõi lỗi | 🟢 | Lộ trình pháp lý: `docs/PHAP-LY.md` |
 
 ## 1. Giấy phép 🔴
 

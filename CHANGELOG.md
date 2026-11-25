@@ -2,6 +2,29 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.7.0] – 2026-11-25
+
+Bước chuẩn bị đầu tiên trước khi xin phép thương mại hoá: bảo mật và quyền riêng tư. Lộ trình đầy đủ: `docs/PHAP-LY.md`.
+
+### Thêm
+- **Xin đồng ý trước khi chơi qua mạng.** Lần đầu vào "Chơi qua mạng" (hoặc mở link mời), app nói rõ dữ liệu nào rời khỏi máy (địa chỉ IP, mã phòng, nước đi), đi đâu (đối thủ, điểm hẹn trên Cloudflare, 0.peerjs.com, STUN của Google và Cloudflare, có thể ở nước ngoài) và chờ bấm "Tôi đồng ý".
+  - Không có ô đánh dấu sẵn. Không đồng ý thì không kết nối gì, các chế độ khác vẫn dùng bình thường.
+  - App lưu thời điểm và phiên bản nội dung đã đồng ý. Đổi chính sách thì hỏi lại.
+- **Mục Quyền riêng tư** trong Giới thiệu: xem và rút lại sự đồng ý, xoá toàn bộ dữ liệu của app trên máy, đọc chính sách quyền riêng tư đầy đủ (cũng có ở `docs/CHINH-SACH-RIENG-TU.md`).
+- Tệp `NOTICE` liệt kê thành phần bên thứ ba và nguồn gốc dữ liệu. `docs/PHAP-LY.md`: phân loại G1/G4, các bước xin phép, các hướng xử lý việc chuyển dữ liệu ra máy chủ nước ngoài.
+
+### Bảo mật
+- **Chính sách nội dung (CSP):** trang chỉ chạy đúng mã của app (theo mã băm, tính khi dựng), không dùng `eval`, chỉ kết nối tới điểm hẹn của app. Mã có lọt vào trang cũng không chạy được.
+  - Lõi luật cờ nạp bằng thẻ script thường thay cho `eval`; engine tự viết không còn dùng `new Function`.
+  - Thêm tiêu đề chống nhúng trang vào khung, chống đoán kiểu tệp, không gửi Referer, tắt camera/micro/vị trí. Trên GitHub Pages, service worker tự thêm các tiêu đề này.
+- **Khôi phục từ tệp sao lưu:** chỉ nhận các mục app dùng, từ chối tệp quá lớn, dữ liệu sai dạng hoặc có ký tự dùng để chèn mã. Sự đồng ý chơi qua mạng không lấy từ tệp.
+- **Máy chủ:** giới hạn 120 lần mở kết nối mỗi phút cho một địa chỉ IP. Tắt nhật ký từng lượt truy cập (có IP và thẻ phiên), chỉ ghi lỗi.
+- **Chuỗi cung ứng:** bộ kiểm tra so mã băm SHA-256 của engine (`engine/SHA256SUMS`); Dependabot cho npm và GitHub Actions; `npm audit` trong CI; GitHub Actions ghim theo mã commit.
+
+### Sửa
+- Lời nhắc ở mục Phân tích ván và "Lỗi của bạn" còn nhắc "tab Đấu máy" và "từ 4 nước".
+- Trang Giới thiệu ghi "không thu thập dữ liệu", chưa đúng khi chơi qua mạng; nay nói rõ và trỏ tới mục Quyền riêng tư.
+
 ## [1.6.0] – 2026-11-25
 
 ### Thêm

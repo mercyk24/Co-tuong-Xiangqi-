@@ -1,0 +1,14 @@
+# Tự kiểm tra bản cập nhật bảo mật cho thư viện npm và các GitHub Actions trong CI, mỗi tuần một lần.
+# Dependabot mở pull request; CI chạy đủ bộ kiểm tra trên pull request đó trước khi gộp.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

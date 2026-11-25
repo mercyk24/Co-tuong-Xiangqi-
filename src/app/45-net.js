@@ -99,6 +99,18 @@
     close() { this.onClose = null; if (this.ch) this.ch.close(); this.ch = null; }
   }
 
+  // Sự đồng ý trước khi chơi qua mạng (Luật Bảo vệ dữ liệu cá nhân 2025, Nghị định 356/2025): chơi qua mạng làm lộ địa chỉ IP
+  // cho đối thủ và cho các máy chủ trung gian (có thể ở nước ngoài). Hỏi một lần, không đánh dấu sẵn, lưu thời điểm và phiên bản
+  // nội dung đã đồng ý để kiểm chứng được. Đổi nội dung xin đồng ý / chính sách thì tăng VERSION để hỏi lại.
+  // Rút lại ở mục Giới thiệu › Quyền riêng tư.
+  const Consent = {
+    VERSION: '2026-11-25',
+    get() { const c = Store.get('consent_net', null); return c && c.v === this.VERSION ? c : null; },
+    ok() { return !!this.get(); },
+    give() { Store.set('consent_net', { v: this.VERSION, t: Date.now() }); },
+    revoke() { try { localStorage.removeItem('xq_consent_net'); } catch (e) { /* bỏ qua */ } }
+  };
+
   const Net = {
     state: 'idle',  // idle | opening | waiting | joining | playing | lost | ended | error | watching (người xem)
     role: '', code: '', myId: '', peerId: '', mySide: 0, clockSet: '0', sideChoice: 'r',
@@ -109,6 +121,7 @@
     // Người xem: role 'watch', state 'watching'. watchers: số người đang xem phòng (chủ phòng và khách đều biết).
     // allowWatch: chủ phòng cho xem hay không. canWatch: vừa bị báo phòng đầy và điểm hẹn có hỗ trợ xem.
     watchers: 0, allowWatch: Store.get('net_watch', true), canWatch: false, lastCast: '', hostSide: 0, gotSnap: false,
+    pendingJoin: '',  // mã phòng (từ link mời) chờ người dùng đồng ý rồi mới vào
     waitAsk: '',    // lời xin đang chờ đối thủ trả lời: 'draw' | 'undo' | 'rematch'
     msgText: '', log: [],
     // Nhật ký kết nối ngắn (100 dòng gần nhất) để dò lỗi
@@ -132,6 +145,7 @@
         moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
     },
     resumeSaved() {
+      if (!Consent.ok()) { Store.set('net_sess', null); return false; }
       const s = Store.get('net_sess', null);
       if (!s || Date.now() - s.t > 2 * 3600 * 1000 || s.over || !s.started) { Store.set('net_sess', null); return false; }
       Object.assign(this, { role: s.role, code: s.code, myId: s.myId, peerId: s.peerId, mySide: s.mySide, clockSet: s.clockSet, si: s.si || 0, token: s.token || this.newToken() });
@@ -144,6 +158,7 @@
 
     // ---- Tạo phòng / vào phòng / rời phòng
     async create(sideChoice, clockSet) {
+      if (!Consent.ok()) { Play.draw(); return; }
       this.reset();
       this.role = 'host'; this.sideChoice = sideChoice; this.clockSet = clockSet; this.allowWatch = Store.get('net_watch', true);
       this.mySide = sideChoice === 'r' ? (Math.random() < 0.5 ? 0 : 1) : +sideChoice;
@@ -167,6 +182,7 @@
     async join(code) {
       code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (code.length !== 6) { toast('Mã phòng gồm 6 ký tự.', 'warn'); return; }
+      if (!Consent.ok()) { this.pendingJoin = code; Play.draw(); return; }
       this.reset();
       this.role = 'guest'; this.code = code; this.peerId = NET_PREFIX + code.toLowerCase();
       this.myId = NET_PREFIX + 'g' + Math.random().toString(36).slice(2, 12);
@@ -206,6 +222,7 @@
     // ---- Xem trận đấu (không đi quân)
     async watch(code) {
       code = String(code || this.code || '').toUpperCase();
+      if (!Consent.ok()) { Play.draw(); return; }
       const si = this.si;
       this.reset();
       this.role = 'watch'; this.code = code; this.si = si; this.mySide = 0; this.peerId = NET_PREFIX + code.toLowerCase();

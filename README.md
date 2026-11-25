@@ -60,7 +60,7 @@ src/
   index.template.html   Khung HTML + CSS; các chỗ /*__...__*/ được thay bằng mã và dữ liệu khi dựng
   assets/               Icon, manifest, service worker (lưu ngoại tuyến + thêm tiêu đề COOP/COEP cho engine)
 data/                   Bài tập, khai cuộc, sách khai cuộc (JSON) và dữ liệu thô sinh từ Pikafish
-engine/                 Fairy-Stockfish WebAssembly và mạng NNUE (xem engine/README.md)
+engine/                 Fairy-Stockfish WebAssembly và mạng NNUE (xem engine/README.md; mã băm trong engine/SHA256SUMS)
 tools/                  Công cụ sinh dữ liệu bằng Pikafish (docs/data.md); thử điểm hẹn (check-signal.js, load-signal.mjs)
 server/                 Điểm hẹn riêng cho chơi qua mạng: core.mjs (lõi), worker.mjs (Cloudflare), dev-server.mjs (Node)
 scripts/                build.js, serve.js, screenshots.js
@@ -87,6 +87,14 @@ Mỗi lần đẩy lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yml
 
 Đã thử tải 5000 và 10 000 người cùng lúc. Cách đưa lên Cloudflare, số đo và chi phí: `docs/MO-RONG.md`. Giới hạn còn lại: `docs/RA-SOAT.md`.
 
+Trước lần chơi qua mạng đầu tiên, app xin người dùng đồng ý gửi thông tin kết nối (địa chỉ IP…) ra ngoài máy.
+
+## Quyền riêng tư và pháp lý
+
+- Chính sách quyền riêng tư: trong app (Giới thiệu › Quyền riêng tư) và `docs/CHINH-SACH-RIENG-TU.md`.
+- Lộ trình trước khi thương mại hoá (giấy phép trò chơi, dữ liệu cá nhân, chuyển dữ liệu ra nước ngoài): `docs/PHAP-LY.md`.
+- Trang dùng chính sách nội dung (CSP) chặt, tính tự động khi dựng (`scripts/build.js`). Thêm mã nhúng hay địa chỉ kết nối mới thì sửa ở đó.
+
 ## Giấy phép và ghi công
 
 Mã nguồn phát hành theo **GNU GPL phiên bản 3 hoặc mới hơn** (xem `LICENSE`), vì app phân phối kèm engine Fairy-Stockfish theo GPL-3.0.
@@ -94,3 +102,4 @@ Mã nguồn phát hành theo **GNU GPL phiên bản 3 hoặc mới hơn** (xem `
 - [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish) và bản WebAssembly [fairy-stockfish-nnue.wasm](https://github.com/fairy-stockfish/fairy-stockfish.wasm) – GPL-3.0. Mạng NNUE cờ tướng lấy từ [danh sách mạng NNUE của Fairy-Stockfish](https://fairy-stockfish.github.io/nnue/). Chi tiết và chỉnh sửa: `engine/README.md`.
 - [Pikafish](https://github.com/official-pikafish/Pikafish) – GPL-3.0. Chỉ dùng trên máy tính để sinh dữ liệu bài tập và khai cuộc; không phân phối kèm app.
 - Chuỗi nước của nhóm khai cuộc Bình phong mã lấy từ lý thuyết khai cuộc công khai; phần giải thích tiếng Việt do dự án viết.
+- Danh sách đầy đủ thành phần bên thứ ba: `NOTICE`.

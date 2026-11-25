@@ -25,6 +25,7 @@ async function device(context, errors, opt) {
   p.on('pageerror', e => errors.push(e.message));
   await p.addInitScript(o => {
     try { localStorage.removeItem('xq_net_sess'); } catch (e) { /* bỏ qua */ }
+    localStorage.setItem('xq_consent_net', '{"v":"2026-11-25","t":1}'); 
     window.__XQ_SIGNAL__ = o.servers; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000;
     if (o.noP2P) { window.__XQ_NO_P2P__ = true; window.__XQ_P2P_MS__ = 1500; }
   }, opt);

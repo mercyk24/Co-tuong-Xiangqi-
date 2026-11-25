@@ -1,12 +1,21 @@
-// Service worker: lưu app để dùng ngoại tuyến, đồng thời thêm hai tiêu đề COOP/COEP để trình duyệt cho phép engine mạnh (SharedArrayBuffer).
+// Service worker: lưu app để dùng ngoại tuyến, đồng thời thêm hai tiêu đề COOP/COEP để trình duyệt cho phép engine mạnh (SharedArrayBuffer)
+// và các tiêu đề bảo mật (CSP, chống nhúng trang vào khung).
 const CACHE = '__CACHE__'; // build tự điền: phiên bản + mã băm nội dung, nên mỗi bản mới tự xoá cache cũ
 const ENGINE = 'xq-engine-v2'; // file engine nặng (13 MB) được giữ riêng, không bị xoá khi cập nhật app
+const CSP = '__CSP__'; // build tự điền, giống thẻ meta trong index.html, thêm frame-ancestors (thẻ meta không làm được)
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 function coi(res) {
   if (!res || res.status === 0 || res.type === 'opaque') return res;
   const h = new Headers(res.headers);
   h.set('Cross-Origin-Embedder-Policy', 'require-corp');
   h.set('Cross-Origin-Opener-Policy', 'same-origin');
+  // GitHub Pages không cho đặt tiêu đề: service worker thêm các tiêu đề bảo mật thay cho máy chủ
+  h.set('X-Content-Type-Options', 'nosniff');
+  h.set('Referrer-Policy', 'no-referrer');
+  if ((h.get('Content-Type') || '').indexOf('text/html') === 0) {
+    h.set('Content-Security-Policy', CSP + "; frame-ancestors 'none'");
+    h.set('X-Frame-Options', 'DENY');
+  }
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
 }
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });

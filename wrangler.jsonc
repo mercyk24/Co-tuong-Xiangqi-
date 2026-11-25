@@ -17,7 +17,9 @@
     // Chỉ cho trang của app dùng điểm hẹn (cách nhau bởi dấu phẩy). Để trống = cho mọi nơi.
     "ALLOWED_ORIGINS": "https://mercyk24.github.io,https://co-tuong.cotuong-mercy.workers.dev,http://localhost:4173"
   },
-  // Nhật ký: mỗi tin WebSocket là một "sự kiện"; gói miễn phí lưu 200 000 sự kiện/ngày (vượt thì chỉ ngừng lưu nhật ký,
-  // máy chủ vẫn chạy). Chỉ lưu 5% để đủ dùng khi đông người mà vẫn xem được lỗi.
-  "observability": { "enabled": true, "head_sampling_rate": 0.05 }
+  // Giới hạn mở kết nối theo địa chỉ IP: 120 lần mỗi phút (xem server/worker.mjs). Có trong gói miễn phí.
+  "ratelimits": [{ "name": "CONN_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
+  // Nhật ký: chỉ ghi lỗi, không ghi từng lượt truy cập (nhật ký lượt truy cập chứa địa chỉ IP, địa chỉ kết nối kèm mã phòng
+  // và thẻ phiên). Thu thập ít nhất có thể theo Luật Bảo vệ dữ liệu cá nhân. Số lượt truy cập vẫn xem được ở mục Metrics.
+  "observability": { "enabled": true, "head_sampling_rate": 1, "logs": { "invocation_logs": false } }
 }

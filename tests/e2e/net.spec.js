@@ -42,7 +42,7 @@ async function room(context, errors, { side = '0', clock = '0' } = {}) {
 }
 
 test.beforeEach(async ({ context }) => {
-  await context.addInitScript(() => { window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000; });
+  await context.addInitScript(() => { localStorage.setItem('xq_consent_net', '{"v":"2026-11-25","t":1}'); window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000; });
 });
 
 test('qua mạng: tạo phòng, vào bằng mã, hai bên đi quân đồng bộ, đồng hồ khớp, bàn xoay theo bên mình', async ({ context }) => {
@@ -177,7 +177,7 @@ test('qua mạng: hai máy khác phiên bản giao thức thì báo cập nhật
 
 test('qua mạng: máy mới mở link mời lần đầu (app tự tải lại một lần) vẫn giữ mã phòng và vào phòng', async ({ browser }) => {
   const ctx = await browser.newContext();
-  await ctx.addInitScript(() => { window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000; });
+  await ctx.addInitScript(() => { localStorage.setItem('xq_consent_net', '{"v":"2026-11-25","t":1}'); window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000; });
   const p = await ctx.newPage();
   await p.goto('index.html#phong=K7P2QD');
   await p.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Net.code === 'K7P2QD', null, { timeout: 30_000 });

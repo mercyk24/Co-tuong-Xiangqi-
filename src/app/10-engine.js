@@ -1,27 +1,28 @@
   // 10-engine.js — Engine tự viết (cấp 1–5) chạy trong Web Worker, có dự phòng chạy trên luồng chính; bảng cấp độ LEVELS.
   // ---------- Engine (Web Worker + dự phòng) ----------
-  const HANDLER_SRC = `
-function xqHandle(S, d) {
-  function build() { const p = XQ.Pos.fromFen(d.fen); for (const m of d.moves) p.make(m); return p; }
-  if (d.type === 'search') { const p = build(); const o = d.opts; const r = (o.vary && d.moves.length < (o.varyPlies || 12)) ? S.searchVaried(p, o, o.vary) : S.search(p, o); return { move: r.move, score: r.score, depth: r.depth }; }
-  if (d.type === 'analyze') {
-    const p = build();
-    const r1 = S.search(p, { maxDepth: d.depth, timeMs: d.timeMs });
-    const bestNot = r1.move ? p.notation(r1.move) : '';
-    p.make(d.move);
-    let s2;
-    if (p.legalMoves().length === 0) s2 = XQ.MATE;
-    else { const r2 = S.search(p, { maxDepth: Math.max(1, d.depth - 1), timeMs: d.timeMs }); s2 = -r2.score; }
-    return { best: r1.move, bestNot: bestNot, s1: r1.score, s2: s2 };
+  // Hàm xử lý yêu cầu: chạy trong Web Worker (mã được ghép thành chuỗi từ chính hàm này) hoặc trên luồng chính khi không có Worker.
+  // Không dùng eval / new Function để trang chạy được với chính sách nội dung (CSP) chặt.
+  function xqHandle(S, d) {
+    function build() { const p = XQ.Pos.fromFen(d.fen); for (const m of d.moves) p.make(m); return p; }
+    if (d.type === 'search') { const p = build(); const o = d.opts; const r = (o.vary && d.moves.length < (o.varyPlies || 12)) ? S.searchVaried(p, o, o.vary) : S.search(p, o); return { move: r.move, score: r.score, depth: r.depth }; }
+    if (d.type === 'analyze') {
+      const p = build();
+      const r1 = S.search(p, { maxDepth: d.depth, timeMs: d.timeMs });
+      const bestNot = r1.move ? p.notation(r1.move) : '';
+      p.make(d.move);
+      let s2;
+      if (p.legalMoves().length === 0) s2 = XQ.MATE;
+      else { const r2 = S.search(p, { maxDepth: Math.max(1, d.depth - 1), timeMs: d.timeMs }); s2 = -r2.score; }
+      return { best: r1.move, bestNot: bestNot, s1: r1.score, s2: s2 };
+    }
+    return {};
   }
-  return {};
-}`;
   const Engine = {
     worker: null, pending: new Map(), seq: 0, fb: null, ready: false,
     init() {
       const src = document.getElementById('core-src').textContent;
       try {
-        const glue = src + '\n' + HANDLER_SRC + `
+        const glue = src + '\n' + xqHandle.toString() + `
 const S = new XQ.Searcher();
 onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (err) { res = { error: String(err) }; } res.id = e.data.id; postMessage(res); };`;
         const url = URL.createObjectURL(new Blob([glue], { type: 'text/javascript' }));
@@ -43,7 +44,7 @@ onmessage = function (e) { let res; try { res = xqHandle(S, e.data); } catch (er
     },
     _fallback(d) {
       return new Promise(resolve => setTimeout(() => {
-        if (!this.fb) { this.fb = { S: new XQ.Searcher(), h: new Function('XQ', HANDLER_SRC + '; return xqHandle;')(XQ) }; }
+        if (!this.fb) { this.fb = { S: new XQ.Searcher(), h: xqHandle }; }
         let res; try { res = this.fb.h(this.fb.S, d); } catch (e) { res = { error: String(e) }; }
         res.id = d.id; resolve(res);
       }, 30));

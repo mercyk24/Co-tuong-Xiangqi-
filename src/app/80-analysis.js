@@ -44,8 +44,8 @@
       const G = this.games;
       $('#ana-list').innerHTML = G.length ? G.map(g => {
         const n = g.moves.length, st = g.ana ? ' · đã phân tích' : '';
-        return '<button class="pz" data-id="' + g.id + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : (g.net ? ' · qua mạng' : '') + ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp || g.net ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
-      }).join('') : '<p class="muted">Chưa có ván nào. Chơi một ván ở tab Đấu máy (từ 4 nước trở lên) rồi quay lại đây.</p>';
+        return '<button class="pz" data-id="' + esc(g.id) + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : (g.net ? ' · qua mạng' : '') + ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp || g.net ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
+      }).join('') : '<p class="muted">Chưa có ván nào. Chơi một ván từ Trang chủ (mỗi bên từ 5 nước trở lên) rồi quay lại đây.</p>';
       $$('#ana-list .pz').forEach(b => b.onclick = () => this.open(b.dataset.id));
     },
     open(id) {
