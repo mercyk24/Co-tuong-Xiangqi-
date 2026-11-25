@@ -2,10 +2,12 @@
   //   'home'  : trang chủ (chọn Đấu với máy / Hai người một máy / Chơi qua mạng; tiếp tục ván đang dở; lối tắt luyện tập)
   //   'setup' : chọn bên, cấp độ, thời gian, tạo/vào phòng… (không có bàn cờ)
   //   'game'  : chỉ bàn cờ và thanh của hai bên; mọi việc khác nằm trong menu ☰
-  // Hai người ngồi đối mặt (Đỏ dưới, Đen trên), mỗi người một menu ở phía mình; sách khai cuộc của máy; lưu ván để phân tích.
-  // ---------- Đấu máy ----------
+  // Hai người ngồi đối mặt (Đỏ dưới, Đen trên), mỗi người một menu ở phía mình; lưu ván để phân tích.
+  // Tệp này giữ phần chung của mọi chế độ: trạng thái ván, nước đi, đồng hồ, lời xin (hòa, đi lại, chịu thua), luật kết thúc,
+  // vẽ bàn cờ. Phần riêng: 41-play-ai.js (đấu với máy), 42-play-net.js (giao diện chơi qua mạng; kết nối ở 45-net.js).
   const MIN_PLIES = 10; // ván phải có ít nhất 5 nước mỗi bên mới được lưu và phân tích
   const SIDE = ['Đỏ', 'Đen'];
+  const PERPETUAL_MAX = 4;  // số nước chiếu (đuổi) liên tiếp tối đa được làm thế cờ lặp lại; nước thứ 5 bị chặn
   const Play = {
     ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: XQ.START_FEN,
     user: Store.get('play_user', 1), level: Store.get('play_level', 3), warn: Store.get('play_warn', false),
@@ -51,39 +53,10 @@
       $('#home-resume-go').onclick = () => this.resume();
       $('#home-resume-drop').onclick = () => this.dropGame();
       $('#play-back').onclick = () => this.goHome();
-      // Màn chuẩn bị ván với máy
-      $$('#ai-side .chip').forEach(b => b.onclick = () => { this.aiSide = b.dataset.v; Store.set('ai_side', this.aiSide); this.drawAiSetup(); });
-      $('#ai-levels').innerHTML = Object.keys(LEVELS).map(k => {
-        const nm = LEVELS[k].name.split(' – ')[1], i = nm.indexOf(' (');
-        return '<button class="lvl" data-v="' + k + '"><b>' + k + ' · ' + (i > 0 ? nm.slice(0, i) : nm) + '</b>' + (i > 0 ? '<small>' + nm.slice(i + 2, -1) + '</small>' : '') + '</button>';
-      }).join('');
-      $$('#ai-levels .lvl').forEach(b => b.onclick = () => { this.level = +b.dataset.v; Store.set('play_level', this.level); $('#play-level').value = String(this.level); this.drawAiSetup(); });
-      $('#ai-start').onclick = () => this.startAi();
+      this.initAi();
+      this.initNet();
       $('#play-ask-yes').onclick = () => { const a = this.ask; this.ask = null; if (a) a.yes(); this.draw(); };
       $('#play-ask-no').onclick = () => { const a = this.ask; this.ask = null; if (a && a.no) a.no(); this.draw(); };
-      // Chơi qua mạng: lần đầu phải đồng ý cho gửi thông tin kết nối ra ngoài máy
-      $('#net-consent-yes').onclick = () => {
-        Consent.give(); const code = Net.pendingJoin; Net.pendingJoin = '';
-        if (code) { $('#net-code').value = code; Net.join(code); } else this.draw();
-      };
-      $('#net-consent-no').onclick = () => { Net.pendingJoin = ''; this.goHome(); };
-      $('#net-consent-policy').onclick = () => { showTab('about'); const el = $('#privacy'); if (el) el.scrollIntoView(); };
-      $('#net-go-create').onclick = () => { this.netView = 'create'; Net.err = ''; this.draw(); };
-      $('#net-create-back').onclick = () => { this.netView = 'home'; this.draw(); };
-      $('#net-side').value = Store.get('net_side', 'r');
-      $('#net-side').onchange = e => Store.set('net_side', e.target.value);
-      $('#net-times').innerHTML = Object.keys(this.CLOCKS).map(k => '<button class="btn" data-k="' + k + '">' + this.CLOCKS[k][0] + (this.CLOCKS[k][1] ? '<small>' + this.CLOCKS[k][1] + '</small>' : '') + '</button>').join('');
-      $$('#net-times .btn').forEach(b => b.onclick = () => { Store.set('play_clock', b.dataset.k); this.netView = 'home'; Net.create($('#net-side').value, b.dataset.k); });
-      $('#net-join').onclick = () => Net.join($('#net-code').value);
-      $('#net-code').onkeydown = e => { if (e.key === 'Enter') Net.join($('#net-code').value); };
-      $('#net-wait-cancel').onclick = () => { Net.leave(true); this.draw(); };
-      $('#net-banner-leave').onclick = () => this.netLeave();
-      $('#net-watch-yes').onclick = () => Net.watch();
-      $('#net-watch-no').onclick = () => { Net.canWatch = false; Net.err = ''; Net.state = 'idle'; this.draw(); };
-      $('#net-allow-watch').checked = Store.get('net_watch', true);
-      $('#net-allow-watch').onchange = e => Store.set('net_watch', e.target.checked);
-      $('#net-share').onclick = () => this.netShare();
-      $('#net-copy').onclick = () => this.netCopy(Net.code);
       $$('#play-mode .btn').forEach(b => b.onclick = () => this.setMode(b.dataset.m));
       // Thanh điều khiển của từng người (trên/dưới bàn cờ)
       for (const pos of ['top', 'bot']) $('#pbar-' + pos + ' [data-act="menu"]').onclick = () => this.openMenu(pos);
@@ -97,12 +70,6 @@
       // Menu ☰
       $('#pm-close').onclick = () => this.closeMenu();
       $('#pm-back').onclick = e => { if (e.target === $('#pm-back')) this.closeMenu(); };
-      const lv = $('#play-level'), wr = $('#play-warn'), pw = $('#pm-warn'), aw = $('#ai-warn'), op = $('#play-open');
-      op.value = Store.get('play_open', ''); op.onchange = () => { Store.set('play_open', op.value); };
-      lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
-      lv.value = String(this.level); wr.checked = pw.checked = aw.checked = !!this.warn;
-      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); this.drawBars(); };
-      wr.onchange = pw.onchange = aw.onchange = e => { this.warn = e.target.checked; wr.checked = pw.checked = aw.checked = this.warn; Store.set('play_warn', this.warn); };
       // Màn chọn thời gian cho ván hai người
       $('#pvp-times').innerHTML = Object.keys(this.CLOCKS).map(k => '<button class="btn" data-k="' + k + '">' + this.CLOCKS[k][0] + (this.CLOCKS[k][1] ? '<small>' + this.CLOCKS[k][1] + '</small>' : '') + '</button>').join('');
       $$('#pvp-times .btn').forEach(b => b.onclick = () => this.startPvp(b.dataset.k));
@@ -139,20 +106,6 @@
         return;
       }
       this.setMode(m);
-    },
-    // Đấu với máy: màn chuẩn bị (bên cầm, cấp độ, nước mở đầu của máy)
-    showAiSetup() { this.screen = 'setup'; this.ask = null; this.closeMenu(); this.draw(); },
-    startAi() {
-      const v = this.aiSide;
-      this.user = v === 'r' ? (Math.random() < 0.5 ? 0 : 1) : +v; Store.set('play_user', this.user);
-      this.started = true; this.screen = 'game';
-      this.newGame();
-      if (v === 'r') toast('Bạn cầm quân ' + SIDE[this.user] + (this.user === 0 ? ', đi trước.' : '.'));
-    },
-    drawAiSetup() {
-      $$('#ai-side .chip').forEach(b => b.classList.toggle('on', b.dataset.v === this.aiSide));
-      $$('#ai-levels .lvl').forEach(b => b.classList.toggle('on', +b.dataset.v === this.level));
-      $('#ai-open-row').hidden = this.aiSide === '0';
     },
     drawHome() {
       const has = this.hasGame(), r = $('#home-resume');
@@ -211,92 +164,6 @@
       else if (m === 'net') { this.netView = 'home'; Net.err = ''; this.closeMenu(); this.draw(); }
       else this.showAiSetup();
       window.scrollTo(0, 0);
-    },
-    // ---- Chơi qua mạng: các hàm Net gọi vào
-    netSide() { return Net.mySide; },
-    netStart(mySide, clockSet) {
-      this.saveGame(); this.rec = null;
-      this.setup = false; this.started = true; this.closeMenu();
-      this.gen++;
-      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
-      this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false; this.ask = null;
-      this.clock = null;
-      if (clockSet && clockSet !== '0') { const [mn, inc] = clockSet.split('+').map(Number); this.clock = { left: [mn * 60000, mn * 60000], inc: inc * 1000, at: Date.now() }; }
-      this.applyOrient(); this.draw();
-    },
-    // Dựng lại ván từ danh sách nước (khi nối lại hoặc mở lại app)
-    netLoad(list, left, over, running) {
-      this.setup = false; this.started = true; this.gen++;
-      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
-      this.moves = []; this.notes = []; this.ask = null; this.hint = null; this.thinking = false;
-      for (const u of list || []) {
-        const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u); if (m === undefined) break;
-        this.notes.push(this.ctx.pos.notation(m)); this.ctx.pos.make(m); this.moves.push(m);
-      }
-      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null;
-      if (Net.clockSet && Net.clockSet !== '0') {
-        const [mn, inc] = Net.clockSet.split('+').map(Number);
-        this.clock = { left: left ? left.slice() : [mn * 60000, mn * 60000], inc: inc * 1000, at: running && !over ? Date.now() : 0 };
-      } else this.clock = null;
-      this.over = over || null;
-      this.applyOrient(); this.draw();
-    },
-    // Nước của đối thủ tới qua mạng. n là số thứ tự nước (0 = nước đầu).
-    netApplyMove(n, u, left) {
-      if (n < this.moves.length) return 'dup';
-      if (n > this.moves.length || this.over) return 'gap';
-      const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u);
-      if (m === undefined || this.ctx.pos.side === Net.mySide) return 'gap';
-      const mover = this.ctx.pos.side, before = this.clock ? this.clock.left.slice() : null;
-      this.doMove(m, false);
-      if (this.clock && left && left.length === 2) {
-        // Lấy giờ đối thủ báo về (chính xác hơn khi mạng trễ), nhưng không cho vượt quá giờ máy mình tự tính,
-        // và giữ nguyên giờ của mình theo máy mình.
-        const c = this.clock, mine = mover ^ 1;
-        c.left[mover] = Math.min(+left[mover] || 0, c.left[mover] + 1500);
-        c.left[mine] = before ? before[mine] : c.left[mine];
-        c.at = this.over ? 0 : Date.now();
-      }
-      if (Net.waitAsk === 'undo') Net.waitAsk = '';
-      this.draw();
-      return 'ok';
-    },
-    netAsk(k) {
-      const me = Net.mySide, op = me ^ 1;
-      if (k === 'draw') this.setAsk(me, 'Đối thủ xin hòa. Bạn có đồng ý không?', 'Đồng ý hòa', 'Không', () => { Net.answer(k, true); this.over = 'Hòa – hai bên đồng ý.'; this.finish(); Net.save(); }, () => Net.answer(k, false));
-      else if (k === 'undo') this.setAsk(me, 'Đối thủ xin đi lại nước vừa rồi. Bạn có đồng ý không?', 'Cho đi lại', 'Không', () => { Net.answer(k, true); this.undoFor(op); Net.save(); }, () => Net.answer(k, false));
-      else if (k === 'rematch') this.setAsk(me, 'Đối thủ muốn đấu lại (đổi màu quân). Bạn có đồng ý không?', 'Đấu lại', 'Không', () => { Net.answer(k, true); if (Net.role === 'host') Net.rematch(); }, () => Net.answer(k, false));
-    },
-    netAnswer(k, y) {
-      const name = { draw: 'xin hòa', undo: 'xin đi lại', rematch: 'đấu lại' }[k] || '';
-      if (!y) { toast('Đối thủ không đồng ý ' + name + '.'); this.draw(); return; }
-      if (k === 'draw') { this.over = 'Hòa – hai bên đồng ý.'; this.finish(); }
-      else if (k === 'undo') this.undoFor(Net.mySide);
-      else if (k === 'rematch' && Net.role === 'host') Net.rematch();
-      this.draw();
-    },
-    netOver(text) { if (this.over) return; this.over = text; if (this.clock) this.clock.at = 0; this.finish(); },
-    netRematch() {
-      if (!Net.connected()) { toast('Đối thủ đã rời phòng hoặc mất kết nối.', 'warn'); return; }
-      Net.ask('rematch'); toast('Đã gửi lời mời đấu lại, chờ đối thủ…');
-    },
-    // Người xem: bàn cờ chỉ để xem, Đỏ ở dưới, chờ thế cờ từ chủ phòng
-    watchStart() {
-      this.saveGame(); this.rec = null; this.started = true; this.screen = 'game'; this.closeMenu();
-      this.gen++; this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
-      this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false; this.ask = null; this.clock = null;
-      this.applyOrient(); this.draw();
-    },
-    netLeave() { Net.leave(); this.started = false; this.screen = 'home'; this.netView = 'home'; this.newGame(); },
-    netShare() {
-      const url = Net.joinLink(), text = 'Vào chơi cờ tướng với mình nhé! Mã phòng: ' + Net.code;
-      if (navigator.share) navigator.share({ title: 'Cờ Tướng Luyện Tập', text, url }).catch(() => { /* người dùng huỷ */ });
-      else this.netCopy(url);
-    },
-    netCopy(s) {
-      const ok = () => toast('Đã sao chép: ' + s, 'ok');
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).then(ok, () => toast(s));
-      else toast(s);
     },
     // Hai người luôn ngồi đối mặt: Đỏ ở dưới, quân Đen quay về phía người cầm Đen.
     applyOrient() {
@@ -385,8 +252,29 @@
       trySelect(this.ctx, sq, side, m => this.doMove(m, true));
       this.draw();
     },
+    // Thế cờ lặp lại ba lần: hòa nếu không bên nào chiếu dai, đuổi dai. Có bên đang chiếu (đuổi) dai thì ván tiếp tục:
+    // bên đó sẽ bị chặn ở nước chiếu (đuổi) lặp lại vượt PERPETUAL_MAX và phải đổi nước (xem Pos.repetitionVerdict).
+    repeatDraw() {
+      const v = this.ctx.pos.repetitionVerdict();
+      return !v || v.result === 'draw';
+    },
+    // Nước bị chặn vì chiếu dai / đuổi dai ('check' | 'chase' | ''). Nếu mọi nước đều bị chặn thì cho đi (tránh kẹt ván).
+    blockedKind(m) {
+      const pos = this.ctx.pos, k = pos.perpetualBlocked(m, PERPETUAL_MAX);
+      if (!k) return '';
+      return pos.legalMoves().some(x => x !== m && !pos.perpetualBlocked(x, PERPETUAL_MAX)) ? k : '';
+    },
     doMove(m, byUser) {
       const pos = this.ctx.pos;
+      if (byUser) {
+        const k = this.blockedKind(m);
+        if (k) {
+          const who = this.pvp() ? 'Bên ' + SIDE[pos.side] : 'Bạn';
+          toast(who + ' không được ' + (k === 'check' ? 'chiếu dai' : 'đuổi dai') + ': đã ' + (k === 'check' ? 'chiếu' : 'đuổi') + ' liên tục ' + PERPETUAL_MAX + ' nước làm thế cờ lặp lại. Hãy đi nước khác.', 'warn');
+          this.ctx.sel = -1; this.ctx.targets = []; this.draw();
+          return;
+        }
+      }
       const before = { fen: this.startFen, moves: this.moves.slice() };
       const mover = pos.side;
       this.notes.push(pos.notation(m)); pos.make(m); this.moves.push(m);
@@ -409,9 +297,20 @@
       if (pos.legalMoves().length === 0) {
         const winner = pos.side ^ 1;
         this.over = SIDE[winner] + ' thắng' + (pos.inCheck() ? ' – chiếu bí.' : ' – đối phương hết nước đi.');
-      } else if (pos.repCount() >= 3) this.over = 'Hòa do lặp lại thế cờ ba lần.';
+      } else if (pos.repCount() >= 3 && this.repeatDraw()) this.over = 'Hòa do lặp lại thế cờ ba lần.';
       else if (this.moves.length >= 300) this.over = 'Hòa (quá dài).';
+      else if (pos.repCount() >= 2) this.warnPerpetual();
       if (this.over) this.finish();
+    },
+    // Người chơi vừa đi nước chiếu (đuổi) thứ PERPETUAL_MAX liên tiếp làm thế cờ lặp lại: nhắc rằng nước như vậy tiếp theo sẽ bị chặn.
+    warnPerpetual() {
+      const pos = this.ctx.pos, mover = pos.side ^ 1;
+      const human = this.pvp() || (this.net() ? !this.watching() && mover === Net.mySide : mover === this.user);
+      if (!human) return;
+      const info = pos.perpetualInfo(mover, PERPETUAL_MAX);
+      if (!info || info.streak !== PERPETUAL_MAX) return;
+      const w = info.kind === 'check' ? 'chiếu' : 'đuổi';
+      toast((this.pvp() ? 'Bên ' + SIDE[mover] + ' đã ' : 'Bạn đã ') + w + ' liên tục ' + PERPETUAL_MAX + ' nước làm thế cờ lặp lại. Nước ' + w + ' lặp lại tiếp theo sẽ không được đi.', 'warn');
     },
     // Lưu ván vào bộ nhớ máy (tối đa 20 ván gần nhất) để phân tích sau.
     saveGame() {
@@ -427,64 +326,6 @@
       if (g.ana && g.ana.n !== g.moves.length) g.ana = null;
       Store.set('games', Ana.games);
       return g;
-    },
-    // Sách khai cuộc ngắn cho máy: chọn ngẫu nhiên trong các nước mở đầu hợp lý để mỗi ván một khác.
-    RED_BOOK: ['炮二平五', '炮二平五', '炮二平五', '炮八平五', '兵七進一', '兵七進一', '兵三進一', '相三進五', '相七進五', '傌二進三', '炮二平六'],
-    BLACK_BOOK: {
-      '炮二平五': ['馬8進7', '馬8進7', '馬8進7', '炮8平5', '馬2進3'],
-      '炮八平五': ['馬8進7', '馬8進7', '炮8平5', '馬2進3'],
-      '兵七進一': ['象3進5', '炮8平5', '馬8進7', '馬2進3'],
-      '兵三進一': ['象7進5', '馬2進3', '炮2平5', '炮8平5'],
-      '相三進五': ['炮8平5', '馬8進7', '象3進5'],
-      '相七進五': ['炮8平5', '馬8進7', '象7進5'],
-      '傌二進三': ['馬8進7', '炮8平5', '卒7進1'],
-      '炮二平六': ['馬8進7', '炮8平5', '象3進5']
-    },
-    bookMove() {
-      if (this.level < 3) return 0;
-      const pos = this.ctx.pos, pick = arr => arr[(Math.random() * arr.length) | 0];
-      const key = this.moves.map(m => XQ.mvStr(m)).join(' ');
-      let s = '', u = '';
-      if (this.moves.length === 0 && pos.side === 0 && $('#play-open').value) s = $('#play-open').value;
-      else if (BOOK[key] && BOOK[key].length) u = pick(BOOK[key]);
-      else if (this.moves.length === 0 && pos.side === 0) s = pick(this.RED_BOOK);
-      else if (this.moves.length === 1 && pos.side === 1) { const arr = this.BLACK_BOOK[this.notes[0]]; if (arr) s = pick(arr); }
-      if (u) { const m = pos.legalMoves().find(x => XQ.mvStr(x) === u); return m !== undefined ? m : 0; }
-      if (!s) return 0;
-      const m = pos.parse(s); return m > 0 ? m : 0;
-    },
-    engineMove() {
-      if (this.over) return;
-      const bm = this.bookMove();
-      if (bm > 0) { const g0 = this.gen, n0 = this.moves.length; setTimeout(() => { if (g0 === this.gen && !this.over && this.moves.length === n0) this.doMove(bm, false); }, 350); return; }
-      const g = this.gen; this.thinking = true; this.draw();
-      const lv = LEVELS[this.level];
-      if (lv.fsf) {
-        const fallback = msg => { if (msg) toast(msg, 'warn'); Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => { if (g !== this.gen) return; this.thinking = false; if (r.move) this.doMove(r.move, false); else this.draw(); }); };
-        if (!FSF.supported()) { fallback('Trình duyệt chưa bật được engine mạnh (hãy tải lại trang một lần). Tạm dùng cấp 5.'); return; }
-        if (!FSF.sf) toast('Đang tải engine cao thủ (13 MB), lần đầu hơi lâu…');
-        FSF.best(this.startFen, this.moves.map(m => XQ.mvStr(m)), lv.fsf.ms).then(u => {
-          if (g !== this.gen) return;
-          const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u);
-          if (m === undefined) { fallback('Engine mạnh trả nước không hợp lệ, tạm dùng cấp 5.'); return; }
-          this.thinking = false; this.doMove(m, false);
-        }).catch(err => { if (g !== this.gen) return; fallback('Không chạy được engine mạnh (' + (err && err.message || err) + '). Tạm dùng cấp 5.'); });
-        return;
-      }
-      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => {
-        if (g !== this.gen) return;
-        this.thinking = false;
-        if (r.move) this.doMove(r.move, false); else this.draw();
-      });
-    },
-    analyze(before, m) {
-      const g = this.gen;
-      Engine.call({ type: 'analyze', fen: before.fen, moves: before.moves, move: m, depth: 4, timeMs: 700 }).then(r => {
-        if (g !== this.gen || r.error) return;
-        const loss = r.s1 - r.s2;
-        if (r.best !== m && loss > 130) toast('Nước vừa rồi có thể yếu (mất ≈ ' + (loss / 100).toFixed(1) + ' điểm). Gợi ý: ' + r.bestNot, 'warn');
-        else if (r.best === m) toast('Nước tốt.', 'ok');
-      });
     },
     // Đi lại khi đấu với máy: lùi về lượt của người chơi.
     undo() {
@@ -509,16 +350,6 @@
       this.over = null; this.ctx.sel = -1; this.ctx.targets = [];
       const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null; this.hint = null;
       if (this.clock) this.clock.at = this.moves.length ? Date.now() : 0;
-    },
-    showHint() {
-      if (this.thinking || this.over || this.pvp() || this.ctx.pos.side !== this.user) return;
-      const g = this.gen; this.thinking = true; this.draw();
-      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: { maxDepth: 6, timeMs: 1500 } }).then(r => {
-        if (g !== this.gen) return;
-        this.thinking = false;
-        if (r.move) { this.hint = [r.move >> 7, r.move & 127]; const n = this.ctx.pos.notation(r.move); toast('Gợi ý: ' + n); }
-        this.draw();
-      });
     },
     drawBars() {
       const pvp = this.pvp(), net = this.net(), ai = this.mode === 'ai';
@@ -588,38 +419,4 @@
       if (net) Net.castSoon();  // chủ phòng: gửi thế cờ mới cho người xem (nếu có)
       Nav.update();  // đổi bố cục ngay khi trạng thái ván đổi (không chờ vòng kiểm tra định kỳ), tránh bấm trượt
     },
-    // Màn tạo / vào phòng và dải báo mất kết nối
-    drawNet() {
-      const net = this.net(), st = Net.state;
-      const setupShown = net && this.setup;
-      $('#net-setup').hidden = !setupShown;
-      const watch = this.watching(), game = net && this.screen === 'game';
-      const banner = $('#net-banner'); banner.hidden = !(game && (st === 'lost' || watch));
-      banner.classList.toggle('watch', watch);
-      if (!banner.hidden) $('#net-banner-text').textContent = watch ? '👁 Đang xem phòng ' + Net.code + (Net.msgText ? ' · ' + Net.msgText : Net.watchers > 1 ? ' · ' + Net.watchers + ' người xem' : '') : (Net.msgText || 'Mất kết nối, đang nối lại…');
-      $('#net-banner-leave').textContent = watch ? 'Thôi xem' : 'Rời phòng';
-      // Người chơi thấy số người đang xem phòng mình
-      const wn = $('#net-watchn'); wn.hidden = !(game && !watch && Net.watchers > 0);
-      if (!wn.hidden) wn.textContent = '👁 ' + Net.watchers + ' người đang xem';
-      $('#net-watch-ask').hidden = !(net && st === 'error' && Net.canWatch);
-      if (!setupShown) return;
-      const waiting = st === 'opening' || st === 'waiting' || st === 'joining';
-      const ask = !Consent.ok() && !waiting;
-      $('#net-consent').hidden = !ask;
-      $('#net-consent-code').hidden = !(ask && Net.pendingJoin);
-      if (ask && Net.pendingJoin) $('#net-consent-code').textContent = 'Bạn được mời vào phòng ' + Net.pendingJoin + '. Đồng ý thì app vào phòng ngay.';
-      $('#net-home').hidden = ask || waiting || this.netView !== 'home';
-      $('#net-create').hidden = ask || waiting || this.netView !== 'create';
-      $('#net-wait').hidden = !waiting;
-      $('#net-err').hidden = !(st === 'error' && Net.err); $('#net-err').textContent = Net.err || '';
-      $$('#net-times .btn').forEach(b => b.classList.toggle('primary', b.dataset.k === Store.get('play_clock', '0')));
-      if (waiting) {
-        const host = Net.role === 'host';
-        $('#net-wait-title').textContent = host ? 'Mã phòng của bạn – gửi cho đối thủ:' : Net.role === 'watch' ? 'Đang vào xem phòng' : 'Đang vào phòng';
-        $('#net-code-show').textContent = Net.code || '······';
-        $('#net-share-row').hidden = !(host && st === 'waiting');
-        $('#net-status').textContent = Net.msgText;
-        $('#net-wait-cancel').textContent = host ? 'Huỷ phòng' : 'Huỷ';
-      }
-    }
   };

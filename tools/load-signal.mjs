@@ -8,7 +8,12 @@
 //   --ramp    số giây để lần lượt mở hết các cặp (người chơi không vào cùng một mili giây)
 //   --relay   số tin ván cờ mỗi cặp gửi qua máy chủ (giả lập cặp không nối thẳng được); 0 = chỉ thử bắt tay
 //   --hold    giữ mọi kết nối thêm bao nhiêu giây sau khi tất cả đã vào phòng (để đo lúc đông nhất)
-//   --check   trước khi thử tải, kiểm tra đúng giao thức: EXPIRE, ID-TAKEN, nối lại cùng thẻ, phòng đầy, LEAVE, nhịp tim
+//   --check   kiểm tra đúng giao thức: EXPIRE, ID-TAKEN, nối lại cùng thẻ, phòng đầy, người xem, LEAVE, nhịp tim.
+//             Chỉ kiểm tra, KHÔNG thử tải, trừ khi ghi thêm --cap (ví dụ --check --cap 500: kiểm tra rồi thử tải 500 cặp).
+//
+// Lưu ý: máy chủ trên Cloudflare giới hạn 120 lần mở kết nối mỗi phút cho một địa chỉ IP (wrangler.jsonc, CONN_LIMIT).
+// Thử tải từ một máy sẽ bị chặn phần lớn; muốn đo sức chịu tải thật phải chạy từ nhiều địa chỉ IP,
+// hoặc thử với server/dev-server.mjs / wrangler dev trên máy (không có giới hạn này).
 //
 // Mỗi cặp làm đúng như app: chủ phòng mở kết nối, khách mở kết nối, khách gửi OFFER, chủ trả ANSWER,
 // mỗi bên gửi 4 CANDIDATE, rồi (tuỳ chọn) gửi qua lại các tin RELAY và đo thời gian khứ hồi.
@@ -19,7 +24,7 @@ const opt = { url: 'ws://127.0.0.1:4174', cap: 2500, ramp: 20, relay: 30, hold: 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--check') opt.check = true;
-  else if (a.startsWith('--')) { const k = a.slice(2); const v = args[++i]; opt[k] = ['cap', 'ramp', 'relay', 'hold'].includes(k) ? +v : v; }
+  else if (a.startsWith('--')) { const k = a.slice(2); const v = args[++i]; opt[k] = ['cap', 'ramp', 'relay', 'hold'].includes(k) ? +v : v; if (k === 'cap') opt.capSet = true; }
   else opt.url = a;
 }
 const CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -160,7 +165,7 @@ const pct = (a, p) => { if (!a.length) return '-'; const s = a.slice().sort((x, 
   if (opt.check) {
     try { await checks(); } catch (e) { console.log('Không vào được điểm hẹn (' + e.message + '). Nếu máy chủ có ALLOWED_ORIGINS thì thêm --origin <địa chỉ trang của app>.'); process.exit(2); }
     if (checks.bad) { console.log('Giao thức chưa đúng, dừng thử tải.'); process.exit(2); }
-    if (!opt.cap) process.exit(0);
+    if (!opt.capSet || !opt.cap) process.exit(0);  // --check một mình: chỉ kiểm tra, không thử tải
   }
   console.log('Thử tải ' + opt.url + ': ' + opt.cap + ' cặp (' + opt.cap * 2 + ' người), mở dần trong ' + opt.ramp + ' giây, ' + opt.relay + ' tin qua máy chủ mỗi cặp');
   const t0 = Date.now();

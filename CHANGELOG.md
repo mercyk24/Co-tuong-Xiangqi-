@@ -2,6 +2,20 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.8.0] – 2026-11-25
+
+### Thêm
+- **Luật chiếu dai, đuổi dai.** Trước đây thế cờ lặp lại ba lần luôn là hòa, nên bên đang thua có thể chiếu liên tục để ép hòa. Nay:
+  - Mỗi bên được chiếu liên tục (hoặc đuổi bắt liên tục một quân) tối đa 4 nước làm thế cờ lặp lại. Nước thứ 4 app nhắc trước; nước thứ 5 như vậy **không được đi**, người chơi phải chọn nước khác.
+  - Thế cờ lặp lại ba lần mà không bên nào chiếu dai, đuổi dai thì hòa như trước; có bên đang chiếu (đuổi) dai thì ván tiếp tục cho tới khi bên đó phải đổi nước.
+  - Áp dụng cho mọi chế độ, kể cả chơi qua mạng. Máy (cấp 1–6) tự tránh nước bị chặn.
+  - Bản rút gọn của luật thi đấu: "đuổi" là quân vừa đi (không phải Tướng, Tốt) tạo thế ăn mới vào quân không được bảo vệ hoặc quân giá trị cao hơn; Tốt chưa qua sông được đuổi tự do. Chưa xét đuổi bằng nước mở đường cho quân khác.
+- **Báo lỗi tự nguyện** (Giới thiệu › Báo lỗi): app ghi tối đa 30 lỗi gần nhất trên máy. Người dùng bấm "Xem thông tin lỗi" để đọc trước nội dung (phiên bản, loại máy, trình duyệt, lỗi, nhật ký kết nối; không có ván cờ hay dữ liệu cá nhân), rồi tự chép gửi. App không tự gửi gì đi; xoá nhật ký được.
+
+### Thay đổi
+- Tách phần chơi: `40-play.js` (phần chung) thêm `41-play-ai.js` (đấu với máy) và `42-play-net.js` (giao diện chơi qua mạng). Không đổi cách dùng.
+- `tools/load-signal.mjs --check` chỉ kiểm tra giao thức, không tự thử tải nữa (muốn thử tải thì thêm `--cap`).
+
 ## [1.7.0] – 2026-11-25
 
 Bước chuẩn bị đầu tiên trước khi xin phép thương mại hoá: bảo mật và quyền riêng tư. Lộ trình đầy đủ: `docs/PHAP-LY.md`.

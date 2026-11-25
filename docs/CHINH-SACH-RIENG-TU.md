@@ -8,7 +8,7 @@ Người phát triển app Cờ Tướng Luyện Tập (tài khoản GitHub merc
 
 ## 2. Dữ liệu trên máy của bạn
 
-Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt và sự đồng ý của bạn được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu trong mục Quyền riêng tư.
+Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt, sự đồng ý của bạn và nhật ký lỗi gần đây (để bạn tự chép gửi khi báo lỗi, mục Giới thiệu › Báo lỗi) được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu trong mục Quyền riêng tư.
 
 ## 3. Khi chơi qua mạng (chỉ khi bạn đồng ý)
 

@@ -11,7 +11,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 | 3 | Chơi qua mạng: điểm hẹn riêng trên Cloudflare (`co-tuong.cotuong-mercy.workers.dev`), có chuyển tin khi không nối thẳng được, dự phòng bằng `0.peerjs.com`; đã thử tải bản thật 5000 người cùng lúc | 🟢 | Còn thiếu: thử trên hai điện thoại thật ở hai mạng khác nhau. Xem `docs/MO-RONG.md` |
 | 4 | Ván qua mạng do máy chủ phòng giữ bản gốc, chưa có trọng tài phía máy chủ | 🟠 | Chưa đủ cho xếp hạng / thi đấu có thưởng |
 | 5 | Kiểm tra tự động chỉ chạy trên Chromium, người dùng chính dùng Safari iPhone | 🟠 | Lỗi riêng của Safari có thể lọt qua |
-| 6 | `40-play.js` ôm ba chế độ chơi (~900 dòng) | 🟠 | Khó sửa, dễ sinh lỗi khi thêm tính năng |
+| 6 | Phần chơi đã tách (bản 1.8.0): `40-play.js` phần chung, `41-play-ai.js` đấu máy, `42-play-net.js` giao diện chơi qua mạng. Chưa chuyển sang ES modules | 🟢 | Còn gọn hơn được khi thêm tính năng lớn |
 | 7 | Dữ liệu người dùng chỉ nằm trong trình duyệt | 🟢 | Đổi máy là mất nếu không sao lưu |
 | 8 | Chính sách quyền riêng tư và xin đồng ý: **đã có** (bản 1.7.0). Còn thiếu theo dõi lỗi | 🟢 | Lộ trình pháp lý: `docs/PHAP-LY.md` |
 
@@ -72,7 +72,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 - 32 bài kiểm tra giao diện và 9 bài kiểm tra luật cờ, dữ liệu.
 
 **Nên cải thiện**
-- `src/app/40-play.js` gánh cả ba chế độ (đấu máy, hai người, qua mạng) với nhiều nhánh `if`. Nên tách thành ba bộ điều khiển dùng chung một lớp "ván cờ" (bàn cờ, nước đi, đồng hồ, kết quả).
+- Phần chơi đã tách thành `40-play.js` (trạng thái ván, nước đi, đồng hồ, luật kết thúc, vẽ), `41-play-ai.js` (đấu máy) và `42-play-net.js` (giao diện chơi qua mạng). Các hàm vẫn gắn chung vào đối tượng `Play`; bước sau nếu cần: tách thành lớp "ván cờ" riêng.
 - Các module dùng chung phạm vi thay vì `import` / `export`. Khi thêm tính năng lớn, nên chuyển sang ES modules kèm một bộ đóng gói (ví dụ esbuild). Có thể thêm JSDoc hoặc TypeScript cho phần mạng và đồng hồ.
 - Thêm WebKit (Safari) vào Playwright và CI. Cần thử trước xem engine WebAssembly có chạy trong WebKit headless không; nếu không, chỉ chạy các bài không cần engine.
 - `index.html` khoảng 360 KB vì nhúng sẵn dữ liệu. Hiện vẫn ổn; khi dữ liệu lớn hơn nên tách JSON ra và tải khi cần.
@@ -96,10 +96,10 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 
 ## Lộ trình đề xuất
 
-1. Kiểm tra chơi qua mạng trên hai điện thoại thật ở hai mạng khác nhau (Wi-Fi và 4G); ghi lại trường hợp không nối được.
-2. Xác minh giấy phép mạng NNUE; thêm `NOTICE` và trang chính sách quyền riêng tư.
+1. ~~Kiểm tra chơi qua mạng trên hai điện thoại thật ở hai mạng khác nhau~~ (đã thử 4G và Wi-Fi, 25/11/2026).
+2. Xác minh giấy phép mạng NNUE. ~~`NOTICE` và chính sách quyền riêng tư~~ (bản 1.7.0). Lộ trình pháp lý: `docs/PHAP-LY.md`.
 3. Thêm WebKit vào bộ kiểm tra tự động.
-4. Tách `40-play.js` thành ba bộ điều khiển; chuyển sang ES modules.
-5. Khi có người dùng ngoài nhóm bạn bè: đưa điểm hẹn riêng (`server/`) lên Cloudflare và điền `NET_OWN` (`docs/MO-RONG.md`).
+4. ~~Tách `40-play.js`~~ (bản 1.8.0); chuyển sang ES modules khi cần.
+5. ~~Đưa điểm hẹn riêng lên Cloudflare~~ (bản 1.4.0).
 6. Nếu muốn xếp hạng, đồng bộ nhiều máy hay ghép cặp với người lạ: chọn hạ tầng máy chủ (tài khoản, trọng tài ván đấu).
 7. Nếu lên kho ứng dụng: Android trước (đóng gói bản web); iOS chỉ khi đã bỏ engine GPL hoặc có phương án pháp lý.

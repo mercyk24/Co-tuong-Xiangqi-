@@ -110,3 +110,23 @@ test('xoá dữ liệu trên máy: hỏi lại trước khi xoá, xoá hết d�
   expect(await page.evaluate(() => window.__xq.Store.get('tac_done', null))).toBeNull();
   expect(await page.evaluate(() => window.__xq.Consent.ok())).toBe(false);
 });
+
+test('báo lỗi tự nguyện: lỗi được ghi trên máy, xem trước được, không kèm dữ liệu ván cờ, xoá được', async ({ page }) => {
+  await openApp(page);
+  await page.evaluate(() => {
+    window.__xq.ErrLog.clear();
+    window.__xq.Store.set('games', [{ id: 'gbimat', t: 1, user: 0, level: 1, startFen: 'x', moves: [], res: 'bimat-van-co' }]);
+    setTimeout(() => { throw new Error('thử lỗi báo cáo'); }, 0);
+  });
+  await page.waitForFunction(() => window.__xq.ErrLog.list().length === 1);
+  await showTab(page, 'about');
+  await expect(page.locator('#rp-count')).toContainText('Có 1 lỗi');
+  await page.click('#rp-show');
+  const t = await page.inputValue('#rp-text');
+  expect(t).toContain('thử lỗi báo cáo');
+  expect(t).toContain(await page.evaluate(() => window.__xq.version));
+  expect(t).not.toContain('bimat-van-co');
+  await page.click('#rp-clear');
+  await expect(page.locator('#rp-count')).toContainText('Chưa có lỗi');
+  expect(await page.inputValue('#rp-text')).toContain('(không có)');
+});

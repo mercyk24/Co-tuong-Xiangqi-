@@ -17,8 +17,10 @@ Web app luyện cờ tướng miễn phí, chạy ngay trên trình duyệt (cà
 - **Chiến thuật**: bài tìm nước mạnh nhất theo hạng (700–1400+), chế độ 3 phút, 5 phút và sinh tồn, có lịch sử điểm.
 - **Chiếu hết**: bài chiếu hết liên tục, lời giải được kiểm chứng bằng bộ giải.
 - **Khai cuộc** (người học cầm Đen): Bình phong mã đối Pháo đầu có giải thích chi tiết, cùng 63 biến dài do Pikafish chọn cho 7 cách mở đầu phổ biến của Đỏ. Nước đáp tương đương với nước trong sách không bị tính là sai.
+- **Luật chiếu dai, đuổi dai**: được chiếu (đuổi) liên tục tối đa 4 nước làm thế cờ lặp lại; nước thứ 5 không được đi, phải đổi nước.
 - **Ghi nước bằng tiếng Việt** (Mã 8 tiến 7), đổi được sang chữ Hán hoặc hiện cả hai.
 - **Sao lưu / khôi phục** toàn bộ dữ liệu ra một file JSON (mục Giới thiệu).
+- **Báo lỗi tự nguyện**: xem trước rồi tự chép thông tin lỗi gửi người phát triển; app không tự gửi gì đi.
 
 ## Dùng thử
 

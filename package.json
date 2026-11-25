@@ -1,6 +1,6 @@
 {
   "name": "co-tuong-luyen-tap",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Web app luyện cờ tướng miễn phí: đấu máy, chiếu hết, chiến thuật, khai cuộc và phân tích ván bằng engine NNUE.",
   "private": true,
   "license": "GPL-3.0-or-later",

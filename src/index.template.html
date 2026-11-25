@@ -158,6 +158,7 @@ body.game-play #v-play{display:flex;flex-direction:column;justify-content:center
 .setup #ai-start{margin-top:14px;min-height:50px;font-size:17px}
 ul.tidy{padding-left:18px}.tidy li{margin:4px 0}
 a{color:var(--accent)}
+#rp-text{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:inherit;resize:vertical}
 details.policy{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 details.policy summary{cursor:pointer;font-weight:600;padding:6px 0}
 details.policy p,details.policy li{font-size:14px}
@@ -425,7 +426,7 @@ details.policy p,details.policy li{font-size:14px}
       <details class="policy">
         <summary>Chính sách quyền riêng tư (bản ngày 25/11/2026)</summary>
         <p><b>1. Ai xử lý dữ liệu.</b> Người phát triển app Cờ Tướng Luyện Tập (tài khoản GitHub mercyk24). Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn github.com/mercyk24/Co-tuong-Xiangqi-. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.</p>
-        <p><b>2. Dữ liệu trên máy của bạn.</b> Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt và sự đồng ý của bạn được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu ở trên.</p>
+        <p><b>2. Dữ liệu trên máy của bạn.</b> Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt, sự đồng ý của bạn và nhật ký lỗi gần đây (để bạn tự chép gửi khi báo lỗi) được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu ở trên.</p>
         <p><b>3. Khi chơi qua mạng (chỉ khi bạn đồng ý).</b> Dữ liệu được xử lý: địa chỉ IP, mã phòng, mã kết nối ngẫu nhiên, nước đi và đồng hồ của ván. Mục đích duy nhất: nối hai máy với nhau và chuyển nước đi. Bên nhận:</p>
         <ul class="tidy">
           <li>Đối thủ của bạn: biết địa chỉ IP của bạn khi hai máy nối thẳng (WebRTC).</li>
@@ -441,6 +442,17 @@ details.policy p,details.policy li{font-size:14px}
         <p><b>8. Thay đổi.</b> Khi chính sách thay đổi về nội dung chính, app sẽ hỏi lại sự đồng ý trước lần chơi qua mạng tiếp theo.</p>
       </details>
     </div>
+    <h2>Báo lỗi</h2>
+    <div class="card">
+      <p class="muted" id="rp-count"></p>
+      <p class="muted">Gặp lỗi thì bấm "Xem thông tin lỗi", đọc qua nội dung rồi chép gửi cho người phát triển (mục Issues trên GitHub, hoặc nhắn trực tiếp). Nội dung chỉ gồm phiên bản app, loại máy và trình duyệt, các lỗi gần đây và nhật ký kết nối; không có ván cờ hay dữ liệu cá nhân. App không tự gửi gì đi.</p>
+      <button class="btn wide" id="rp-show">Xem thông tin lỗi</button>
+      <div id="rp-box" hidden>
+        <textarea id="rp-text" readonly rows="10" spellcheck="false" aria-label="Thông tin lỗi"></textarea>
+        <div class="row"><button class="btn primary" id="rp-copy">Chép</button><button class="btn" id="rp-open">Mở trang báo lỗi</button></div>
+        <button class="btn wide" id="rp-clear">Xoá nhật ký lỗi</button>
+      </div>
+    </div>
     <h2>Cài lên iPhone</h2>
     <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
     <h2>Ghi chú</h2>
@@ -449,7 +461,7 @@ details.policy p,details.policy li{font-size:14px}
       <li>Phân tích ván dùng engine mạnh (cùng engine của cấp 6) với thang điểm đã quy đổi gần với Pikafish; kết quả chỉ mang tính tham khảo. Các thế bạn đi sai nặng được lưu trong bộ nhớ của trình duyệt trên máy này, không gửi đi đâu.</li>
       <li>Các nhóm khai cuộc ngoài Bình phong mã do Pikafish chọn nước tốt nhất (khoảng 0,8 giây mỗi thế) và tự gắn nhãn; tên khai cuộc chỉ gắn cho những nước đầu quen thuộc.</li>
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
-      <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
+      <li>Luật chiếu dai, đuổi dai: mỗi bên được chiếu (hoặc đuổi bắt một quân) liên tục tối đa 4 nước làm thế cờ lặp lại; ở nước thứ 4 app nhắc trước, nước thứ 5 như vậy không được đi, phải đi nước khác. Thế cờ lặp lại ba lần mà không bên nào chiếu dai, đuổi dai thì hòa. App dùng bản rút gọn của luật thi đấu: chưa xét đuổi bằng nước mở đường cho quân khác và một số ngoại lệ chi tiết.</li>
       <li>Ký hiệu nước đi mặc định ghi bằng tiếng Việt (ví dụ Pháo 2 bình 5); có thể đổi sang chữ Hán (炮二平五) ở mục Cách ghi nước đi.</li>
       <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC); nếu mạng chặn kết nối trực tiếp (thường là 4G hoặc mạng công ty), nước đi được chuyển qua điểm hẹn của app. Dữ liệu được gửi đi và nơi nhận: xem mục Quyền riêng tư ở trên.</li>
       <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Danh sách thành phần bên thứ ba và ghi công: tệp NOTICE trong mã nguồn.</li>

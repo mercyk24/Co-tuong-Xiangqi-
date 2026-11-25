@@ -144,7 +144,8 @@ Muốn không bao giờ bị ngắt vì hạn mức thì nâng lên gói 5 USD/t
    - Chạy `npx wrangler deploy`. Wrangler in ra địa chỉ dạng `https://co-tuong.<tên>.workers.dev`.
 5. **Kiểm tra:**
    - Mở `https://co-tuong.<tên>.workers.dev/health`, phải thấy `{"ok":true,...}`.
-   - Thử tải nhẹ: `node tools/load-signal.mjs wss://co-tuong.<tên>.workers.dev --cap 200 --origin https://mercyk24.github.io`.
+   - Kiểm tra giao thức (không thử tải): `node tools/load-signal.mjs wss://co-tuong.<tên>.workers.dev --check --origin https://mercyk24.github.io`.
+   - Thử tải nhẹ: `node tools/load-signal.mjs wss://co-tuong.<tên>.workers.dev --cap 200 --origin https://mercyk24.github.io`. Từ bản 1.7.0 máy chủ giới hạn 120 lần mở kết nối mỗi phút cho một IP, nên thử tải từ một máy sẽ bị chặn phần lớn; đó là giới hạn hoạt động đúng, không phải máy chủ quá tải.
 6. **Bật trong app:**
    - Điền `const NET_OWN = 'wss://co-tuong.<tên>.workers.dev';` trong `src/app/45-net.js`.
    - Thêm `https://co-tuong.<tên>.workers.dev` vào `ALLOWED_ORIGINS` trong `wrangler.jsonc`, rồi `npx wrangler deploy` lại.

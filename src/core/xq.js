@@ -73,6 +73,7 @@
     }
   }
   const MVV = [0, 10, 4, 2, 2, 100, 5, 1];
+  const CHASE_VAL = [0, 9, 4, 2, 2, 100, 4, 1]; // giá trị quân khi xét đuổi: Xe 9, Mã/Pháo 4, Tượng/Sĩ 2, Tốt 1
 
   // ---------- Thế cờ ----------
   class Pos {
@@ -351,6 +352,117 @@
       return n;
     }
 
+    // ---------- Luật lặp thế: chiếu dai, đuổi dai ----------
+    // App dùng hai lớp: (1) perpetualBlocked: không cho đi nước chiếu (đuổi) liên tiếp vượt giới hạn (app đặt 4) làm thế cờ lặp lại;
+    // (2) repetitionVerdict: khi thế cờ lặp lại ba lần, cho biết có bên nào đang chiếu/đuổi dai không (app chỉ xử hòa khi không có).
+    // Bản rút gọn của luật cờ tướng (luật châu Á): khi một thế cờ lặp lại ba lần, xét vòng nước gần nhất dẫn về thế đó.
+    //   - Bên nào mọi nước trong vòng đều chiếu: "chiếu dai".
+    //   - Bên nào mọi nước đều chiếu hoặc đuổi (có ít nhất một nước đuổi): "đuổi dai".
+    //   - Chỉ một bên phạm luật: bên đó thua. Hai bên cùng phạm: chiếu dai gặp đuổi dai thì bên chiếu dai thua, còn lại hòa.
+    //   - Không bên nào phạm: hòa.
+    // "Đuổi": quân vừa đi (không phải Tướng, Tốt) tạo thế ăn mới, ăn được thật (không làm Tướng mình bị chiếu), vào một quân
+    // không phải Tướng, không phải Tốt chưa qua sông, mà quân đó không được bảo vệ, hoặc có giá trị cao hơn quân đuổi
+    // (ví dụ Mã, Pháo đuổi Xe). Chưa xét: đuổi bằng nước mở đường cho quân khác, và nhiều ngoại lệ chi tiết của luật thi đấu.
+    capsFrom(sq, side) {
+      const keep = this.side; this.side = side;
+      const out = this.pseudo(true).filter(m => (m >> 7) === sq).map(m => m & 127);
+      this.side = keep;
+      return out;
+    }
+
+    // Thế sau nước `m` (vừa đi, bên đi là s): nước đó có "đuổi" quân nào không. pre: các ô quân này ăn được trước khi đi.
+    chaseAfter(m, s, pre) {
+      const t = m & 127, b = this.b, at = b[t] & 7, o = s ^ 1;
+      if (at === K || at === P) return false;
+      for (const tq of this.capsFrom(t, s)) {
+        if (pre.indexOf(tq) >= 0) continue;                         // đã ăn được từ trước, không phải đuổi mới
+        const qt = b[tq] & 7;
+        if (qt === K) continue;                                      // ăn Tướng là chiếu, xét riêng
+        if (qt === P && (o === 0 ? ROW[tq] >= 5 : ROW[tq] <= 4)) continue;  // Tốt chưa qua sông được đuổi tự do
+        this.side = s; this.make((t << 7) | tq);
+        const legal = !this.inCheck(s);
+        const guarded = legal && this.legalMoves().some(x => (x & 127) === tq);
+        this.unmake(); this.side = o;
+        if (!legal) continue;
+        if (!guarded || CHASE_VAL[qt] > CHASE_VAL[at]) return true;
+      }
+      return false;
+    }
+
+    // Vòng nước gần nhất dẫn về thế hiện tại. null nếu thế này chưa từng xuất hiện.
+    // kinds[side]: 'check' (chiếu dai) | 'chase' (đuổi dai) | '' (có nước nhàn, không phạm luật).
+    repCycle() {
+      let j = -1;
+      for (let i = this.hl.length - 1; i >= 0; i--) if (this.hl[i] === this.lo && this.hh[i] === this.hi) { j = i; break; }
+      if (j < 0) return null;
+      const cyc = this.mv.slice(j);
+      for (let i = 0; i < cyc.length; i++) this.unmake();
+      const allChk = [true, true], allBad = [true, true], moved = [false, false];
+      for (const m of cyc) {
+        const s = this.side, pre = this.capsFrom(m >> 7, s);
+        this.make(m);
+        moved[s] = true;
+        const chk = this.inCheck(s ^ 1);
+        const bad = chk || this.chaseAfter(m, s, pre);
+        if (!chk) allChk[s] = false;
+        if (!bad) allBad[s] = false;
+      }
+      const kinds = [0, 1].map(x => !moved[x] ? '' : allChk[x] ? 'check' : allBad[x] ? 'chase' : '');
+      return { kinds, len: cyc.length };
+    }
+
+    // Loại của n nước gần nhất: 'check' (chiếu) | 'chase' (đuổi) | '' (nước khác).
+    recentKinds(n) {
+      n = Math.min(n, this.mv.length);
+      const ms = this.mv.slice(this.mv.length - n), out = [];
+      for (let i = 0; i < n; i++) this.unmake();
+      for (const m of ms) {
+        const s = this.side, pre = this.capsFrom(m >> 7, s);
+        this.make(m);
+        out.push(this.inCheck(s ^ 1) ? 'check' : this.chaseAfter(m, s, pre) ? 'chase' : '');
+      }
+      return out;
+    }
+
+    // Bên s (vừa đi) có đang chiếu (đuổi) dai không: thế hiện tại đã từng xuất hiện, mọi nước của s trong vòng lặp đều
+    // chiếu (đuổi), và đếm số nước chiếu (đuổi) liên tiếp của s tính tới nước vừa đi.
+    // Trả về null nếu không; nếu có: { kind: 'check' | 'chase', streak }.
+    perpetualInfo(s, maxCount) {
+      if (this.repCount() < 2) return null;
+      const c = this.repCycle(), kind = c && c.kinds[s];
+      if (!kind) return null;
+      const ks = this.recentKinds(2 * (maxCount || 6) + 2);
+      let streak = 0;
+      for (let i = ks.length - 1; i >= 0; i -= 2) { if (ks[i]) streak++; else break; }
+      return { kind, streak };
+    }
+
+    // Nước m có bị cấm vì chiếu dai / đuổi dai không: sau nước này thế cờ lặp lại một thế đã có, và bên đi đã chiếu (đuổi)
+    // liên tục quá `limit` nước. Trả về 'check' | 'chase' nếu bị cấm, '' nếu được đi.
+    perpetualBlocked(m, limit) {
+      const s = this.side;
+      this.make(m);
+      const info = this.perpetualInfo(s, limit + 1);
+      this.unmake();
+      return info && info.streak > limit ? info.kind : '';
+    }
+
+    // Phân xử khi thế hiện tại lặp lại lần thứ ba: null nếu chưa tới ba lần;
+    // { result: 'draw' } hoặc { result: 'lose', side: bên thua, why: 'check' | 'chase' }.
+    repetitionVerdict() {
+      if (this.repCount() < 3) return null;
+      const c = this.repCycle(); if (!c) return null;
+      const [k0, k1] = c.kinds;
+      if (k0 && k1) {
+        if (k0 === 'check' && k1 === 'chase') return { result: 'lose', side: 0, why: 'check' };
+        if (k1 === 'check' && k0 === 'chase') return { result: 'lose', side: 1, why: 'check' };
+        return { result: 'draw' };
+      }
+      if (k0) return { result: 'lose', side: 0, why: k0 };
+      if (k1) return { result: 'lose', side: 1, why: k1 };
+      return { result: 'draw' };
+    }
+
     // ---------- Ký hiệu Hán ----------
     notation(m) {
       const b = this.b, f = m >> 7, t = m & 127, p = b[f];
@@ -426,6 +538,13 @@
   const INF = 32000, MATE = 30000;
   const TT_BITS = 18, TT_SIZE = 1 << TT_BITS, TT_MASK = TT_SIZE - 1;
 
+  // opts.avoid: các nước gốc không được chọn (ví dụ nước bị chặn vì chiếu dai);
+  // nếu bỏ hết thì vẫn giữ nguyên danh sách.
+  function avoidMoves(moves, avoid) {
+    if (!avoid || !avoid.length) return moves;
+    const f = moves.filter(m => avoid.indexOf(m) < 0);
+    return f.length ? f : moves;
+  }
   class Searcher {
     constructor() {
       this.ttKey = new Int32Array(TT_SIZE);
@@ -566,7 +685,7 @@
 
     // Khai cuộc đa dạng: chấm điểm mọi nước gốc, chọn ngẫu nhiên trong nhóm nước chênh nhau không quá `margin` điểm.
     searchVaried(pos, opts, margin) {
-      const moves = pos.legalMoves();
+      const moves = avoidMoves(pos.legalMoves(), opts.avoid);
       if (moves.length < 2) return this.search(pos, opts);
       const d = Math.max(2, opts.varyDepth || 4);
       this.deadline = Date.now() + Math.max(opts.timeMs || 1000, 3000); this.stop = false; this.nodes = 0;
@@ -591,7 +710,7 @@
       opts = opts || {};
       const maxDepth = opts.maxDepth || 4, timeMs = opts.timeMs || 1000, noise = opts.noise || 0;
       this.deadline = Date.now() + timeMs; this.stop = false; this.nodes = 0;
-      const moves = pos.legalMoves();
+      const moves = avoidMoves(pos.legalMoves(), opts.avoid);
       if (moves.length === 0) return { move: 0, score: -MATE, depth: 0, nodes: 0 };
       if (moves.length === 1) return { move: moves[0], score: 0, depth: 0, nodes: 0 };
       const hist = this.history; for (let i = 0; i < hist.length; i++) hist[i] >>= 3;
