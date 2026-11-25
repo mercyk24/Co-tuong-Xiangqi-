@@ -8,7 +8,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 |---|---|---|---|
 | 1 | Engine Fairy-Stockfish theo GPL-3.0 xung đột với điều khoản App Store | 🔴 | Chặn bản iOS trên App Store nếu giữ engine này |
 | 2 | Điều khoản của mạng NNUE cờ tướng chưa được xác minh | 🔴 | Rủi ro pháp lý khi phát hành rộng / thương mại |
-| 3 | Chơi qua mạng dựa vào điểm hẹn công cộng miễn phí, chưa có máy chủ chuyển tiếp (TURN) | 🟠 | Một số mạng không nối được; không có cam kết hoạt động |
+| 3 | Chơi qua mạng: điểm hẹn riêng trên Cloudflare (`co-tuong.cotuong-mercy.workers.dev`), có chuyển tin khi không nối thẳng được, dự phòng bằng `0.peerjs.com`; đã thử tải bản thật 5000 người cùng lúc | 🟢 | Còn thiếu: thử trên hai điện thoại thật ở hai mạng khác nhau. Xem `docs/MO-RONG.md` |
 | 4 | Ván qua mạng do máy chủ phòng giữ bản gốc, chưa có trọng tài phía máy chủ | 🟠 | Chưa đủ cho xếp hạng / thi đấu có thưởng |
 | 5 | Kiểm tra tự động chỉ chạy trên Chromium, người dùng chính dùng Safari iPhone | 🟠 | Lỗi riêng của Safari có thể lọt qua |
 | 6 | `40-play.js` ôm ba chế độ chơi (~900 dòng) | 🟠 | Khó sửa, dễ sinh lỗi khi thêm tính năng |
@@ -45,8 +45,8 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 - Đã có: kiểm tra nước đi hợp lệ, chặn tin giả "bạn hết giờ", giới hạn giờ khai khống, đồng bộ lại khi số nước hai máy lệch nhau, báo khi khác phiên bản giao thức.
 
 **Giới hạn và rủi ro**
-- `0.peerjs.com` là dịch vụ miễn phí, không cam kết luôn hoạt động. Khi có nhiều người dùng, nên tự chạy máy chủ PeerJS (gói `peer` trên npm, có sẵn ảnh Docker) trên một máy chủ nhỏ, rồi đổi địa chỉ trong `45-net.js`.
-- Chưa có **TURN** (máy chủ chuyển tiếp). Một phần mạng 4G hoặc mạng công ty chặn kết nối thẳng; khi đó app báo rõ lỗi và gợi ý dùng chung Wi-Fi. Muốn "ai cũng nối được" thì cần TURN (tự chạy coturn hoặc thuê dịch vụ) và có chi phí băng thông, dù nước cờ rất nhẹ.
+- `0.peerjs.com` là dịch vụ miễn phí dùng chung, không cam kết luôn hoạt động; phần mềm máy chủ PeerJS mặc định chỉ nhận 5000 kết nối mỗi máy chủ. **Đã xử lý:** điểm hẹn riêng `server/` (Cloudflare Workers + Durable Objects, mỗi phòng một ô riêng), `0.peerjs.com` chỉ còn là dự phòng. Đã thử tải 5000 và 10 000 người cùng lúc. Chi tiết, chi phí và cách đưa lên: `docs/MO-RONG.md`.
+- Mạng chặn kết nối thẳng (một phần 4G, mạng công ty): **đã xử lý khi dùng điểm hẹn riêng**, ván tự đi qua điểm hẹn (tin `RELAY`), không cần TURN. Khi chỉ còn `0.peerjs.com` thì vẫn báo lỗi như cũ.
 - Hai máy biết địa chỉ IP của nhau (đặc điểm của WebRTC). Điều này đã ghi trong mục Giới thiệu.
 - Chống gian lận: máy chủ phòng có thể sửa ván, và người chơi có thể dùng engine trong lúc đánh. Đủ cho chơi với bạn bè, **không đủ cho xếp hạng hay thi đấu**. Khi cần những thứ này phải có máy chủ làm trọng tài, cùng tài khoản và xếp hạng (Firebase, Supabase, Cloudflare Workers… đều làm được, phải chọn và trả phí khi lớn).
 - Ghép cặp với người lạ cần máy chủ và một lượng người chơi đủ đông; chưa có.
@@ -100,6 +100,6 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 2. Xác minh giấy phép mạng NNUE; thêm `NOTICE` và trang chính sách quyền riêng tư.
 3. Thêm WebKit vào bộ kiểm tra tự động.
 4. Tách `40-play.js` thành ba bộ điều khiển; chuyển sang ES modules.
-5. Khi có người dùng ngoài nhóm bạn bè: tự chạy máy chủ PeerJS, thêm TURN.
+5. Khi có người dùng ngoài nhóm bạn bè: đưa điểm hẹn riêng (`server/`) lên Cloudflare và điền `NET_OWN` (`docs/MO-RONG.md`).
 6. Nếu muốn xếp hạng, đồng bộ nhiều máy hay ghép cặp với người lạ: chọn hạ tầng máy chủ (tài khoản, trọng tài ván đấu).
 7. Nếu lên kho ứng dụng: Android trước (đóng gói bản web); iOS chỉ khi đã bỏ engine GPL hoặc có phương án pháp lý.

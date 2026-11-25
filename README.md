@@ -48,6 +48,8 @@ Các lệnh khác:
 | `npm run openings` | Dựng lại `data/openings.json` và `data/book.json` từ dữ liệu khai cuộc. |
 | `node scripts/screenshots.js` | Chụp lại ảnh màn hình trong `docs/screenshots/`. |
 | `XQ_NET_REAL=1 npx playwright test net-real` | Thử chơi qua mạng với điểm hẹn thật (cần Internet, không chạy trên CI). |
+| `npm run signal` | Chạy điểm hẹn riêng trên máy (`ws://localhost:4174`), không cần cài gì. |
+| `npm run load -- [địa chỉ] --cap 2500` | Thử tải điểm hẹn riêng: 2500 cặp = 5000 người cùng lúc. |
 
 ### Cấu trúc thư mục
 
@@ -59,7 +61,8 @@ src/
   assets/               Icon, manifest, service worker (lưu ngoại tuyến + thêm tiêu đề COOP/COEP cho engine)
 data/                   Bài tập, khai cuộc, sách khai cuộc (JSON) và dữ liệu thô sinh từ Pikafish
 engine/                 Fairy-Stockfish WebAssembly và mạng NNUE (xem engine/README.md)
-tools/                  Công cụ sinh dữ liệu bằng Pikafish trên máy tính (xem docs/data.md)
+tools/                  Công cụ sinh dữ liệu bằng Pikafish (docs/data.md); thử điểm hẹn (check-signal.js, load-signal.mjs)
+server/                 Điểm hẹn riêng cho chơi qua mạng: core.mjs (lõi), worker.mjs (Cloudflare), dev-server.mjs (Node)
 scripts/                build.js, serve.js, screenshots.js
 tests/unit/             Kiểm tra bằng node:test
 tests/e2e/              Kiểm tra giao diện bằng Playwright
@@ -77,7 +80,12 @@ Mỗi lần đẩy lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yml
 
 ## Chơi qua mạng
 
-`src/app/45-net.js`: hai máy nối thẳng bằng WebRTC. Để tìm thấy nhau, app dùng điểm hẹn công cộng `0.peerjs.com` (giao thức PeerJS, phần kết nối tự viết) và STUN của Google, Cloudflare; nước đi không qua máy chủ. Chưa có máy chủ chuyển tiếp (TURN), nên một số mạng chặn kết nối thẳng sẽ không chơi được. Xem `docs/RA-SOAT.md` để biết giới hạn và hướng mở rộng.
+`src/app/45-net.js`: hai máy nối thẳng bằng WebRTC. Để tìm thấy nhau, app dùng điểm hẹn nói giao thức PeerJS (phần kết nối tự viết) và STUN của Google, Cloudflare; nước đi không qua máy chủ.
+
+- **Điểm hẹn riêng** (`server/`, chạy trên Cloudflare Workers + Durable Objects, mỗi phòng một ô riêng): dùng trước nếu đã điền `NET_OWN` trong `45-net.js`. Khi mạng chặn nối thẳng, ván tự đi qua điểm hẹn này.
+- **Điểm hẹn công cộng** `0.peerjs.com`: dự phòng khi điểm hẹn riêng hỏng hoặc chưa cài.
+
+Đã thử tải 5000 và 10 000 người cùng lúc. Cách đưa lên Cloudflare, số đo và chi phí: `docs/MO-RONG.md`. Giới hạn còn lại: `docs/RA-SOAT.md`.
 
 ## Giấy phép và ghi công
 

@@ -1,0 +1,23 @@
+// Cấu hình Cloudflare Workers cho điểm hẹn riêng (và bản sao trang web).
+// Cài: npm i -D wrangler   ·   chạy thử trên máy: npx wrangler dev   ·   đưa lên: npx wrangler deploy
+// Xem hướng dẫn đầy đủ trong docs/MO-RONG.md.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "co-tuong",
+  "main": "server/worker.mjs",
+  "compatibility_date": "2025-10-01",
+  // Trang web (bản dựng trong dist/). Đường /peerjs và /health không phải tệp nên đi vào worker.
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
+  },
+  // Durable Object dùng SQLite: có trong gói miễn phí của Cloudflare
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  "vars": {
+    // Chỉ cho trang của app dùng điểm hẹn (cách nhau bởi dấu phẩy). Để trống = cho mọi nơi.
+    "ALLOWED_ORIGINS": "https://mercyk24.github.io,https://co-tuong.cotuong-mercy.workers.dev,http://localhost:4173"
+  },
+  // Nhật ký: mỗi tin WebSocket là một "sự kiện"; gói miễn phí lưu 200 000 sự kiện/ngày (vượt thì chỉ ngừng lưu nhật ký,
+  // máy chủ vẫn chạy). Chỉ lưu 5% để đủ dùng khi đông người mà vẫn xem được lỗi.
+  "observability": { "enabled": true, "head_sampling_rate": 0.05 }
+}

@@ -12,3 +12,5 @@ data/cothe_report.txt
 *.log
 .DS_Store
 Thumbs.db
+# Trạng thái cục bộ của wrangler dev
+.wrangler/

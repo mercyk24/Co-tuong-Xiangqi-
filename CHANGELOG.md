@@ -2,6 +2,19 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.4.0] – 2026-11-25
+
+### Thêm
+- **Điểm hẹn riêng cho chơi qua mạng** (`server/`), chạy trên Cloudflare Workers + Durable Objects (mỗi phòng một ô riêng), nói cùng giao thức PeerJS, đặt tại `co-tuong.cotuong-mercy.workers.dev`. Có bản chạy trên máy bằng Node (`npm run signal`).
+- Thử tải bản thật trên Cloudflare: 5000 người kết nối cùng lúc (2500 cặp), thành công 100%, tin qua máy chủ trung vị 86 ms (`npm run load`, `docs/MO-RONG.md`).
+- Khi mạng không cho hai máy nối thẳng, ván tự đi qua điểm hẹn riêng thay vì báo lỗi.
+- App thử lần lượt nhiều điểm hẹn: điểm hẹn riêng trước, `0.peerjs.com` dự phòng; khách không thấy phòng ở điểm hẹn đầu thì tìm tiếp ở điểm hẹn sau.
+- Bản sao trang web trên Cloudflare (cùng worker), kèm tiêu đề COOP/COEP (`dist/_headers`), để không phụ thuộc giới hạn băng thông của GitHub Pages.
+
+### Thay đổi
+- Máy giữ cố định một "thẻ" suốt ván, nên khi rớt mạng có thể nối lại đúng mã máy cũ ngay, không phải chờ điểm hẹn xoá kết nối cũ.
+- Điểm hẹn riêng: nhịp tim 30 giây (Cloudflare tự trả lời, không đánh thức máy chủ); máy kia biết ngay khi một máy rời điểm hẹn.
+
 ## [1.3.0] – 2026-11-24
 
 ### Thêm

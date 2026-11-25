@@ -1,11 +1,17 @@
-  // 45-net.js — Chơi qua mạng giữa hai thiết bị: kết nối thẳng WebRTC (DataChannel), không cần máy chủ riêng.
-  // Hai máy tìm nhau qua "điểm hẹn" công khai của PeerJS (0.peerjs.com); nước đi đi thẳng giữa hai máy, không qua máy chủ.
+  // 45-net.js — Chơi qua mạng giữa hai thiết bị: kết nối thẳng WebRTC (DataChannel).
+  // Hai máy tìm nhau qua "điểm hẹn" nói giao thức PeerJS: điểm hẹn riêng của app (Cloudflare, server/) nếu đã cài,
+  // dự phòng bằng điểm hẹn công cộng 0.peerjs.com. Nước đi đi thẳng giữa hai máy; nếu mạng không cho nối thẳng
+  // và đang dùng điểm hẹn riêng thì tin ván cờ đi qua điểm hẹn (RELAY).
   // Người tạo phòng (host) giữ bản gốc của ván: khi nối lại sau rớt mạng, host gửi lại toàn bộ ván để hai máy khớp nhau.
   // ---------- Chơi qua mạng ----------
   const NET_PROTO = 1;                      // đổi khi giao thức giữa hai máy thay đổi
   const NET_PREFIX = 'xqvn-';               // tiền tố mã máy trên điểm hẹn, tránh trùng với ứng dụng khác
   const NET_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const NET_ICE_FAIL = 'Hai máy đã tìm thấy nhau nhưng không nối thẳng được: mạng của một bên (thường là 4G hoặc Wi-Fi công ty) chặn kết nối trực tiếp. Hãy thử cho cả hai máy dùng chung một Wi-Fi, hoặc đổi sang mạng khác.';
+  // Địa chỉ điểm hẹn riêng (Cloudflare Worker trong server/), ví dụ 'wss://co-tuong.ten-ban.workers.dev'.
+  // Để trống thì chỉ dùng điểm hẹn công cộng. Xem docs/MO-RONG.md.
+  const NET_OWN = 'wss://co-tuong.cotuong-mercy.workers.dev';
+  const NET_PUBLIC = 'wss://0.peerjs.com:443';
   const NET_ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }];
 
   // Dạng tin trên điểm hẹn phải giống hệt thư viện PeerJS 1.5.5: máy chủ 0.peerjs.com kiểm tra từng trường,
@@ -23,20 +29,29 @@
   }
 
   // Điểm hẹn PeerJS: chỉ chuyển lời mời kết nối (OFFER/ANSWER/CANDIDATE) giữa hai mã máy.
+  // srv: { url, own, hb } — own: điểm hẹn riêng (có phòng riêng, có RELAY); hb: nhịp tim (ms).
   class PeerSignal {
-    constructor(id, onMsg, onClose) { this.id = id; this.onMsg = onMsg; this.onClose = onClose; this.ws = null; this.hb = 0; }
+    constructor(id, onMsg, onClose, opt) {
+      this.id = id; this.onMsg = onMsg; this.onClose = onClose; this.ws = null; this.hb = 0; this.relay = false;
+      this.srv = opt.srv; this.token = opt.token; this.room = opt.room;
+    }
+    ready() { return !!(this.ws && this.ws.readyState === 1); }
     open() {
       return new Promise((resolve, reject) => {
-        const token = Math.random().toString(36).slice(2, 12);
         let done = false;
-        const ws = this.ws = new WebSocket('wss://0.peerjs.com:443/peerjs?key=peerjs&id=' + encodeURIComponent(this.id) + '&token=' + token + '&version=1.5.5');
+        const q = 'key=peerjs&id=' + encodeURIComponent(this.id) + '&token=' + this.token + '&version=1.5.5' + (this.srv.own ? '&room=' + this.room.toLowerCase() : '');
+        const ws = this.ws = new WebSocket(this.srv.url + '/peerjs?' + q);
         const fail = why => { if (!done) { done = true; reject(new Error(why)); } };
         const timer = setTimeout(() => { fail('timeout'); try { ws.close(); } catch (e) { /* bỏ qua */ } }, 12000);
         ws.onmessage = ev => {
           let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
-          if (m.type === 'OPEN') { done = true; clearTimeout(timer); this.hb = setInterval(() => this.raw({ type: 'HEARTBEAT' }), 5000); resolve(); return; }
+          if (m.type === 'OPEN') {
+            done = true; clearTimeout(timer);
+            this.relay = !!(this.srv.own && m.payload && m.payload.relay);
+            this.hb = setInterval(() => this.raw({ type: 'HEARTBEAT' }), this.srv.hb || 5000); resolve(); return;
+          }
           if (m.type === 'ID-TAKEN') { clearTimeout(timer); fail('id-taken'); return; }
-          if (m.type === 'ERROR' || m.type === 'INVALID-KEY') { clearTimeout(timer); fail('server'); return; }
+          if (m.type === 'ERROR' || m.type === 'INVALID-KEY') { clearTimeout(timer); fail(m.payload && m.payload.msg === 'room-full' ? 'full' : 'server'); return; }
           if (m.type === 'HEARTBEAT') return;
           this.onMsg(m);
         };
@@ -49,10 +64,24 @@
     close() { clearInterval(this.hb); this.onClose = null; try { if (this.ws) this.ws.close(); } catch (e) { /* bỏ qua */ } }
   }
 
+  // Danh sách điểm hẹn, thử lần lượt. Kiểm tra tự động có thể thay bằng window.__XQ_SIGNAL__:
+  //   'local' (giả trong trình duyệt), 'public' (chỉ 0.peerjs.com) hoặc mảng địa chỉ điểm hẹn riêng (ws://...).
+  function netServers() {
+    const o = window.__XQ_SIGNAL__;
+    if (o === 'local') return [{ local: true }];
+    if (o === 'public') return [{ url: NET_PUBLIC, own: false, hb: 5000 }];
+    if (Array.isArray(o)) return o.map(url => ({ url, own: true, hb: 30000 }));
+    const l = [];
+    if (NET_OWN) l.push({ url: NET_OWN, own: true, hb: 30000 });
+    l.push({ url: NET_PUBLIC, own: false, hb: 5000 });
+    return l;
+  }
+
   // Điểm hẹn giả trong cùng trình duyệt (BroadcastChannel), chỉ dùng cho kiểm tra tự động.
   // Bắt chước máy chủ thật: tin sai dạng thì bị bỏ và kết nối của người gửi bị ngắt.
   class LocalSignal {
-    constructor(id, onMsg, onClose) { this.id = id; this.onMsg = onMsg; this.onClose = onClose; this.ch = null; }
+    constructor(id, onMsg, onClose) { this.id = id; this.onMsg = onMsg; this.onClose = onClose; this.ch = null; this.relay = false; }
+    ready() { return !!this.ch; }
     open() {
       this.ch = new BroadcastChannel('xq-signal');
       this.ch.onmessage = ev => { const m = ev.data; if (m && m.dst === this.id) this.onMsg(m); };
@@ -74,13 +103,19 @@
     role: '', code: '', myId: '', peerId: '', mySide: 0, clockSet: '0', sideChoice: 'r',
     sig: null, pc: null, dc: null, pendingIce: [], lastSeen: 0, ping: 0, retryT: 0, joinT: 0, err: '', everConnected: false,
     connId: '', gotAnswer: false, sigDrops: 0, spare: {},  // spare: kết nối tạm để báo phòng đã có người
+    si: 0, token: '',  // si: đang dùng điểm hẹn thứ mấy trong netServers(); token: thẻ cố định của máy này trong phòng
+    link: '',          // đường tin ván cờ: 'dc' (nối thẳng) | 'relay' (qua điểm hẹn) | '' (chưa có)
     waitAsk: '',    // lời xin đang chờ đối thủ trả lời: 'draw' | 'undo' | 'rematch'
     msgText: '', log: [],
     // Nhật ký kết nối ngắn (100 dòng gần nhất) để dò lỗi
     trace(s) { this.log.push(new Date().toISOString().slice(11, 23) + ' [' + this.state + '] ' + s); if (this.log.length > 100) this.log.shift(); },
     newConnId() { return 'dc_' + Math.random().toString(36).slice(2, 12); },
     newCode() { let s = ''; for (let i = 0; i < 6; i++) s += NET_CODE_CHARS[(Math.random() * NET_CODE_CHARS.length) | 0]; return s; },
-    signalClass() { return window.__XQ_SIGNAL__ === 'local' ? LocalSignal : PeerSignal; },
+    newToken() { return Math.random().toString(36).slice(2, 12) + 'x'; },
+    servers() { return netServers(); },
+    srv() { const l = this.servers(); return l[Math.min(this.si, l.length - 1)]; },
+    canRelay() { return !!(this.sig && this.sig.relay); },
+    p2pMs() { return window.__XQ_P2P_MS__ || 7000; },
     ice() { return Array.isArray(window.__XQ_ICE__) ? window.__XQ_ICE__ : NET_ICE; },
     joinLink() { return location.origin + location.pathname + '#phong=' + this.code; },
     status(text) { this.msgText = text; Play.draw(); },
@@ -88,13 +123,13 @@
     // ---- Lưu phiên để mở lại app (hoặc tải lại trang) vẫn nối tiếp được ván đang dở
     save() {
       if (!this.code || this.state === 'idle' || this.state === 'error') { Store.set('net_sess', null); return; }
-      Store.set('net_sess', { t: Date.now(), role: this.role, code: this.code, myId: this.myId, peerId: this.peerId, mySide: this.mySide, clockSet: this.clockSet,
+      Store.set('net_sess', { t: Date.now(), role: this.role, code: this.code, myId: this.myId, peerId: this.peerId, mySide: this.mySide, clockSet: this.clockSet, si: this.si, token: this.token,
         moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
     },
     resumeSaved() {
       const s = Store.get('net_sess', null);
       if (!s || Date.now() - s.t > 2 * 3600 * 1000 || s.over || !s.started) { Store.set('net_sess', null); return false; }
-      Object.assign(this, { role: s.role, code: s.code, myId: s.myId, peerId: s.peerId, mySide: s.mySide, clockSet: s.clockSet });
+      Object.assign(this, { role: s.role, code: s.code, myId: s.myId, peerId: s.peerId, mySide: s.mySide, clockSet: s.clockSet, si: s.si || 0, token: s.token || this.newToken() });
       Play.netLoad(s.moves, s.left, null, false);
       this.state = 'lost'; this.everConnected = true;
       this.status('Đang nối lại ván với đối thủ…');
@@ -108,13 +143,21 @@
       this.role = 'host'; this.sideChoice = sideChoice; this.clockSet = clockSet;
       this.mySide = sideChoice === 'r' ? (Math.random() < 0.5 ? 0 : 1) : +sideChoice;
       this.state = 'opening'; this.status('Đang tạo phòng…');
-      for (let i = 0; i < 4; i++) {
-        this.code = this.newCode(); this.myId = NET_PREFIX + this.code.toLowerCase();
-        try { await this.openSignal(); this.state = 'waiting'; this.status('Đang chờ đối thủ vào phòng…'); this.save(); return; } catch (e) {
-          if (e.message !== 'id-taken') { this.fail(this.sigError(e)); return; }
+      this.token = this.newToken();
+      // Thử từng điểm hẹn: điểm hẹn riêng trước, hỏng thì sang điểm hẹn công cộng
+      let err = null;
+      for (this.si = 0; this.si < this.servers().length; this.si++) {
+        for (let i = 0; i < 4; i++) {
+          this.code = this.newCode(); this.myId = NET_PREFIX + this.code.toLowerCase();
+          try { await this.openSignal(); this.state = 'waiting'; this.status('Đang chờ đối thủ vào phòng…'); this.save(); return; } catch (e) {
+            err = e; if (e.message !== 'id-taken') break;
+          }
+          if (this.state !== 'opening') return;  // người dùng đã huỷ
         }
+        this.trace('điểm hẹn ' + this.si + ' hỏng (' + (err && err.message) + ')');
       }
-      this.fail('Không tạo được mã phòng, hãy thử lại.');
+      this.si = 0;
+      this.fail(err && err.message === 'id-taken' ? 'Không tạo được mã phòng, hãy thử lại.' : this.sigError(err));
     },
     async join(code) {
       code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -122,23 +165,34 @@
       this.reset();
       this.role = 'guest'; this.code = code; this.peerId = NET_PREFIX + code.toLowerCase();
       this.myId = NET_PREFIX + 'g' + Math.random().toString(36).slice(2, 12);
+      this.token = this.newToken(); this.si = 0;
       this.state = 'joining'; this.status('Đang tìm phòng ' + code + '…');
-      try { await this.openSignal(); } catch (e) { this.fail(this.sigError(e)); return; }
-      this.dial();
+      this.joinAt(0);
+    },
+    // Vào phòng qua điểm hẹn thứ i; không vào được điểm hẹn đó thì thử điểm hẹn tiếp theo
+    async joinAt(i) {
+      this.si = i;
+      try { await this.openSignal(); } catch (e) {
+        if (this.state !== 'joining') return;
+        if (e.message === 'full') { this.fail('Phòng ' + this.code + ' đã có người chơi.'); return; }
+        if (i + 1 < this.servers().length) { this.trace('điểm hẹn ' + i + ' hỏng (' + e.message + '), thử điểm hẹn tiếp'); this.joinAt(i + 1); return; }
+        this.fail(this.sigError(e)); return;
+      }
+      if (this.state === 'joining') this.dial();
     },
     leave(silent) {
       if (!silent) this.sendMsg({ t: 'bye' });
       this.reset(); Store.set('net_sess', null);
     },
     reset() {
-      clearInterval(this.ping); clearTimeout(this.retryT); clearTimeout(this.joinT); clearTimeout(this.needT);
+      clearInterval(this.ping); clearTimeout(this.retryT); clearTimeout(this.joinT); clearTimeout(this.needT); clearTimeout(this.p2pT);
       this.closePeer();
       if (this.sig) this.sig.close();
       Object.keys(this.spare).forEach(k => this.dropSpare(k));
-      Object.assign(this, { sig: null, state: 'idle', role: '', code: '', peerId: '', err: '', waitAsk: '', msgText: '', everConnected: false, connId: '', gotAnswer: false, sigDrops: 0 });
+      Object.assign(this, { sig: null, state: 'idle', role: '', code: '', peerId: '', err: '', waitAsk: '', msgText: '', everConnected: false, connId: '', gotAnswer: false, sigDrops: 0, si: 0, link: '' });
     },
     fail(text) {
-      clearInterval(this.ping); clearTimeout(this.joinT); clearTimeout(this.retryT);
+      clearInterval(this.ping); clearTimeout(this.joinT); clearTimeout(this.retryT); clearTimeout(this.p2pT);
       this.closePeer(); if (this.sig) this.sig.close(); this.sig = null;
       this.state = 'error'; this.err = text; Store.set('net_sess', null);
       Play.setup = true; Play.netView = 'home'; Play.closeMenu(); Play.draw();  // quay về màn tạo / vào phòng để thấy lời báo
@@ -146,18 +200,21 @@
     sigError(e) {
       const m = e && e.message;
       if (m === 'id-taken') return 'Máy này vẫn đang giữ phòng cũ trên điểm hẹn, hãy đợi vài giây rồi thử lại.';
+      if (m === 'full') return 'Phòng ' + this.code + ' đã có người chơi.';
       if (!navigator.onLine) return 'Máy đang không có mạng. Hãy bật Wi-Fi hoặc 4G rồi thử lại.';
-      return 'Không vào được điểm hẹn kết nối (0.peerjs.com). Hãy kiểm tra mạng rồi thử lại sau ít phút.';
+      return 'Không vào được điểm hẹn kết nối. Hãy kiểm tra mạng rồi thử lại sau ít phút.';
     },
 
     // ---- Điểm hẹn
     async openSignal() {
       if (this.sig) this.sig.close();
-      const S = this.signalClass();
-      const sig = new S(this.myId, m => this.onSignal(m), () => { if (this.sig === sig) { this.sig = null; this.trace('điểm hẹn ngắt'); this.sigClosed(); } });
+      const srv = this.srv();
+      const S = srv.local ? LocalSignal : PeerSignal;
+      const sig = new S(this.myId, m => this.onSignal(m), () => { if (this.sig === sig) { this.sig = null; this.trace('điểm hẹn ngắt'); this.sigClosed(); } },
+        { srv, token: this.token || (this.token = this.newToken()), room: this.code });
       await sig.open();
       this.sig = sig;
-      this.trace('đã vào điểm hẹn với mã máy ' + this.myId);
+      this.trace('đã vào điểm hẹn ' + (srv.local ? 'giả' : srv.url) + ' với mã máy ' + this.myId + (sig.relay ? ' (có chuyển tin)' : ''));
     },
     // Nối lại điểm hẹn (khi đang chờ hoặc đang nối lại ván)
     async connectSignal() {
@@ -172,12 +229,13 @@
       if (this.state === 'joining') {
         if (this.connected()) return;  // đã nối thẳng xong, không cần điểm hẹn nữa
         // Đang vào phòng: thử vào lại điểm hẹn và gọi lại, tối đa 2 lần, rồi mới báo lỗi
-        if (++this.sigDrops > 2) { this.fail('Điểm hẹn kết nối (0.peerjs.com) liên tục bị ngắt nên chưa tìm được phòng. Đây là lỗi phía máy chủ trung gian, không phải mạng của bạn; hãy thử lại sau ít phút.'); return; }
-        clearTimeout(this.joinT); clearTimeout(this.retryT); this.closePeer();
-        this.myId = NET_PREFIX + 'g' + Math.random().toString(36).slice(2, 12);  // mã máy mới, tránh bị báo trùng mã cũ
+        if (++this.sigDrops > 2) { this.fail('Điểm hẹn kết nối liên tục bị ngắt nên chưa tìm được phòng. Đây là lỗi phía máy chủ trung gian, không phải mạng của bạn; hãy thử lại sau ít phút.'); return; }
+        clearTimeout(this.joinT); clearTimeout(this.retryT); clearTimeout(this.p2pT); this.closePeer();
         this.retryT = setTimeout(() => { if (this.state === 'joining' && !this.sig) this.connectSignal(); }, 1000);
         return;
       }
+      // Đang chơi qua điểm hẹn mà điểm hẹn ngắt: coi như mất kết nối
+      if (this.link === 'relay' && (this.state === 'playing' || this.state === 'ended')) { this.lost(); return; }
       this.scheduleRetry();
     },
     scheduleRetry() {
@@ -190,6 +248,14 @@
       const p = m.payload || {};
       this.trace('điểm hẹn: ' + m.type);
       if (m.type === 'EXPIRE') {
+        if (this.role === 'guest' && this.state === 'joining' && this.si + 1 < this.servers().length) {
+          // Không thấy phòng ở điểm hẹn này: có thể chủ phòng tạo ở điểm hẹn dự phòng
+          this.trace('không thấy phòng ở điểm hẹn ' + this.si + ', thử điểm hẹn tiếp');
+          clearTimeout(this.joinT); clearTimeout(this.p2pT); this.closePeer();
+          if (this.sig) this.sig.close(); this.sig = null;
+          this.joinAt(this.si + 1);
+          return;
+        }
         if (this.role === 'guest' && this.state === 'joining') this.fail('Không tìm thấy phòng ' + this.code + '. Kiểm tra lại mã, hoặc người tạo phòng đã thoát.');
         else if (this.role === 'guest' && this.state === 'lost') this.scheduleRetry();
         return;
@@ -202,12 +268,18 @@
         this.peerId = m.src; this.connId = p.connectionId; this.accept(p);
         return;
       }
+      if (m.type === 'RELAY') { this.onRelay(m.src, p); return; }
+      if (m.type === 'LEAVE') {
+        if (m.src === this.peerId && this.link === 'relay' && (this.state === 'playing' || this.state === 'ended')) this.lost();
+        return;
+      }
       if (m.type === 'ANSWER' && this.role === 'guest' && this.pc) {
         if (p.connectionId !== this.connId) { this.trace('bỏ trả lời cũ'); return; }
         this.gotAnswer = true;
         this.pc.setRemoteDescription(p.sdp).then(() => this.flushIce()).catch(() => { /* bỏ qua */ });
         return;
       }
+      if (m.type === 'CANDIDATE' && p.candidate && window.__XQ_NO_P2P__) return;
       if (m.type === 'CANDIDATE' && p.candidate) {
         const sp = this.spare[p.connectionId];
         if (sp) { if (sp.pc.remoteDescription) sp.pc.addIceCandidate(p.candidate).catch(() => { /* bỏ qua */ }); else sp.q.push(p.candidate); return; }
@@ -234,6 +306,30 @@
         if (this.sig) this.sig.send('ANSWER', src, sigAnswer(a, cid));
       } catch (e) { this.dropSpare(cid); }
     },
+    // ---- Chơi qua điểm hẹn (khi mạng không cho nối thẳng)
+    startRelay() {
+      if (!this.canRelay() || this.connected()) return;
+      this.trace('không nối thẳng được, chuyển sang đi qua điểm hẹn');
+      clearTimeout(this.joinT); clearTimeout(this.p2pT);
+      this.closePeer(); this.link = 'relay';
+      this.onOpen();
+    },
+    onRelay(src, p) {
+      let o; try { o = JSON.parse(p.d); } catch (e) { return; }
+      if (!o || typeof o.t !== 'string') return;
+      if (this.role === 'host' && (src !== this.peerId || this.link !== 'relay')) {
+        // Khách chuyển sang đi qua điểm hẹn (lần đầu hoặc khi nối lại): nhận theo đúng luật như lời gọi WebRTC
+        const known = this.peerId && src === this.peerId;
+        const fresh = !Play.moves.length && !Play.over && (this.state === 'playing' || this.state === 'lost');
+        if (!(this.state === 'waiting' || known || fresh)) { if (this.sig) this.sig.send('RELAY', src, { d: JSON.stringify({ t: 'busy' }) }); return; }
+        this.trace('khách nối qua điểm hẹn');
+        this.peerId = src; this.closePeer(); this.link = 'relay';
+        this.onOpen();
+      }
+      if (this.link !== 'relay' || src !== this.peerId) return;
+      this.lastSeen = Date.now();
+      this.onMsg(o);
+    },
     dropSpare(cid) { const sp = this.spare[cid]; if (!sp) return; delete this.spare[cid]; clearTimeout(sp.t); try { sp.pc.close(); } catch (e) { /* bỏ qua */ } },
     flushIce() { const l = this.pendingIce; this.pendingIce = []; l.forEach(c => this.pc.addIceCandidate(c).catch(() => { /* bỏ qua */ })); },
 
@@ -245,6 +341,7 @@
       pc.onicecandidate = e => {
         if (!e.candidate) { this.trace('đã thu thập xong địa chỉ'); return; }
         const ty = / typ (\w+)/.exec(e.candidate.candidate || ''); this.trace('địa chỉ của mình: ' + (ty ? ty[1] : '?'));
+        if (window.__XQ_NO_P2P__) return;  // kiểm tra tự động: giả lập mạng chặn nối thẳng
         if (this.sig) this.sig.send('CANDIDATE', this.peerId, sigCand(e.candidate.toJSON(), this.connId));
       };
       pc.oniceconnectionstatechange = () => { if (this.pc === pc) this.trace('ICE: ' + pc.iceConnectionState); };
@@ -252,7 +349,8 @@
         if (this.pc !== pc) return;
         this.trace('WebRTC: ' + pc.connectionState);
         if (pc.connectionState === 'failed') {
-          if (!this.everConnected && this.role === 'guest') this.fail(NET_ICE_FAIL);
+          if (this.role === 'guest' && (this.state === 'joining' || this.state === 'lost') && this.canRelay()) this.startRelay();
+          else if (!this.everConnected && this.role === 'guest') this.fail(NET_ICE_FAIL);
           else if (this.state === 'lost') this.scheduleRetry();  // lần nối lại này hỏng: thử lại
           else this.lost();
         }
@@ -260,7 +358,7 @@
       return pc;
     },
     closePeer() {
-      const pc = this.pc, dc = this.dc; this.pc = null; this.dc = null;
+      const pc = this.pc, dc = this.dc; this.pc = null; this.dc = null; this.link = '';
       try { if (dc) dc.close(); } catch (e) { /* bỏ qua */ }
       try { if (pc) pc.close(); } catch (e) { /* bỏ qua */ }
     },
@@ -275,7 +373,9 @@
       if (this.pc !== pc || !this.sig) return;
       this.sig.send('OFFER', this.peerId, sigOffer(offer, this.connId));
       this.trace('đã gửi lời gọi tới ' + this.peerId);
-      clearTimeout(this.joinT);
+      clearTimeout(this.joinT); clearTimeout(this.p2pT);
+      // Có điểm hẹn riêng: chủ phòng đã trả lời mà sau vài giây vẫn chưa nối thẳng được thì đi qua điểm hẹn
+      if (this.canRelay()) this.p2pT = setTimeout(() => { if (this.pc === pc && this.gotAnswer && !this.connected()) this.startRelay(); }, this.p2pMs());
       this.joinT = setTimeout(() => {
         if (this.pc !== pc || (this.dc && this.dc.readyState === 'open')) return;
         if (this.state === 'joining') {
@@ -298,22 +398,30 @@
     },
     bindDc(dc) {
       this.dc = dc;
-      dc.onopen = () => { if (this.dc === dc) this.onOpen(); };
+      dc.onopen = () => { if (this.dc === dc) { clearTimeout(this.p2pT); this.link = 'dc'; this.onOpen(); } };
       dc.onclose = () => { if (this.dc === dc) this.lost(); };
       dc.onmessage = e => { if (this.dc !== dc) return; let m; try { m = JSON.parse(e.data); } catch (x) { return; } this.lastSeen = Date.now(); this.onMsg(m); };
     },
-    sendMsg(o) { try { if (this.dc && this.dc.readyState === 'open') { this.dc.send(JSON.stringify(o)); return true; } } catch (e) { /* bỏ qua */ } return false; },
-    connected() { return !!(this.dc && this.dc.readyState === 'open'); },
+    sendMsg(o) {
+      try {
+        if (this.link === 'relay') { if (this.sig && this.sig.ready()) { this.sig.send('RELAY', this.peerId, { d: JSON.stringify(o) }); return true; } return false; }
+        if (this.dc && this.dc.readyState === 'open') { this.dc.send(JSON.stringify(o)); return true; }
+      } catch (e) { /* bỏ qua */ }
+      return false;
+    },
+    connected() { return this.link === 'relay' ? !!(this.sig && this.sig.ready()) : !!(this.dc && this.dc.readyState === 'open'); },
 
     onOpen() {
-      this.trace('kênh dữ liệu mở');
+      this.trace(this.link === 'relay' ? 'đi qua điểm hẹn' : 'kênh dữ liệu mở');
       clearTimeout(this.joinT);
       this.everConnected = true; this.lastSeen = Date.now();
       clearInterval(this.ping);
+      // Đi qua điểm hẹn thì hỏi thăm thưa hơn (đỡ tải máy chủ); im lặng quá lâu thì coi là mất kết nối
+      const relay = this.link === 'relay', every = relay ? 10000 : 4000, quiet = relay ? 32000 : 15000;
       this.ping = setInterval(() => {
         this.sendMsg({ t: 'ping', n: Play.moves.length });
-        if (Date.now() - this.lastSeen > 15000 && this.connected()) this.lost();
-      }, 4000);
+        if (Date.now() - this.lastSeen > quiet && this.connected()) this.lost();
+      }, every);
       this.sendMsg({ t: 'hello', p: NET_PROTO, v: APP_VERSION });
       if (this.role === 'host') this.sendState();
       else {

@@ -82,6 +82,8 @@ function main() {
   if (fs.existsSync(eng)) copyDir(eng, path.join(dist, 'engine'), f => !/\.md$/i.test(f));
   else console.warn('Cảnh báo: không có thư mục engine/, cấp 6 và phân tích ván sẽ không chạy.');
   fs.writeFileSync(path.join(dist, '.nojekyll'), '');
+  // Tiêu đề cho bản trang chạy trên Cloudflare (wrangler.jsonc). GitHub Pages bỏ qua tệp này; ở đó service worker tự thêm.
+  fs.writeFileSync(path.join(dist, '_headers'), '/*\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Embedder-Policy: require-corp\n  Cross-Origin-Resource-Policy: same-origin\n');
 
   const kb = n => (n / 1024).toFixed(0) + ' KB';
   console.log('Đã dựng ' + pkg.name + ' ' + pkg.version + ' (' + date + ', ' + hash + '): index.html ' + kb(Buffer.byteLength(html)));

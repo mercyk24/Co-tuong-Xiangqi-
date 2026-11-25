@@ -354,7 +354,7 @@ a{color:var(--accent)}
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
       <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
       <li>Ký hiệu nước đi mặc định ghi bằng tiếng Việt (ví dụ Pháo 2 bình 5); có thể đổi sang chữ Hán (炮二平五) ở mục Cách ghi nước đi.</li>
-      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com) và máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Một số mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp; khi đó hãy thử dùng chung một Wi-Fi.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn của app (trên Cloudflare, nếu có) hoặc điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com), cùng máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Nếu mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app; máy chủ chỉ chuyển tin, không lưu ván cờ.</li>
       <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Chi tiết ghi công xem tệp README và engine/README trong mã nguồn.</li>
     </ul>
   </section>
