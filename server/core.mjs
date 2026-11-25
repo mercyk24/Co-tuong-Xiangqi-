@@ -6,6 +6,9 @@
 //      nên trên Cloudflare mỗi phòng chạy ở một Durable Object riêng và số phòng tăng bao nhiêu cũng được.
 //   2. Có thêm tin RELAY: khi mạng không cho hai máy nối thẳng, tin ván cờ đi qua máy chủ (thay cho máy chủ TURN).
 //   3. Khi một máy rời điểm hẹn, máy còn lại nhận LEAVE (để biết sớm khi đang chơi qua máy chủ).
+//   4. Người xem (mã máy "xqvn-w…"): không đi quân, chỉ nhận thế cờ. Chủ phòng gửi CAST (thế cờ hiện tại),
+//      máy chủ chuyển cho mọi người xem trong phòng; khi số người xem đổi, chủ phòng nhận WATCH {n} và gửi lại thế cờ.
+//      Tin máy chủ gửi đi không tính phí trên Cloudflare, nên một chủ phòng gửi một lần là đủ cho mọi người xem.
 //
 // File này không phụ thuộc nền tảng: worker.mjs (Cloudflare) và dev-server.mjs (Node, để chạy thử) cùng dùng.
 // Mỗi nền tảng đưa vào một "adapter":
@@ -17,7 +20,8 @@
 export const PROTO = 1;
 export const HEARTBEAT = '{"type":"HEARTBEAT"}';   // tin nhịp tim; Cloudflare tự trả lời, không đánh thức máy chủ
 export const LIMITS = {
-  perRoom: 3,         // chủ phòng + khách + một máy thứ ba (để kịp báo "phòng đã có người")
+  perRoom: 3,         // người chơi: chủ phòng + khách + một máy thứ ba (để kịp báo "phòng đã có người")
+  watchers: 20,       // người xem tối đa mỗi phòng (tính riêng)
   msgBytes: 16384,    // một lời mời WebRTC thường 1–4 KB
   relayBytes: 4096,   // một tin ván cờ chỉ vài chục byte; ván dài nhất (gửi lại cả ván) vẫn dưới 4 KB
   burst: 60,          // số tin được gửi dồn một lúc
@@ -34,8 +38,8 @@ export function checkJoin(p) {
   if (!ROOM_RE.test(p.room || '')) return 'bad-room';
   if (!ID_RE.test(p.id || '')) return 'bad-id';
   if (!TOKEN_RE.test(p.token || '')) return 'bad-token';
-  // Chủ phòng có mã máy đúng bằng mã phòng; khách có mã máy bắt đầu bằng "xqvn-g"
-  if (p.id !== 'xqvn-' + p.room && p.id.indexOf('xqvn-g') !== 0) return 'bad-id';
+  // Chủ phòng có mã máy đúng bằng mã phòng; khách bắt đầu bằng "xqvn-g"; người xem bắt đầu bằng "xqvn-w"
+  if (p.id !== 'xqvn-' + p.room && p.id.indexOf('xqvn-g') !== 0 && p.id.indexOf('xqvn-w') !== 0) return 'bad-id';
   return '';
 }
 
@@ -46,6 +50,7 @@ export function paramsOf(url) {
 
 // Dạng tin phải giống thư viện PeerJS 1.5.5 (giống bộ kiểm tra của app)
 export function validPayload(type, p) {
+  if (type === 'CAST') return !!(p && typeof p.d === 'string' && p.d.length <= LIMITS.relayBytes && (p.to === undefined || typeof p.to === 'string'));
   if (type === 'RELAY') return !!(p && typeof p.d === 'string' && p.d.length <= LIMITS.relayBytes);
   if (!p || p.type !== 'data' || typeof p.connectionId !== 'string' || p.connectionId.length > 64) return false;
   if (type === 'OFFER') return !!(p.sdp && /^v=0/.test(p.sdp.sdp || '') && p.label && p.serialization);
@@ -57,6 +62,14 @@ export function validPayload(type, p) {
 const ROUTED = new Set(['OFFER', 'ANSWER', 'CANDIDATE', 'RELAY']);
 
 function others(ad, ws) { return ad.list().filter(s => s.ws !== ws && s.meta); }
+export const isWatcher = id => String(id).indexOf('xqvn-w') === 0;
+const hostOf = (ad, room) => ad.list().find(s => s.meta && s.meta.id === 'xqvn-' + room);
+const watchersOf = (ad, skip) => ad.list().filter(s => s.ws !== skip && s.meta && isWatcher(s.meta.id));
+// Báo chủ phòng số người xem hiện tại (src: người vừa vào, để chủ phòng gửi thế cờ cho riêng người đó)
+function tellHost(ad, room, src, skip) {
+  const h = hostOf(ad, room);
+  if (h) try { ad.send(h.ws, { type: 'WATCH', payload: { n: watchersOf(ad, skip).length, src: src || '' } }); } catch (e) { /* đã đóng */ }
+}
 function kick(ad, ws, why) {
   try { ad.send(ws, { type: 'ERROR', payload: { msg: why } }); } catch (e) { /* đã đóng */ }
   ad.close(ws, 1008, why);
@@ -72,10 +85,13 @@ export function onConnect(ad, ws, p, now) {
     ad.setMeta(same.ws, null);                           // kết nối cũ không còn nhận tin, kể cả khi chưa đóng hẳn
     ad.close(same.ws, 1000, 'replaced');
   }
-  const count = rest.filter(s => !same || s.ws !== same.ws).length;
-  if (count + 1 > LIMITS.perRoom) { kick(ad, ws, 'room-full'); return false; }
+  const watch = isWatcher(p.id);
+  const count = rest.filter(s => (!same || s.ws !== same.ws) && isWatcher(s.meta.id) === watch).length;
+  if (count + 1 > (watch ? LIMITS.watchers : LIMITS.perRoom)) { kick(ad, ws, watch ? 'watch-full' : 'room-full'); return false; }
   ad.setMeta(ws, { id: p.id, token: p.token, room: p.room, tokens: LIMITS.burst, at: now });
-  ad.send(ws, { type: 'OPEN', payload: { relay: 1, proto: PROTO } });
+  ad.send(ws, { type: 'OPEN', payload: { relay: 1, watch: 1, proto: PROTO } });
+  if (watch) tellHost(ad, p.room, p.id);
+  else if (p.id === 'xqvn-' + p.room && watchersOf(ad).length) tellHost(ad, p.room, '');  // chủ phòng nối lại: gửi lại thế cờ
   return true;
 }
 
@@ -96,9 +112,16 @@ export function onMessage(ad, ws, data, now) {
   let m; try { m = JSON.parse(data); } catch (e) { kick(ad, ws, 'bad-json'); return; }
   if (!m || typeof m.type !== 'string') { kick(ad, ws, 'bad-message'); return; }
   if (m.type === 'HEARTBEAT' || m.type === 'LEAVE') return;
+  if (isWatcher(me.id)) return;                          // người xem chỉ nhận, không gửi gì
+  if (m.type === 'CAST') {
+    // Chỉ chủ phòng được phát thế cờ; to: gửi riêng một người xem (người vừa vào), không có thì gửi tất cả
+    if (me.id !== 'xqvn-' + me.room || !validPayload('CAST', m.payload)) { kick(ad, ws, 'bad-message'); return; }
+    for (const w of watchersOf(ad)) if (!m.payload.to || w.meta.id === m.payload.to) ad.send(w.ws, { type: 'CAST', src: me.id, payload: { d: m.payload.d } });
+    return;
+  }
   if (!ROUTED.has(m.type)) return;                       // loại tin khác: bỏ qua như PeerJS
   if (!validPayload(m.type, m.payload)) { kick(ad, ws, 'bad-message'); return; }
-  const dst = others(ad, ws).find(s => s.meta.id === m.dst);
+  const dst = others(ad, ws).find(s => s.meta.id === m.dst && !isWatcher(s.meta.id));
   if (!dst) { ad.send(ws, { type: 'EXPIRE', src: String(m.dst || '').slice(0, 40), dst: me.id }); return; }
   ad.send(dst.ws, { type: m.type, src: me.id, dst: m.dst, payload: m.payload });
 }
@@ -109,5 +132,6 @@ export function onClose(ad, ws, meta) {
   if (!id) return;
   const rest = others(ad, ws);
   if (rest.some(s => s.meta.id === id)) return;          // chính máy đó đã nối lại bằng kết nối mới
+  if (isWatcher(id)) { tellHost(ad, meta.room, '', ws); return; }   // người xem rời: chỉ báo chủ phòng số người xem
   for (const s of rest) { try { ad.send(s.ws, { type: 'LEAVE', src: id }); } catch (e) { /* đã đóng */ } }
 }

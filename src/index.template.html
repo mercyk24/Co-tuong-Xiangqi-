@@ -142,7 +142,10 @@ body.game-play #v-play{display:flex;flex-direction:column;justify-content:center
 .drills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .drill{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px;text-align:left;box-shadow:var(--shadow);cursor:pointer;min-height:58px}
 @keyframes pulse{0%,100%{transform:none}30%{transform:scale(1.03)}60%{transform:scale(.99)}}.resume.pulse{animation:pulse .5s ease 2}
-.resume{border:2px solid var(--accent)}.resume-t{display:flex;flex-direction:column}.resume-t b{font-size:16px}.resume .row{margin:8px 0 0}
+.resume{border:2px solid var(--accent)}
+.netbar.watch{background:rgba(46,107,90,.12);color:var(--accent)}
+.watchn{text-align:center;font-size:13px;margin:2px 0}
+.watchask{border:2px solid var(--accent);margin-top:8px}.watchask p{margin:2px 0 6px}.resume-t{display:flex;flex-direction:column}.resume-t b{font-size:16px}.resume .row{margin:8px 0 0}
 .phead{display:flex;align-items:center;gap:8px;margin:2px 0 4px}.phead h1{margin:0}
 .lbl{font-weight:600;font-size:14px;margin:10px 0 6px}.lbl:first-child{margin-top:2px}
 .lvls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -201,12 +204,18 @@ a{color:var(--accent)}
       <div id="net-home">
         <p class="muted">Hai máy nối thẳng với nhau qua Internet, không cần tài khoản. Một người tạo phòng rồi gửi mã (hoặc link) cho người kia.</p>
         <p class="neterr" id="net-err" hidden></p>
+        <div class="card watchask" id="net-watch-ask" hidden>
+          <p><b>Bạn có muốn vào xem trận đấu không?</b></p>
+          <p class="muted">Bạn chỉ xem bàn cờ và đồng hồ, không đi quân được. Hai người chơi sẽ thấy có người đang xem.</p>
+          <div class="row"><button class="btn primary" id="net-watch-yes">Xem trận đấu</button><button class="btn" id="net-watch-no">Không</button></div>
+        </div>
         <button class="btn primary wide" id="net-go-create">Tạo phòng mới</button>
         <div class="lbl">Hoặc vào phòng bạn bè đã tạo</div>
         <div class="joinrow"><input id="net-code" maxlength="6" placeholder="Mã phòng" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" id="net-join">Vào phòng</button></div>
       </div>
       <div id="net-create" hidden>
         <p><b>Tạo phòng</b></p>
+        <label class="chk2 fld"><input type="checkbox" id="net-allow-watch"> Cho người khác vào xem trận (khi phòng đã đủ hai người)</label>
         <label>Bạn cầm <select id="net-side"><option value="r">Ngẫu nhiên</option><option value="0">Đỏ</option><option value="1">Đen</option></select></label>
         <p class="muted">Chọn thời gian để tạo phòng:</p>
         <div class="tgrid" id="net-times"></div>
@@ -232,6 +241,7 @@ a{color:var(--accent)}
       <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
       <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
     </div>
+    <div class="watchn muted" id="net-watchn" hidden></div>
     <div class="card ask" id="play-ask" hidden><p id="play-ask-text"></p><div class="row"><button class="btn primary" id="play-ask-yes"></button><button class="btn" id="play-ask-no"></button></div></div>
     <div class="card result" id="play-result" hidden>
       <p id="play-result-text"></p>
@@ -394,7 +404,7 @@ a{color:var(--accent)}
       <li>Phần giải thích khai cuộc là tóm tắt ý tưởng bằng tiếng Việt. Chuỗi nước đi lấy từ lý thuyết khai cuộc công khai. Đánh giá Pikafish đi kèm lấy từ lượt tìm ngắn (khoảng 1,2 giây mỗi thế), chỉ mang tính tham khảo.</li>
       <li>Luật lặp thế được đơn giản hóa: lặp ba lần tính là hòa, chưa phân biệt chiếu dai hay đuổi bắt.</li>
       <li>Ký hiệu nước đi mặc định ghi bằng tiếng Việt (ví dụ Pháo 2 bình 5); có thể đổi sang chữ Hán (炮二平五) ở mục Cách ghi nước đi.</li>
-      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn của app (trên Cloudflare, nếu có) hoặc điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com), cùng máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Nếu mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app; máy chủ chỉ chuyển tin, không lưu ván cờ.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC). Để tìm thấy nhau, hai máy dùng điểm hẹn của app (trên Cloudflare, nếu có) hoặc điểm hẹn công khai miễn phí của PeerJS (0.peerjs.com), cùng máy chủ STUN của Google, Cloudflare; nước đi không đi qua các máy chủ này. Giống mọi kết nối trực tiếp, hai máy sẽ biết địa chỉ IP của nhau. Nếu mạng (thường là 4G hoặc mạng công ty) chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app; máy chủ chỉ chuyển tin, không lưu ván cờ. Người vào xem trận nhận thế cờ qua điểm hẹn của app, không biết địa chỉ IP của hai người chơi.</li>
       <li>Mã nguồn mở theo giấy phép GPL-3.0. Engine trong app: Fairy-Stockfish (GPL-3.0). Dữ liệu bài tập và khai cuộc được sinh trên máy tính bằng Pikafish (GPL-3.0). Chi tiết ghi công xem tệp README và engine/README trong mã nguồn.</li>
     </ul>
   </section>

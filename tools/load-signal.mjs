@@ -135,6 +135,17 @@ async function checks() {
   const leaveBefore = h.q.filter(m => m.type === 'LEAVE' && m.src === g2.id).length;
   await sleep(500);
   ok('nối lại không làm máy kia tưởng đã rời phòng', h.q.filter(m => m.type === 'LEAVE' && m.src === g2.id).length === leaveBefore);
+  // Người xem
+  const w = await client('xqvn-w' + rnd(8), room, 'tok' + rnd(8), true);
+  ok('người xem vào được khi phòng đã có người chơi', !w.refused);
+  const wn = await h.wait(m => m.type === 'WATCH', 5000).catch(() => null);
+  ok('chủ phòng được báo có người xem (WATCH)', !!(wn && wn.payload && wn.payload.n === 1));
+  h.send({ type: 'CAST', payload: { d: '{"t":"snap"}' } });
+  const cs = await w.wait(m => m.type === 'CAST', 5000).catch(() => null);
+  ok('thế cờ chủ phòng phát (CAST) tới người xem', !!(cs && cs.payload.d === '{"t":"snap"}'));
+  try { w.ws.close(); } catch (e) { /* bỏ qua */ }
+  const w0 = await h.wait(m => m.type === 'WATCH', 5000).catch(() => null);
+  ok('người xem rời thì chủ phòng được báo còn 0 người xem', !!(w0 && w0.payload.n === 0));
   g.ws.close();
   const lv = await h.wait(m => m.type === 'LEAVE' && m.src === g.id, 5000).catch(() => null);
   ok('máy rời phòng thì máy kia nhận LEAVE', !!lv);

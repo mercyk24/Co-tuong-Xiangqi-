@@ -39,7 +39,7 @@ test('vào phòng, chuyển lời mời kèm mã người gửi, báo EXPIRE khi
   const h = add(), g = add();
   assert.ok(onConnect(ad, h, P('xqvn-abc234'), 0));
   assert.ok(onConnect(ad, g, P('xqvn-gguest1'), 0));
-  assert.deepStrictEqual(h.got[0], { type: 'OPEN', payload: { relay: 1, proto: 1 } });
+  assert.deepStrictEqual(h.got[0], { type: 'OPEN', payload: { relay: 1, watch: 1, proto: 1 } });
   onMessage(ad, g, offer('xqvn-abc234'), 10);
   assert.strictEqual(h.got[1].type, 'OFFER'); assert.strictEqual(h.got[1].src, 'xqvn-gguest1');
   onMessage(ad, g, offer('xqvn-khongco'), 20);
@@ -92,4 +92,38 @@ test('tin ván cờ qua máy chủ quá dài thì bị từ chối', async () =>
   onConnect(ad, a, P('xqvn-abc234'), 0); onConnect(ad, b, P('xqvn-gb1'), 0);
   onMessage(ad, b, JSON.stringify({ type: 'RELAY', dst: 'xqvn-abc234', payload: { d: 'x'.repeat(LIMITS.relayBytes + 1) } }), 1);
   assert.strictEqual(b.closed.reason, 'bad-message');
+});
+
+test('người xem: vào riêng (không tính vào chỗ người chơi), chủ phòng được báo số người xem và phát thế cờ tới họ', async () => {
+  const { onConnect, onMessage, onClose, LIMITS } = await load();
+  const { ad, add } = fakeRoom();
+  const h = add(), g = add(), x = add();
+  onConnect(ad, h, P('xqvn-abc234'), 0); onConnect(ad, g, P('xqvn-gb1'), 0); onConnect(ad, x, P('xqvn-gc1'), 0);
+  const w1 = add();
+  assert.ok(onConnect(ad, w1, P('xqvn-wv1'), 0), 'phòng đủ 3 người chơi vẫn nhận người xem');
+  assert.deepStrictEqual(w1.got[0], { type: 'OPEN', payload: { relay: 1, watch: 1, proto: 1 } });
+  assert.deepStrictEqual(h.got.pop(), { type: 'WATCH', payload: { n: 1, src: 'xqvn-wv1' } });
+  // chủ phòng phát thế cờ: người xem nhận, khách không nhận
+  const gBefore = g.got.length;
+  onMessage(ad, h, JSON.stringify({ type: 'CAST', payload: { d: '{"t":"snap"}' } }), 1);
+  assert.deepStrictEqual(w1.got.pop(), { type: 'CAST', src: 'xqvn-abc234', payload: { d: '{"t":"snap"}' } });
+  assert.strictEqual(g.got.length, gBefore);
+  // gửi riêng cho một người xem
+  const w2 = add(); onConnect(ad, w2, P('xqvn-wv2'), 0);
+  onMessage(ad, h, JSON.stringify({ type: 'CAST', payload: { d: 'x', to: 'xqvn-wv2' } }), 2);
+  assert.strictEqual(w2.got.pop().payload.d, 'x'); assert.notStrictEqual(w1.got[w1.got.length - 1].payload.d, 'x');
+  // khách không được phát thế cờ; người xem không gửi được gì cho người chơi
+  onMessage(ad, w1, JSON.stringify({ type: 'RELAY', dst: 'xqvn-abc234', payload: { d: '{}' } }), 3);
+  assert.ok(!h.got.some(m => m.type === 'RELAY'));
+  onMessage(ad, g, JSON.stringify({ type: 'CAST', payload: { d: 'x' } }), 4);
+  assert.strictEqual(g.closed.reason, 'bad-message');
+  // người xem rời: chủ phòng được báo, khách không nhận LEAVE
+  w2.open = false; onClose(ad, w2, w2.meta);
+  assert.deepStrictEqual(h.got.pop(), { type: 'WATCH', payload: { n: 1, src: '' } });
+  assert.ok(!x.got.some(m => m.type === 'LEAVE' && m.src === 'xqvn-wv2'));
+  // giới hạn người xem
+  for (let i = 1; i < LIMITS.watchers; i++) onConnect(ad, add(), P('xqvn-wz' + i), 0);
+  const over = add();
+  assert.strictEqual(onConnect(ad, over, P('xqvn-wover'), 0), false);
+  assert.deepStrictEqual(over.got[0], { type: 'ERROR', payload: { msg: 'watch-full' } });
 });

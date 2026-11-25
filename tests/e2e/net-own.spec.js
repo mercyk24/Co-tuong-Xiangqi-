@@ -112,3 +112,58 @@ test('sai mã phòng trên điểm hẹn riêng: báo không tìm thấy ngay, k
   await expect(B.locator('#net-err')).toContainText('Không tìm thấy phòng ZZZZ99');
   expect(errors).toEqual([]);
 });
+
+test('xem trận: máy thứ ba nhập mã phòng đầy thì được hỏi có xem không; xem được nước đi, đồng hồ; hai người chơi thấy số người xem', async ({ context }) => {
+  const errors = [];
+  const { A, B, code } = await room(context, errors, { servers: [U1] }, { servers: [U1] });
+  await move(A, '炮二平五'); await B.waitForFunction(() => window.__xq.Play.notes.length === 1);
+  const C = await device(context, errors, { servers: [U1] });
+  await C.evaluate(c => { window.__xq.Play.setMode('net'); return window.__xq.Net.join(c); }, code);
+  await expect(C.locator('#net-err')).toContainText('đã có người chơi');
+  await expect(C.locator('#net-watch-ask')).toBeVisible();
+  await C.click('#net-watch-yes');
+  try {
+    await C.waitForFunction(() => window.__xq.Net.state === 'watching' && window.__xq.Play.notes.length === 1, null, { timeout: 15_000 });
+  } catch (e) { console.log('Nhật ký C:\n' + (await C.evaluate(() => window.__xq.Net.log.join('\n')))); throw e; }
+  await expect(C.locator('#play-board')).toBeVisible();
+  await expect(C.locator('#net-banner')).toContainText('Đang xem phòng ' + code);
+  await expect(C.locator('#pbar-bot .pname')).toHaveText('Đỏ · chủ phòng');
+  await expect(C.locator('#pbar-bot [data-act="menu"]')).toBeHidden();
+  // Hai người chơi thấy có 1 người xem
+  await expect(A.locator('#net-watchn')).toHaveText('👁 1 người đang xem');
+  await expect(B.locator('#net-watchn')).toHaveText('👁 1 người đang xem');
+  // Người xem thấy nước mới của cả hai bên; bấm bàn cờ không đi được
+  await move(B, '馬8進7'); await C.waitForFunction(() => window.__xq.Play.notes.length === 2);
+  await move(A, '傌二進三'); await C.waitForFunction(() => window.__xq.Play.notes.length === 3);
+  expect(await C.evaluate(() => window.__xq.Play.notes.join(' '))).toBe(await A.evaluate(() => window.__xq.Play.notes.join(' ')));
+  await C.evaluate(() => window.__xq.Play.onSquare(0));
+  await expect(C.locator('#toast')).toContainText('không đi quân được');
+  // Ván kết thúc: người xem thấy kết quả
+  await A.evaluate(() => { const P = window.__xq.Play; P.askResign(0); P.ask.yes(); });
+  await C.waitForFunction(() => !!window.__xq.Play.over);
+  await expect(C.locator('#play-result-text')).toHaveText('Đỏ chịu thua – Đen thắng.');
+  await expect(C.locator('#play-result-new')).toBeHidden();
+  // Người xem thôi xem: hai người chơi hết thấy
+  await C.click('#net-banner-leave');
+  await expect(C.locator('#play-home')).toBeVisible();
+  await expect(A.locator('#net-watchn')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('xem trận: chủ phòng tắt "cho người khác vào xem" thì người xem được báo không xem được', async ({ context }) => {
+  const errors = [];
+  const A = await device(context, errors, { servers: [U1] });
+  await A.evaluate(() => { window.__xq.Store.set('net_watch', false); window.__xq.Play.setMode('net'); return window.__xq.Net.create('0', '0'); });
+  await A.waitForFunction(() => window.__xq.Net.state === 'waiting');
+  const code = await A.evaluate(() => window.__xq.Net.code);
+  const B = await device(context, errors, { servers: [U1] });
+  await B.evaluate(c => { window.__xq.Play.setMode('net'); return window.__xq.Net.join(c); }, code);
+  await B.waitForFunction(() => window.__xq.Net.state === 'playing', null, { timeout: 30_000 });
+  const C = await device(context, errors, { servers: [U1] });
+  await C.evaluate(c => { window.__xq.Play.setMode('net'); window.__xq.Net.si = 0; window.__xq.Net.code = c; return window.__xq.Net.watch(c); }, code);
+  await C.waitForFunction(() => window.__xq.Net.state === 'error', null, { timeout: 15_000 });
+  await expect(C.locator('#net-err')).toContainText('không cho người khác xem');
+  await expect(A.locator('#net-watchn')).toBeHidden();
+  await A.evaluate(() => window.__xq.Store.set('net_watch', true));
+  expect(errors).toEqual([]);
+});

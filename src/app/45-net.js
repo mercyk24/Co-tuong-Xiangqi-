@@ -48,10 +48,11 @@
           if (m.type === 'OPEN') {
             done = true; clearTimeout(timer);
             this.relay = !!(this.srv.own && m.payload && m.payload.relay);
+            this.watch = !!(this.srv.own && m.payload && m.payload.watch);  // điểm hẹn có hỗ trợ người xem
             this.hb = setInterval(() => this.raw({ type: 'HEARTBEAT' }), this.srv.hb || 5000); resolve(); return;
           }
           if (m.type === 'ID-TAKEN') { clearTimeout(timer); fail('id-taken'); return; }
-          if (m.type === 'ERROR' || m.type === 'INVALID-KEY') { clearTimeout(timer); fail(m.payload && m.payload.msg === 'room-full' ? 'full' : 'server'); return; }
+          if (m.type === 'ERROR' || m.type === 'INVALID-KEY') { clearTimeout(timer); const why = m.payload && m.payload.msg; fail(why === 'room-full' ? 'full' : why === 'watch-full' ? 'watch-full' : 'server'); return; }
           if (m.type === 'HEARTBEAT') return;
           this.onMsg(m);
         };
@@ -99,12 +100,15 @@
   }
 
   const Net = {
-    state: 'idle',  // idle | opening | waiting | joining | playing | lost | ended | error
+    state: 'idle',  // idle | opening | waiting | joining | playing | lost | ended | error | watching (người xem)
     role: '', code: '', myId: '', peerId: '', mySide: 0, clockSet: '0', sideChoice: 'r',
     sig: null, pc: null, dc: null, pendingIce: [], lastSeen: 0, ping: 0, retryT: 0, joinT: 0, err: '', everConnected: false,
     connId: '', gotAnswer: false, sigDrops: 0, spare: {},  // spare: kết nối tạm để báo phòng đã có người
     si: 0, token: '',  // si: đang dùng điểm hẹn thứ mấy trong netServers(); token: thẻ cố định của máy này trong phòng
     link: '',          // đường tin ván cờ: 'dc' (nối thẳng) | 'relay' (qua điểm hẹn) | '' (chưa có)
+    // Người xem: role 'watch', state 'watching'. watchers: số người đang xem phòng (chủ phòng và khách đều biết).
+    // allowWatch: chủ phòng cho xem hay không. canWatch: vừa bị báo phòng đầy và điểm hẹn có hỗ trợ xem.
+    watchers: 0, allowWatch: Store.get('net_watch', true), canWatch: false, lastCast: '', hostSide: 0, gotSnap: false,
     waitAsk: '',    // lời xin đang chờ đối thủ trả lời: 'draw' | 'undo' | 'rematch'
     msgText: '', log: [],
     // Nhật ký kết nối ngắn (100 dòng gần nhất) để dò lỗi
@@ -122,6 +126,7 @@
 
     // ---- Lưu phiên để mở lại app (hoặc tải lại trang) vẫn nối tiếp được ván đang dở
     save() {
+      if (this.role === 'watch') return;
       if (!this.code || this.state === 'idle' || this.state === 'error') { Store.set('net_sess', null); return; }
       Store.set('net_sess', { t: Date.now(), role: this.role, code: this.code, myId: this.myId, peerId: this.peerId, mySide: this.mySide, clockSet: this.clockSet, si: this.si, token: this.token,
         moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
@@ -140,7 +145,7 @@
     // ---- Tạo phòng / vào phòng / rời phòng
     async create(sideChoice, clockSet) {
       this.reset();
-      this.role = 'host'; this.sideChoice = sideChoice; this.clockSet = clockSet;
+      this.role = 'host'; this.sideChoice = sideChoice; this.clockSet = clockSet; this.allowWatch = Store.get('net_watch', true);
       this.mySide = sideChoice === 'r' ? (Math.random() < 0.5 ? 0 : 1) : +sideChoice;
       this.state = 'opening'; this.status('Đang tạo phòng…');
       this.token = this.newToken();
@@ -174,7 +179,7 @@
       this.si = i;
       try { await this.openSignal(); } catch (e) {
         if (this.state !== 'joining') return;
-        if (e.message === 'full') { this.fail('Phòng ' + this.code + ' đã có người chơi.'); return; }
+        if (e.message === 'full') { this.failBusy(); return; }
         if (i + 1 < this.servers().length) { this.trace('điểm hẹn ' + i + ' hỏng (' + e.message + '), thử điểm hẹn tiếp'); this.joinAt(i + 1); return; }
         this.fail(this.sigError(e)); return;
       }
@@ -189,12 +194,65 @@
       this.closePeer();
       if (this.sig) this.sig.close();
       Object.keys(this.spare).forEach(k => this.dropSpare(k));
-      Object.assign(this, { sig: null, state: 'idle', role: '', code: '', peerId: '', err: '', waitAsk: '', msgText: '', everConnected: false, connId: '', gotAnswer: false, sigDrops: 0, si: 0, link: '' });
+      clearTimeout(this.castT); clearTimeout(this.watchT);
+      Object.assign(this, { sig: null, state: 'idle', role: '', code: '', peerId: '', err: '', waitAsk: '', msgText: '', everConnected: false, connId: '', gotAnswer: false, sigDrops: 0, si: 0, link: '', watchers: 0, canWatch: false, lastCast: '', gotSnap: false });
+    },
+    // Phòng đã đủ người chơi: nếu điểm hẹn có hỗ trợ xem thì hỏi người này có muốn vào xem không
+    failBusy() {
+      const own = !!this.srv().own, code = this.code, si = this.si;
+      this.fail('Phòng ' + code + ' đã có người chơi.');
+      if (own) { this.canWatch = true; this.code = code; this.si = si; Play.draw(); }
+    },
+    // ---- Xem trận đấu (không đi quân)
+    async watch(code) {
+      code = String(code || this.code || '').toUpperCase();
+      const si = this.si;
+      this.reset();
+      this.role = 'watch'; this.code = code; this.si = si; this.mySide = 0; this.peerId = NET_PREFIX + code.toLowerCase();
+      this.myId = NET_PREFIX + 'w' + Math.random().toString(36).slice(2, 12); this.token = this.newToken();
+      this.state = 'joining'; this.status('Đang vào xem phòng ' + code + '…');
+      try { await this.openSignal(); } catch (e) {
+        if (this.state !== 'joining') return;
+        this.fail(e.message === 'watch-full' ? 'Phòng ' + code + ' đã đủ 20 người xem.' : this.sigError(e)); return;
+      }
+      if (this.state !== 'joining') return;
+      if (!this.sig.watch) { this.fail('Phòng này không hỗ trợ xem trận đấu.'); return; }
+      this.state = 'watching'; this.everConnected = true;
+      Play.watchStart();
+      this.status('Đang chờ thế cờ từ chủ phòng…');
+      this.watchT = setTimeout(() => { if (this.state === 'watching' && !this.gotSnap) this.fail('Chủ phòng ' + code + ' không phản hồi, chưa xem được trận đấu.'); }, 15000);
+    },
+    // Chủ phòng: gửi thế cờ hiện tại cho người xem (gộp các lần vẽ liên tiếp; to: chỉ gửi cho một người vừa vào)
+    castSoon(to) {
+      if (this.role !== 'host' || !this.watchers || !this.allowWatch) return;
+      if (to) { this.cast(to); return; }
+      clearTimeout(this.castT); this.castT = setTimeout(() => this.cast(''), 150);
+    },
+    cast(to) {
+      if (!this.sig || !this.sig.ready() || !this.sig.watch) return;
+      const c = Play.clock;
+      const snap = { t: 'snap', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => XQ.mvStr(m)), left: c ? c.left.map(x => Math.round(x)) : null,
+        run: !!(c && c.at && !Play.over), over: Play.over || '', n: this.watchers, live: this.state === 'playing' || this.state === 'ended' };
+      const d = JSON.stringify(snap), key = d.replace(/"left":\[[^\]]*\],/, '');
+      if (!to && key === this.lastCast) return;   // không đổi gì (chỉ đồng hồ chạy): khỏi gửi
+      if (!to) this.lastCast = key;
+      this.sig.send('CAST', '', to ? { d, to } : { d });
+    },
+    onCast(p) {
+      let o; try { o = JSON.parse(p.d); } catch (e) { return; }
+      if (!o) return;
+      if (o.t === 'nowatch') { this.fail('Chủ phòng ' + this.code + ' không cho người khác xem phòng này.'); return; }
+      if (o.t !== 'snap') return;
+      clearTimeout(this.watchT);
+      this.gotSnap = true; this.hostSide = o.hostSide; this.clockSet = o.clock; this.watchers = o.n || 0;
+      Play.netLoad(o.moves, o.left, o.over || null, o.run);
+      this.msgText = o.live ? '' : 'Hai người chơi đang mất kết nối, chờ nối lại…';
+      Play.draw();
     },
     fail(text) {
-      clearInterval(this.ping); clearTimeout(this.joinT); clearTimeout(this.retryT); clearTimeout(this.p2pT);
+      clearInterval(this.ping); clearTimeout(this.joinT); clearTimeout(this.retryT); clearTimeout(this.p2pT); clearTimeout(this.watchT);
       this.closePeer(); if (this.sig) this.sig.close(); this.sig = null;
-      this.state = 'error'; this.err = text; Store.set('net_sess', null);
+      this.state = 'error'; this.err = text; this.canWatch = false; Store.set('net_sess', null);
       Play.setup = true; Play.netView = 'home'; Play.closeMenu(); Play.draw();  // quay về màn tạo / vào phòng để thấy lời báo
     },
     sigError(e) {
@@ -219,7 +277,7 @@
     // Nối lại điểm hẹn (khi đang chờ hoặc đang nối lại ván)
     async connectSignal() {
       try { await this.openSignal(); } catch (e) {
-        if (this.state === 'lost' || this.state === 'waiting') { this.scheduleRetry(); return; }
+        if (this.state === 'lost' || this.state === 'waiting' || this.state === 'watching') { this.scheduleRetry(); return; }
         this.fail(this.sigError(e)); return;
       }
       if (this.role === 'guest' && (this.state === 'lost' || this.state === 'joining')) this.dial();
@@ -234,13 +292,14 @@
         this.retryT = setTimeout(() => { if (this.state === 'joining' && !this.sig) this.connectSignal(); }, 1000);
         return;
       }
+      if (this.state === 'watching') this.status('Mất kết nối, đang nối lại…');
       // Đang chơi qua điểm hẹn mà điểm hẹn ngắt: coi như mất kết nối
       if (this.link === 'relay' && (this.state === 'playing' || this.state === 'ended')) { this.lost(); return; }
       this.scheduleRetry();
     },
     scheduleRetry() {
       this.trace('hẹn thử lại');
-      if (!(this.state === 'lost' || this.state === 'waiting' || this.state === 'playing')) return;
+      if (!(this.state === 'lost' || this.state === 'waiting' || this.state === 'playing' || this.state === 'watching')) return;
       clearTimeout(this.retryT);
       this.retryT = setTimeout(() => { if (!this.sig) this.connectSignal(); else if (this.role === 'guest' && this.state === 'lost') this.dial(); }, 3000);
     },
@@ -269,6 +328,20 @@
         return;
       }
       if (m.type === 'RELAY') { this.onRelay(m.src, p); return; }
+      if (m.type === 'CAST') { if (this.role === 'watch') this.onCast(p); return; }
+      if (m.type === 'WATCH') {
+        if (this.role !== 'host') return;
+        this.watchers = +p.n || 0;
+        if (p.src && !this.allowWatch) { if (this.sig) this.sig.send('CAST', '', { d: JSON.stringify({ t: 'nowatch' }), to: p.src }); this.watchers = Math.max(0, this.watchers - 1); }
+        else if (p.src) this.castSoon(p.src);
+        this.sendMsg({ t: 'watchers', n: this.watchers });
+        Play.draw();
+        return;
+      }
+      if (m.type === 'LEAVE' && this.role === 'watch') {
+        if (m.src === this.peerId && this.state === 'watching') this.status('Chủ phòng mất kết nối, đang chờ…');
+        return;
+      }
       if (m.type === 'LEAVE') {
         if (m.src === this.peerId && this.link === 'relay' && (this.state === 'playing' || this.state === 'ended')) this.lost();
         return;
@@ -439,7 +512,7 @@
       if (fresh) { Play.netStart(this.mySide, this.clockSet); }
       this.state = Play.over ? 'ended' : 'playing';
       if (Play.clock && !Play.over) Play.clock.at = Date.now();
-      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '' });
+      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '', watchers: this.watchers });
       this.status(fresh ? '' : 'Đã nối lại.');
       this.save();
     },
@@ -457,7 +530,7 @@
     // Quay lại app (iPhone thường ngắt mạng khi app ở nền): nối lại ngay
     wake() {
       if (this.state === 'playing' && !this.connected()) this.lost();
-      else if ((this.state === 'lost' || this.state === 'waiting') && !this.sig) this.connectSignal();
+      else if ((this.state === 'lost' || this.state === 'waiting' || this.state === 'watching') && !this.sig) this.connectSignal();
       else if (this.state === 'lost' && this.role === 'guest') this.dial();
     },
 
@@ -473,7 +546,8 @@
         return;
       }
       if (m.t === 'pong') return;
-      if (m.t === 'busy') { if (this.role === 'guest' && this.state === 'joining') this.fail('Phòng ' + this.code + ' đã có người chơi.'); return; }
+      if (m.t === 'busy') { if (this.role === 'guest' && this.state === 'joining') this.failBusy(); return; }
+      if (m.t === 'watchers') { this.watchers = +m.n || 0; Play.draw(); return; }
       this.trace('nhận: ' + m.t);
       if (m.t === 'hello') {
         if (m.p !== NET_PROTO) this.fail('Hai máy đang dùng phiên bản app khác nhau (' + APP_VERSION + ' và ' + m.v + '). Cả hai hãy đóng hẳn app rồi mở lại để cập nhật.');
@@ -481,7 +555,7 @@
       }
       if (m.t === 'state' && this.role === 'guest') {
         const fresh = this.state === 'joining';
-        this.mySide = m.hostSide ^ 1; this.clockSet = m.clock;
+        this.mySide = m.hostSide ^ 1; this.clockSet = m.clock; this.watchers = +m.watchers || 0;
         if (fresh) Play.netStart(this.mySide, this.clockSet);
         else {
           const mine = Play.moves.map(x => XQ.mvStr(x)).join(' ');

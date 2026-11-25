@@ -2,6 +2,18 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [1.6.0] – 2026-11-25
+
+### Thêm
+- **Xem trận đấu qua mạng.** Khi nhập mã một phòng đã đủ hai người, app hỏi "Bạn có muốn vào xem trận đấu không?".
+  - Người xem thấy bàn cờ, đồng hồ và kết quả, nhưng không đi quân được.
+  - Nếu hai người đấu lại, bàn cờ tự hiện ván mới.
+- **Hai người chơi thấy số người đang xem.** Người tạo phòng có thể tắt "Cho người khác vào xem trận" khi tạo phòng.
+- **Điểm hẹn riêng có vai người xem** (tối đa 20 người mỗi phòng, tính riêng với người chơi):
+  - Chủ phòng phát thế cờ một lần (tin `CAST`), máy chủ chuyển tới mọi người xem.
+  - Tin máy chủ gửi đi không tính phí trên Cloudflare.
+  - Chỉ có khi dùng điểm hẹn riêng; ở điểm hẹn dự phòng `0.peerjs.com` thì không xem được.
+
 ## [1.5.0] – 2026-11-25
 
 ### Thay đổi

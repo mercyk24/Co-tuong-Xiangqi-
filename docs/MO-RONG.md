@@ -53,6 +53,15 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
 - **Nhịp tim:** 30 giây với điểm hẹn riêng, 5 giây với `0.peerjs.com`.
 - **Chưa điền địa chỉ (`NET_OWN = ''`):** app chạy y như bản 1.3.0.
 
+### 2.3 Xem trận đấu (từ bản 1.6.0)
+- **Vai người xem:** người xem có mã máy `xqvn-w…`, vào cùng ô phòng, tính riêng (tối đa 20 người), không gửi được gì tới người chơi.
+- **Phát thế cờ:**
+  - Chủ phòng gửi `CAST` (toàn bộ thế cờ, dưới 4 KB) mỗi khi ván đổi; máy chủ chuyển tới mọi người xem.
+  - Tin máy chủ gửi ra không tính phí, nên 20 người xem cũng chỉ tốn như một.
+  - Đồng hồ không đổi thì không gửi lại; người xem tự đếm giờ.
+- **Khi có người vào hoặc rời:** chủ phòng nhận `WATCH {n}`, gửi thế cờ riêng cho người mới, và báo số người xem cho khách qua kênh nối thẳng.
+- **Chủ phòng tắt cho xem:** người xem nhận `{t:'nowatch'}` và được báo không xem được.
+
 ## 3. Đã đo
 
 Chạy `node tools/load-signal.mjs` với `server/dev-server.mjs` trên một máy ảo 2 nhân, 8 GB RAM, cùng máy với công cụ thử. Mỗi cặp làm đúng như app:
