@@ -2,6 +2,16 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.1.0] – 2026-11-26
+
+### Thêm
+- Cờ tướng: bài chiếu hết tăng từ 98 lên 1078 bài (1–6 nước; 718 bài Đen đi), sinh bằng bộ giải chiếu hết của app, mỗi bài được kiểm chứng đúng số nước tối thiểu và chỉ một nước đầu đúng.
+- Cờ tướng: thêm bài chiến thuật sinh bằng Pikafish (số bài: xem ghi chú phát hành). Hạng bài nay chia tới 1800.
+
+### Thay đổi
+- `tools/xiangqi/gen_puzzles.js`: đặt được số bài mỗi mức, chọn đa dạng tổ hợp quân, bỏ bài trùng (kể cả lật, xoay bàn). `build_puzzles.js --append` giữ bài cũ.
+- `tools/xiangqi/gen_tactics.js`: chạy nhiều Pikafish song song (`--workers`), giới hạn theo thời gian (`--minutes`), ghi từng bài ngay, giữ mã bài cũ.
+
 ## [2.0.2] – 2026-11-26
 
 Sắp xếp lại mã nguồn cho dễ bảo trì và làm trang cờ vua nhẹ hơn. Ngoài danh sách bài có nút "Xem thêm", giao diện giống hệt bản 2.0.1 (so từng điểm ảnh trên cả ba trang).

@@ -1,4 +1,6 @@
 // Sinh bài chiếu hết liên tục (連將殺): bên đi chỉ dùng nước chiếu, chiếu hết trong n nước.
+// Dùng:  node tools/xiangqi/gen_puzzles.js <số-ms> <tệp-ra.json> [số bài mỗi mức, ví dụ 1:60,2:150,3:200,4:150,5:100,6:60]
+// Bài đã có trong data/xiangqi/puzzles.json (cả hai chiều bàn cờ) được bỏ qua để không sinh trùng.
 const XQ = require('../../src/xiangqi/core/xq.js');
 const { Pos, mateFirstMoves } = XQ;
 const ri = n => (Math.random() * n) | 0;
@@ -74,8 +76,14 @@ function minimalByFen(fen, n) {
 }
 
 const want = { 1: 10, 2: 20, 3: 24, 4: 20, 5: 14, 6: 10 };
+if (process.argv[4]) for (const kv of process.argv[4].split(',')) { const [k, v] = kv.split(':'); want[+k] = +v; }
 const have = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-const seen = new Set();
+const seen = new Set(), perCombo = {};
+// Lật bàn cờ trái–phải (cột 1 ↔ cột 9): thế lật là cùng một bài
+function mirrorFen(fen) { const [b, side] = fen.split(' '); return b.split('/').map(r => { const a = []; for (const ch of r) { if (ch >= '0' && ch <= '9') for (let i = 0; i < +ch; i++) a.push(''); else a.push(ch); } a.reverse(); let o = '', e = 0; for (const ch of a) { if (!ch) e++; else { if (e) { o += e; e = 0; } o += ch; } } return o + (e || ''); }).join('/') + ' ' + side; }
+try {   // bài đã có trong app: không sinh lại (bài trong app có thể đã xoay bàn cờ, nên ghi cả hai chiều)
+  for (const p of require('../../data/xiangqi/puzzles.json')) for (const f of [p.fen, XQ.rotateFen(p.fen)]) { seen.add(f); seen.add(mirrorFen(f)); }
+} catch (e) { /* chưa có dữ liệu */ }
 const t0 = Date.now();
 const limitMs = +(process.argv[2] || 120000);
 let tried = 0;
@@ -90,6 +98,9 @@ while (Date.now() - t0 < limitMs) {
   let n = 0;
   for (let k = 1; k <= 6; k++) { if (XQ.canMate(pos, k)) { n = k; break; } }
   if (!n || have[n].length >= want[n]) continue;
+  // Đa dạng: mỗi tổ hợp quân tấn công chiếm tối đa 1/8 số bài của một mức
+  const ck = n + ':' + combo.join('');
+  if ((perCombo[ck] || 0) >= Math.max(2, Math.ceil(want[n] / 8))) continue;
   const firsts = mateFirstMoves(pos, n);
   if (firsts.length !== 1) continue;
   if (n >= 2 && !minimalByFen(fen, n)) continue;
@@ -97,8 +108,9 @@ while (Date.now() - t0 < limitMs) {
   const cnt = fen.split(' ')[0].replace(/[^a-zA-Z]/g, '').length;
   if (cnt < 7) continue;
   const key = fen;
-  if (seen.has(key)) continue;
+  if (seen.has(key) || seen.has(mirrorFen(fen))) continue;   // trùng, hoặc trùng sau khi lật trái–phải
   seen.add(key);
+  perCombo[ck] = (perCombo[ck] || 0) + 1;
   have[n].push({ fen, n, first: pos.notation(firsts[0]) });
   console.error(`n=${n} ${have[n].length}/${want[n]}  tried=${tried}  ${fen}  ${pos.notation(firsts[0])}`);
   if (Object.keys(want).every(k => have[k].length >= want[k])) break;
