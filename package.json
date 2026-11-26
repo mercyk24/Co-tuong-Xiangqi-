@@ -17,7 +17,7 @@
     "load": "node tools/load-signal.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.65.1",
     "eslint": "10.15.0"
   },
   "engines": {
