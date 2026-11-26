@@ -7,8 +7,8 @@ test-results/
 playwright-report/
 blob-report/
 # Tệp tạm khi sinh dữ liệu bằng Pikafish
-data/cothe_verified.json
-data/cothe_report.txt
+data/xiangqi/cothe_verified.json
+data/xiangqi/cothe_report.txt
 *.log
 .DS_Store
 Thumbs.db

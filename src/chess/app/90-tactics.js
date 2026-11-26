@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/90-tactics.js (giống ~66%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 90-tactics.js — CỜ VUA, tab Chiến thuật: bài theo điểm khó (kho bài Lichess, CC0), chế độ 3 phút / 5 phút / sinh tồn,
   // và "Lỗi của bạn" (thế bạn đi sai trong ván đã phân tích).
   // Bài Lichess: { id 't…', lid, fen, side 'w'|'b', pre, sol: [UCI…], r (điểm), th: [chủ đề] } — nhiều nước, máy đi nước đáp.

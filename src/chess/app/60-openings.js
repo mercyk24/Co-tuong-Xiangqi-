@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/60-openings.js (giống ~54%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 60-openings.js — CỜ VUA, tab Khai cuộc: xem và tập các biến của những khai cuộc phổ biến.
   // Dữ liệu (OPENINGS, tạo bởi tools/chess/build-data.js từ danh sách khai cuộc CC0 của Lichess):
   //   groups: { khoá: { title, en, side (bên người học: 0 Trắng, 1 Đen), order, about: [đoạn giới thiệu] } }

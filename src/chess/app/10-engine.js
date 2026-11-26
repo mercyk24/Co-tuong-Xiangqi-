@@ -1,4 +1,5 @@
-  // 10-engine.js — CỜ VUA: engine tự viết (cấp 1–5, src/core/chess.js) chạy trong Web Worker, có dự phòng chạy trên luồng chính;
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/10-engine.js (giống ~78%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // 10-engine.js — CỜ VUA: engine tự viết (cấp 1–5, src/chess/core/chess.js) chạy trong Web Worker, có dự phòng chạy trên luồng chính;
   // bảng cấp độ LEVELS (cấp 6: Fairy-Stockfish biến thể chess).
   // ---------- Engine (Web Worker + dự phòng) ----------
   // Hàm xử lý yêu cầu: chạy trong Web Worker (mã được ghép thành chuỗi từ chính hàm này) hoặc trên luồng chính khi không có Worker.

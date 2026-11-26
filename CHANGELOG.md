@@ -2,6 +2,18 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.0.2] – 2026-11-26
+
+Không đổi gì với người chơi (giao diện so từng điểm ảnh với bản 2.0.1 trên cả ba trang: giống nhau). Sắp xếp lại mã nguồn cho dễ bảo trì:
+
+### Thay đổi
+- Mỗi loại cờ một thư mục riêng, cùng quy tắc ở mọi nơi: `xiangqi/` (cờ tướng), `chess/` (cờ vua), `shared/` hoặc `net/` (dùng chung) trong `src/`, `data/`, `tools/`, `tests/`.
+  Lõi luật chuyển vào `src/xiangqi/core/`, `src/chess/core/`; module chung vào `src/shared/app/`; icon và service worker vào `src/shared/assets/`.
+- Tách CSS: phần chung `src/shared/base.css`, phần riêng `src/xiangqi/game.css`, `src/chess/game.css` (trước đây chép lặp trong hai khung trang).
+- Dòng đầu mỗi tệp mã nguồn ghi nhãn [DÙNG CHUNG] / [CỜ TƯỚNG] / [CỜ VUA]; tệp song sinh ghi tên bản bên kia và mức giống nhau.
+- Tài liệu mới: `docs/CAU-TRUC.md` (sơ đồ, ranh giới chung/riêng, bảng "muốn sửa X thì sửa ở đâu", cách thêm loại cờ), `docs/DU-LIEU-CO-VUA.md`; `docs/data.md` đổi tên thành `docs/DU-LIEU-CO-TUONG.md`. README ngắn trong `src/`, `data/`, `tools/`, `tests/`.
+- Kiểm tra trang chủ tách ra `tests/e2e/shared/portal.spec.js`. Cần Node.js 22 trở lên (chạy kiểm tra đơn vị theo mẫu thư mục).
+
 ## [2.0.1] – 2026-11-26
 
 ### Thay đổi

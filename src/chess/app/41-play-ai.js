@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/41-play-ai.js (giống ~74%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 41-play-ai.js — CỜ VUA, đấu với máy: màn chuẩn bị, sách khai cuộc ngắn, gọi engine, nhắc nước yếu, gợi ý.
   // Các hàm được gắn thêm vào Play (định nghĩa trong 40-play.js).
   Object.assign(Play, {

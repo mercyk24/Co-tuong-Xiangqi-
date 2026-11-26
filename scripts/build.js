@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Dựng bản phát hành vào thư mục dist/ gồm ba trang:
 //   dist/index.html            trang chủ: chọn loại cờ (src/portal/index.html)
-//   dist/co-tuong/index.html   Cờ Tướng: lõi src/core/xq.js + module src/shared/ và src/app/ + dữ liệu data/
-//   dist/co-vua/index.html     Cờ Vua:   lõi src/core/chess.js + module src/shared/ và src/chess/app/ + dữ liệu data/chess/
-// Mỗi app: ghép module (theo số đầu tên tệp, src/shared/ dùng chung) thành một khối 'use strict', ghi kèm .build/<app>.js để
-// kiểm tra lỗi mã; nhúng lõi luật, dữ liệu và mã vào mẫu HTML (một file, chạy được ngoại tuyến).
+//   dist/co-tuong/index.html   Cờ Tướng: src/xiangqi/ (lõi, module, giao diện) + src/shared/ + dữ liệu data/xiangqi/
+//   dist/co-vua/index.html     Cờ Vua:   src/chess/   (lõi, module, giao diện) + src/shared/ + dữ liệu data/chess/
+// Mỗi app: ghép module src/shared/app/ + src/<loại cờ>/app/ (theo số đầu tên tệp) thành một khối 'use strict', ghi kèm
+// .build/<app>.js để kiểm tra lỗi mã; nhúng CSS (src/shared/base.css rồi src/<loại cờ>/game.css), lõi luật, dữ liệu và mã
+// vào mẫu HTML (một file, chạy được ngoại tuyến). Sơ đồ đầy đủ: docs/CAU-TRUC.md.
 // Chép tài nguyên (icon, service worker chung ở gốc) và engine mạnh (engine/, dùng chung) sang dist/; tự điền số phiên bản,
 // tên cache cho service worker (theo mã băm nội dung) và chính sách nội dung (CSP) riêng cho từng trang.
 'use strict';
@@ -97,16 +98,18 @@ function headersFile(pages) {
   return out.join('\n') + '\n';
 }
 
-// Hai app cờ. Thêm loại cờ mới: thêm một mục ở đây, một thư mục module và một mẫu HTML.
+// Phần dùng chung của mọi app
+const SHARED = { modules: 'src/shared/app', css: 'src/shared/base.css', assets: 'src/shared/assets' };
+// Hai app cờ. Thêm loại cờ mới: thêm một mục ở đây và một thư mục src/<loại cờ>/ giống src/chess/ (xem docs/CAU-TRUC.md).
 const APPS = [
   {
     id: 'xiangqi', dir: 'co-tuong/', title: 'Cờ Tướng Luyện Tập', short: 'Cờ Tướng',
-    template: 'src/index.template.html', core: 'src/core/xq.js', modules: ['src/shared', 'src/app'],
-    blocks: { '/*__PUZZLES__*/': ['puzzles.json'], '/*__OPENINGS__*/': ['openings.json'], '/*__TACTICS__*/': ['tactics.json', '[]'], '/*__BOOK__*/': ['book.json', '{}'] }
+    template: 'src/xiangqi/index.template.html', css: 'src/xiangqi/game.css', core: 'src/xiangqi/core/xq.js', modules: [SHARED.modules, 'src/xiangqi/app'],
+    blocks: { '/*__PUZZLES__*/': ['xiangqi/puzzles.json'], '/*__OPENINGS__*/': ['xiangqi/openings.json'], '/*__TACTICS__*/': ['xiangqi/tactics.json', '[]'], '/*__BOOK__*/': ['xiangqi/book.json', '{}'] }
   },
   {
     id: 'chess', dir: 'co-vua/', title: 'Cờ Vua Luyện Tập', short: 'Cờ Vua',
-    template: 'src/chess/index.template.html', core: 'src/core/chess.js', modules: ['src/shared', 'src/chess/app'], pieces: 'src/chess/pieces',
+    template: 'src/chess/index.template.html', css: 'src/chess/game.css', core: 'src/chess/core/chess.js', modules: [SHARED.modules, 'src/chess/app'], pieces: 'src/chess/pieces',
     blocks: { '/*__PUZZLES__*/': ['chess/puzzles.json', '[]'], '/*__OPENINGS__*/': ['chess/openings.json', '{"groups":{},"lines":[],"names":{}}'], '/*__TACTICS__*/': ['chess/tactics.json', '[]'], '/*__BOOK__*/': ['chess/book.json', '{}'] }
   }
 ];
@@ -168,6 +171,10 @@ function main() {
     for (const [key, [file, fallback]] of Object.entries(app.blocks)) blocks[key] = jsonData(file, fallback);
     blocks['/*__APP__*/'] = code;
     let html = read(app.template);
+    const css = read(SHARED.css).replace(/\s+$/, '') + '\n' + read(app.css).replace(/\s+$/, '');
+    if (/<\/style/i.test(css)) throw new Error(app.id + ': CSS chứa "</style"');
+    if (html.indexOf('/*__CSS__*/') < 0) throw new Error(app.template + ' thiếu chỗ nhúng /*__CSS__*/');
+    html = html.replace('/*__CSS__*/', () => css);
     if (app.pieces) {
       html = html.replace('<!--__PIECES__-->', pieceSymbols(app.pieces));
       html = html.replace(/__IC_([wb][KQRBNP])__/g, (_, n) => '<svg viewBox="0 0 45 45" aria-hidden="true"><use href="#cp-' + n + '"/></svg>');
@@ -191,7 +198,7 @@ function main() {
   pages.unshift(['', pcsp]); all.update(portal);
   const hash = all.digest('hex').slice(0, 10);
 
-  copyDir(r('src', 'assets'), dist);
+  copyDir(r(SHARED.assets), dist);
   fs.writeFileSync(path.join(dist, 'manifest.webmanifest'), manifest('Cờ Luyện Tập', 'Cờ Luyện Tập', ''));
   const swPath = path.join(dist, 'sw.js');
   const sw = fs.readFileSync(swPath, 'utf8');

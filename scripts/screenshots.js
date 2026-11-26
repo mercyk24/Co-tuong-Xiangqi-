@@ -15,7 +15,7 @@ const PORT = 4174, OUT = path.join(__dirname, '..', 'docs', 'screenshots');
   try {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
-    await page.goto('http://localhost:' + PORT + '/index.html');
+    await page.goto('http://localhost:' + PORT + '/co-tuong/index.html');
     await page.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 30000 });
     const shot = async name => { await page.evaluate(() => { document.querySelector('#toast').className = ''; window.scrollTo(0, 0); }); await page.waitForTimeout(400); await page.screenshot({ path: path.join(OUT, name + '.png') }); console.log('đã chụp ' + name); };
 

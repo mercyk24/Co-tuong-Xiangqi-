@@ -1,0 +1,7 @@
+/* [CỜ TƯỚNG] Phần giao diện riêng của cờ tướng, nhúng SAU src/shared/base.css. */
+/* Ô bị chiếu: viền đỏ quanh Tướng */
+.chk{fill:rgba(220,40,30,.28);stroke:rgba(220,40,30,.8);stroke-width:3}
+/* Danh sách nước đi: ký hiệu Hán dùng font Hán */
+.moves{font-family:var(--han);font-size:17px}
+/* Chấm màu bên đi: Đỏ */
+.dot.r{background:#b3261e}

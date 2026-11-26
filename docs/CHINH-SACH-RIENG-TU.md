@@ -1,6 +1,6 @@
 # Chính sách quyền riêng tư – Cờ Tướng Luyện Tập và Cờ Vua Luyện Tập
 
-Bản ngày 25/11/2026 (áp dụng từ phiên bản 1.7.0). Nội dung giống mục Giới thiệu › Quyền riêng tư trong app; sửa ở đây thì sửa cả trong `src/index.template.html`, và nếu thay đổi nội dung chính thì tăng `Consent.VERSION` trong `src/app/45-net.js` để app hỏi lại sự đồng ý.
+Bản ngày 25/11/2026 (áp dụng từ phiên bản 1.7.0). Nội dung giống mục Giới thiệu › Quyền riêng tư trong app; sửa ở đây thì sửa cả trong `src/xiangqi/index.template.html` và `src/chess/index.template.html`, và nếu thay đổi nội dung chính thì tăng `Consent.VERSION` trong `src/shared/app/45-net.js` để app hỏi lại sự đồng ý.
 
 ## 1. Ai xử lý dữ liệu
 

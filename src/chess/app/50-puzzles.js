@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/50-puzzles.js (giống ~65%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 50-puzzles.js — CỜ VUA, tab Chiếu hết: bài chiếu hết trong 1–5 nước lấy từ kho bài Lichess (CC0).
   // Bài (PUZZLES, tạo bởi tools/chess/build-data.js): { id, lid (mã bài trên Lichess), n (số nước), side (0 Trắng, 1 Đen),
   //   fen (thế người giải đi), pre (nước vừa đi của đối phương, để tô), sol: [nước UCI: người giải, đối phương, người giải…], r (điểm) }

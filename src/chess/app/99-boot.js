@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/99-boot.js (giống ~92%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 99-boot.js — CỜ VUA. Điều hướng giữa các tab và khởi động app (đăng ký service worker, bật engine mạnh).
   // ---------- Điều hướng ----------
   function showTab(name) {

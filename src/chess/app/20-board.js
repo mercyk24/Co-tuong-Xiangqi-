@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/20-board.js (giống ~39%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 20-board.js — CỜ VUA: bàn 8×8 vẽ bằng SVG (quân đứng trong ô, lật bàn, đánh dấu nước vừa đi, gợi ý, ô bị chiếu)
   // và xử lý chọn quân, kể cả nước phong cấp (một ô đích có tới bốn nước: phong Hậu, Xe, Tượng, Mã).
   // Hình quân là các <symbol id="cp-wK"…> nhúng sẵn trong trang (build lấy từ src/chess/pieces/).

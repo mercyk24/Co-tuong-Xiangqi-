@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/42-play-net.js (giống ~95%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 42-play-net.js — CỜ VUA. Phần giao diện của chơi qua mạng: màn tạo / vào phòng, xin đồng ý, xem trận, các hàm Net gọi vào.
   // Kết nối và giao thức nằm trong 45-net.js. Các hàm được gắn thêm vào Play (định nghĩa trong 40-play.js).
   Object.assign(Play, {

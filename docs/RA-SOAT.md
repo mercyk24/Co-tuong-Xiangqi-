@@ -39,7 +39,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 
 **Kiến trúc (bản 1.3.0)**
 - Hai máy nối thẳng bằng WebRTC (kênh dữ liệu). Nước đi không qua máy chủ nào.
-- Để tìm thấy nhau, hai máy dùng điểm hẹn công cộng `0.peerjs.com` (chỉ chuyển lời mời kết nối) và máy chủ STUN của Google, Cloudflare. Phần kết nối tự viết (`src/app/45-net.js`), không thêm thư viện. Tin gửi lên điểm hẹn phải đúng dạng thư viện PeerJS 1.5.5 (máy chủ kiểm tra từng trường và cả nội dung SDP, sai dạng là bị ngắt kết nối); điểm hẹn giả dùng khi kiểm tra cũng kiểm tra dạng tin y như vậy.
+- Để tìm thấy nhau, hai máy dùng điểm hẹn công cộng `0.peerjs.com` (chỉ chuyển lời mời kết nối) và máy chủ STUN của Google, Cloudflare. Phần kết nối tự viết (`src/shared/app/45-net.js`), không thêm thư viện. Tin gửi lên điểm hẹn phải đúng dạng thư viện PeerJS 1.5.5 (máy chủ kiểm tra từng trường và cả nội dung SDP, sai dạng là bị ngắt kết nối); điểm hẹn giả dùng khi kiểm tra cũng kiểm tra dạng tin y như vậy.
 - Mã phòng 6 ký tự, có link mời `…/#phong=MÃ`. Máy tạo phòng giữ bản gốc của ván. Khi rớt mạng, hai máy tự nối lại và đồng bộ toàn bộ ván. Mở lại app trong vòng 2 giờ vẫn nối tiếp được ván đang dở.
 - Điểm hẹn ngắt giữa lúc đang vào phòng thì app tự vào lại (tối đa 2 lần). Lời báo lỗi tách riêng: không tìm thấy phòng, chủ phòng không phản hồi, điểm hẹn liên tục ngắt, hai máy thấy nhau nhưng mạng chặn nối thẳng, phòng đã có người.
 - Đã có: kiểm tra nước đi hợp lệ, chặn tin giả "bạn hết giờ", giới hạn giờ khai khống, đồng bộ lại khi số nước hai máy lệch nhau, báo khi khác phiên bản giao thức.
@@ -52,8 +52,8 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 - Ghép cặp với người lạ cần máy chủ và một lượng người chơi đủ đông; chưa có.
 
 **Kiểm tra**
-- `tests/e2e/net.spec.js`: 10 bài, hai trang nối WebRTC thật qua điểm hẹn giả (tạo / vào phòng, đồng bộ nước và đồng hồ, xin hòa / đi lại / chịu thua / đấu lại, rớt mạng và nối lại, gói tin bị rơi, link mời trên máy mới, sai mã, khác phiên bản, tin giả, máy thứ ba vào phòng đã đủ người, điểm hẹn ngắt lúc đang vào phòng).
-- `tests/e2e/net-real.spec.js`: chạy với điểm hẹn thật, cần Internet, chạy tay bằng `XQ_NET_REAL=1`. `node tools/check-signal.js` thử riêng điểm hẹn không cần trình duyệt.
+- `tests/e2e/shared/net.spec.js`: 10 bài, hai trang nối WebRTC thật qua điểm hẹn giả (tạo / vào phòng, đồng bộ nước và đồng hồ, xin hòa / đi lại / chịu thua / đấu lại, rớt mạng và nối lại, gói tin bị rơi, link mời trên máy mới, sai mã, khác phiên bản, tin giả, máy thứ ba vào phòng đã đủ người, điểm hẹn ngắt lúc đang vào phòng).
+- `tests/e2e/shared/net-real.spec.js`: chạy với điểm hẹn thật, cần Internet, chạy tay bằng `XQ_NET_REAL=1`. `node tools/net/check-signal.js` thử riêng điểm hẹn không cần trình duyệt.
 - Bài học: bản đầu gửi tin dạng tối giản, qua được điểm hẹn giả nhưng bị `0.peerjs.com` chặn. Vì vậy trước mỗi lần phát hành có sửa phần mạng, phải chạy `net-real` (là điều kiện để phát hành).
 - **Chưa kiểm tra trên hai iPhone thật ở hai mạng khác nhau.** Cần làm trước khi giới thiệu rộng.
 
@@ -67,7 +67,7 @@ Mục đích: đánh giá repo theo hai hướng phát triển sau này: **có n
 ## 4. Kiến trúc mã và bảo trì 🟠
 
 **Điểm mạnh**
-- Lõi luật cờ (`src/core/xq.js`) tách riêng, chạy được cả trình duyệt và Node, kiểm tra perft đến độ sâu 4.
+- Lõi luật cờ (`src/xiangqi/core/xq.js`) tách riêng, chạy được cả trình duyệt và Node, kiểm tra perft đến độ sâu 4.
 - Bước dựng bằng Node. CI/CD trên GitHub Actions kiểm tra rồi mới triển khai. Có ESLint.
 - 32 bài kiểm tra giao diện và 9 bài kiểm tra luật cờ, dữ liệu.
 

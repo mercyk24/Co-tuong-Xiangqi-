@@ -40,7 +40,7 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
 - **`server/dev-server.mjs`:** bản chạy bằng Node trên máy (WebSocket tự viết, không cần cài gì). Dùng để kiểm tra tự động và thử tải.
 - **`wrangler.jsonc`:** cấu hình đưa lên Cloudflare.
 
-### 2.2 App (`src/shared/45-net.js`, dùng chung cho cờ tướng và cờ vua)
+### 2.2 App (`src/shared/app/45-net.js`, dùng chung cho cờ tướng và cờ vua)
 - **Danh sách điểm hẹn:** điểm hẹn riêng (`NET_OWN`) trước, `0.peerjs.com` dự phòng.
   - Tạo phòng: điểm hẹn riêng không vào được thì tạo ở điểm hẹn dự phòng.
   - Vào phòng: không vào được điểm hẹn riêng, hoặc không thấy phòng ở đó, thì tìm tiếp ở điểm hẹn dự phòng.
@@ -70,7 +70,7 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
 
 ## 3. Đã đo
 
-Chạy `node tools/load-signal.mjs` với `server/dev-server.mjs` trên một máy ảo 2 nhân, 8 GB RAM, cùng máy với công cụ thử. Mỗi cặp làm đúng như app:
+Chạy `node tools/net/load-signal.mjs` với `server/dev-server.mjs` trên một máy ảo 2 nhân, 8 GB RAM, cùng máy với công cụ thử. Mỗi cặp làm đúng như app:
 - vào điểm hẹn;
 - gửi lời mời và trả lời;
 - trao đổi 4 địa chỉ mỗi bên;
@@ -144,16 +144,16 @@ Muốn không bao giờ bị ngắt vì hạn mức thì nâng lên gói 5 USD/t
 2. **Cài công cụ:** trong thư mục dự án, chạy `npm i -D wrangler`.
 3. **Thử trên máy (không cần tài khoản):**
    - Chạy `npx wrangler dev` (cổng 8787).
-   - Ở cửa sổ khác, chạy `node tools/load-signal.mjs ws://127.0.0.1:8787 --cap 500`.
+   - Ở cửa sổ khác, chạy `node tools/net/load-signal.mjs ws://127.0.0.1:8787 --cap 500`.
 4. **Đăng nhập và đưa lên:**
    - Chạy `npx wrangler login`. Trình duyệt mở ra, người dùng bấm đồng ý.
    - Chạy `npx wrangler deploy`. Wrangler in ra địa chỉ dạng `https://co-tuong.<tên>.workers.dev`.
 5. **Kiểm tra:**
    - Mở `https://co-tuong.<tên>.workers.dev/health`, phải thấy `{"ok":true,...}`.
-   - Kiểm tra giao thức (không thử tải): `node tools/load-signal.mjs wss://co-tuong.<tên>.workers.dev --check --origin https://mercyk24.github.io`.
-   - Thử tải nhẹ: `node tools/load-signal.mjs wss://co-tuong.<tên>.workers.dev --cap 200 --origin https://mercyk24.github.io`. Từ bản 1.7.0 máy chủ giới hạn 120 lần mở kết nối mỗi phút cho một IP, nên thử tải từ một máy sẽ bị chặn phần lớn; đó là giới hạn hoạt động đúng, không phải máy chủ quá tải.
+   - Kiểm tra giao thức (không thử tải): `node tools/net/load-signal.mjs wss://co-tuong.<tên>.workers.dev --check --origin https://mercyk24.github.io`.
+   - Thử tải nhẹ: `node tools/net/load-signal.mjs wss://co-tuong.<tên>.workers.dev --cap 200 --origin https://mercyk24.github.io`. Từ bản 1.7.0 máy chủ giới hạn 120 lần mở kết nối mỗi phút cho một IP, nên thử tải từ một máy sẽ bị chặn phần lớn; đó là giới hạn hoạt động đúng, không phải máy chủ quá tải.
 6. **Bật trong app:**
-   - Điền `const NET_OWN = 'wss://co-tuong.<tên>.workers.dev';` trong `src/app/45-net.js`.
+   - Điền `const NET_OWN = 'wss://co-tuong.<tên>.workers.dev';` trong `src/shared/app/45-net.js`.
    - Thêm `https://co-tuong.<tên>.workers.dev` vào `ALLOWED_ORIGINS` trong `wrangler.jsonc`, rồi `npx wrangler deploy` lại.
    - Chạy kiểm tra, rồi phát hành.
    - **Đã làm ở bản 1.4.0** với địa chỉ `wss://co-tuong.cotuong-mercy.workers.dev`.

@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/80-analysis.js (giống ~88%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 80-analysis.js — CỜ VUA, phân tích ván bằng engine mạnh (Fairy-Stockfish biến thể chess): điểm từng nước, nước sai, đường đi dự kiến, soi sâu; tạo bài "Lỗi của bạn".
   // ---------- Phân tích ván ----------
   // Điểm của engine tính theo phần trăm Tốt (100 = một Tốt). Ngưỡng chưa chính xác / sai lầm / sai lầm nặng theo cách quen dùng.

@@ -1,0 +1,25 @@
+/* [CỜ VUA] Phần giao diện riêng của cờ vua, nhúng SAU src/shared/base.css. */
+/* Bàn cờ vua: ô sáng / tối kiểu gỗ, quân đứng trong ô */
+.sq-l{fill:#f0d9b5}.sq-d{fill:#b58863}
+.coord{font:600 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}.coord.on-l{fill:#b58863}.coord.on-d{fill:#f0d9b5}
+.cboard .last{fill:rgba(205,210,106,.55);stroke:none}
+.selsq{fill:rgba(20,85,30,.45)}
+.cboard .tgt{fill:rgba(20,85,30,.5)}
+.cboard .tgt.cap{fill:none;stroke:rgba(20,85,30,.55);stroke-width:7}
+.chk{fill:rgba(230,30,20,.55);filter:blur(5px)}
+.cp{pointer-events:none}
+.pcico{width:100%;height:100%;display:block}
+.promo{position:relative;margin:6px 0;padding:10px;border:2px solid var(--accent);border-radius:14px;background:var(--card);text-align:center}
+.promo.rot{transform:rotate(180deg)}
+.promo p{margin:0 0 6px;font-weight:600}
+.promo-row{display:flex;gap:8px;justify-content:center}
+.promo-row button{width:64px;height:64px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#f0d9b5;cursor:pointer}
+.gl svg,.tab b svg{width:72%;height:72%}
+.tab b svg{width:26px;height:26px}
+/* Cờ vua: biểu tượng là hình quân trên nền ô sáng, không có vòng viền đỏ kiểu quân cờ tướng */
+.hero-gl{box-shadow:none;background:#f0d9b5;border:2px solid #b58863;color:inherit}
+.hero-gl svg{width:40px;height:40px}
+/* Danh sách nước đi: ký hiệu quốc tế (SAN) */
+.moves{font-size:16px}
+/* Chấm màu bên đi: Trắng */
+.dot.w{background:#fff;box-shadow:0 0 0 1px #888}

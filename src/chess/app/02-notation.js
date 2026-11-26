@@ -1,3 +1,4 @@
+  // [CỜ VUA] Chỉ app cờ vua dùng (riêng, không có bản tương ứng bên cờ tướng). Sơ đồ: docs/CAU-TRUC.md
   // 02-notation.js — CỜ VUA: danh sách nước đi theo ký hiệu quốc tế SAN (Nf3, exd5, O-O, e8=Q+), đánh số 1. 1…
   function moveListHtml(notes, startSide, current, clickable) {
     // notes: mảng chuỗi SAN; startSide: 0 nếu nước đầu là Trắng

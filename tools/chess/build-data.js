@@ -2,11 +2,11 @@
 // Tạo dữ liệu cờ vua cho app từ nguyên liệu đã tải (tools/chess/fetch-data.mjs), không cần mạng:
 //   data/chess/src/puzzles-selected.csv  ->  data/chess/puzzles.json (chiếu hết 1–5 nước), data/chess/tactics.json (chiến thuật)
 //   data/chess/src/openings/*.tsv         ->  data/chess/openings.json (nhóm khai cuộc, biến, tên), data/chess/book.json (sách của máy)
-// Mọi nước đi đều được kiểm tra lại bằng lõi luật của app (src/core/chess.js); bài nào sai thì bỏ.
+// Mọi nước đi đều được kiểm tra lại bằng lõi luật của app (src/chess/core/chess.js); bài nào sai thì bỏ.
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const CH = require('../../src/core/chess.js');
+const CH = require('../../src/chess/core/chess.js');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const r = (...p) => path.join(ROOT, ...p);

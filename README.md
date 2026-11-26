@@ -7,7 +7,7 @@ Trang chủ (`/`) cho chọn loại cờ:
 - **Cờ Tướng** – `/co-tuong/` (link mời cũ dạng `…/#phong=ABC123` tự chuyển về đây).
 - **Cờ Vua** – `/co-vua/`.
 
-Hai app dùng chung khung (đấu máy 6 cấp, hai người một máy, chơi qua mạng, phân tích ván, chiếu hết, chiến thuật, khai cuộc, sao lưu), nhưng **luật, dữ liệu, tiến độ, cài đặt và phòng chơi qua mạng hoàn toàn tách riêng**: lõi luật riêng (`src/core/xq.js`, `src/core/chess.js`), khoá lưu trữ riêng (`xq_…`, `xc_…`), tệp sao lưu của loại cờ này không khôi phục được vào loại kia, mã phòng của cờ vua không vào được phòng cờ tướng.
+Hai app dùng chung khung (đấu máy 6 cấp, hai người một máy, chơi qua mạng, phân tích ván, chiếu hết, chiến thuật, khai cuộc, sao lưu), nhưng **luật, dữ liệu, tiến độ, cài đặt và phòng chơi qua mạng hoàn toàn tách riêng**: lõi luật riêng (`src/xiangqi/core/xq.js`, `src/chess/core/chess.js`), khoá lưu trữ riêng (`xq_…`, `xc_…`), tệp sao lưu của loại cờ này không khôi phục được vào loại kia, mã phòng của cờ vua không vào được phòng cờ tướng.
 
 ## Cờ Vua
 
@@ -47,7 +47,7 @@ Yêu cầu: trình duyệt hỗ trợ WebAssembly và SharedArrayBuffer (Safari 
 
 ## Phát triển
 
-Cần Node.js 20 trở lên.
+Cần Node.js 22 trở lên.
 
 ```bash
 npm ci                         # cài công cụ kiểm tra (ESLint, Playwright)
@@ -64,9 +64,9 @@ Các lệnh khác:
 | `node tools/chess/fetch-data.mjs` | Tải nguyên liệu cờ vua (hình quân, danh mục khai cuộc, kho bài tập Lichess). Cần mạng, chạy một lần. |
 | `node tools/chess/build-data.js` | Dựng `data/chess/*.json` từ nguyên liệu trên, kiểm lại mọi nước bằng lõi luật (không cần mạng). |
 | `npm run lint` | Kiểm tra lỗi mã bằng ESLint. |
-| `npm run test:unit` | Kiểm tra luật cờ tướng và cờ vua (perft, ký hiệu, FEN) và toàn vẹn dữ liệu trong `data/`, `data/chess/`. |
+| `npm run test:unit` | Kiểm tra luật cờ tướng và cờ vua (perft, ký hiệu, FEN) và toàn vẹn dữ liệu trong `data/xiangqi/`, `data/chess/`. |
 | `npm run test:e2e` | Kiểm tra giao diện bằng Playwright, kể cả engine mạnh và phân tích ván. |
-| `npm run openings` | Dựng lại `data/openings.json` và `data/book.json` từ dữ liệu khai cuộc. |
+| `npm run openings` | Dựng lại `data/xiangqi/openings.json` và `data/xiangqi/book.json` từ dữ liệu khai cuộc cờ tướng. |
 | `node scripts/screenshots.js` | Chụp lại ảnh màn hình trong `docs/screenshots/`. |
 | `XQ_NET_REAL=1 npx playwright test net-real` | Thử chơi qua mạng với điểm hẹn thật (cần Internet, không chạy trên CI). |
 | `npm run signal` | Chạy điểm hẹn riêng trên máy (`ws://localhost:4174`), không cần cài gì. |
@@ -74,30 +74,28 @@ Các lệnh khác:
 
 ### Cấu trúc thư mục
 
+Mỗi loại cờ có thư mục riêng cùng một quy tắc ở mọi nơi: `xiangqi/` là cờ tướng, `chess/` là cờ vua, `shared/` (hoặc `net/`)
+là dùng chung. Dòng đầu mỗi tệp mã nguồn ghi nhãn **[DÙNG CHUNG]**, **[CỜ TƯỚNG]** hoặc **[CỜ VUA]**.
+**Sơ đồ đầy đủ, ranh giới chung/riêng và bảng "muốn sửa X thì sửa ở đâu": [docs/CAU-TRUC.md](docs/CAU-TRUC.md).**
+
 ```
-src/
-  core/xq.js            Lõi luật cờ tướng: sinh nước, ký hiệu Hán, FEN, engine alpha-beta, bộ giải chiếu hết (chạy được cả trong Node)
-  core/chess.js         Lõi luật cờ vua: bàn 0x88, sinh nước, SAN, FEN, trạng thái kết thúc, engine alpha-beta, perft
-  shared/*.js           Phần dùng chung hai app (tiện ích, lưu trữ, engine mạnh, chơi qua mạng, cài đặt, sao lưu, báo lỗi);
-                        đọc cấu hình GAME (khoá lưu trữ, tiền tố mạng, tên app) của từng app
-  app/*.js              Giao diện cờ tướng (00-game.js là cấu hình GAME), index.template.html là khung trang cờ tướng
-  chess/app/*.js        Giao diện cờ vua, chess/index.template.html là khung trang cờ vua, chess/pieces/ là hình quân
-  portal/index.html     Trang chủ chọn loại cờ
-  assets/               Icon, service worker dùng chung (lưu ngoại tuyến cả ba trang + thêm tiêu đề COOP/COEP cho engine)
-data/                   Dữ liệu cờ tướng (JSON) và dữ liệu thô sinh từ Pikafish
-data/chess/             Dữ liệu cờ vua (JSON) và nguyên liệu tải về trong data/chess/src/
-engine/                 Fairy-Stockfish WebAssembly và mạng NNUE cờ tướng (xem engine/README.md; mã băm trong engine/SHA256SUMS)
-tools/                  Công cụ sinh dữ liệu cờ tướng bằng Pikafish (docs/data.md); tools/chess/ cho cờ vua; thử điểm hẹn
-server/                 Điểm hẹn riêng cho chơi qua mạng: core.mjs (lõi), worker.mjs (Cloudflare), dev-server.mjs (Node)
-scripts/                build.js, serve.js, screenshots.js
-tests/unit/             Kiểm tra bằng node:test
-tests/e2e/              Kiểm tra giao diện bằng Playwright
+src/shared/      [DÙNG CHUNG] module chung (app/), giao diện chung (base.css), icon và service worker (assets/)
+src/portal/      [DÙNG CHUNG] trang chủ chọn loại cờ
+src/xiangqi/     [CỜ TƯỚNG]   lõi luật (core/xq.js), module (app/), game.css, index.template.html
+src/chess/       [CỜ VUA]     lõi luật (core/chess.js), module (app/), game.css, pieces/, index.template.html
+data/xiangqi/    [CỜ TƯỚNG]   dữ liệu nhúng vào app (docs/DU-LIEU-CO-TUONG.md)
+data/chess/      [CỜ VUA]     dữ liệu nhúng vào app (docs/DU-LIEU-CO-VUA.md)
+tools/           xiangqi/ (Pikafish), chess/ (Lichess), net/ (thử điểm hẹn)
+tests/           unit/ và e2e/, mỗi nơi chia shared/, xiangqi/, chess/
+engine/          [DÙNG CHUNG] Fairy-Stockfish WebAssembly; xiangqi-*.nnue là mạng của cờ tướng (engine/README.md)
+server/          [DÙNG CHUNG] điểm hẹn chơi qua mạng: core.mjs, worker.mjs (Cloudflare), dev-server.mjs (Node)
+scripts/         build.js, serve.js, screenshots.js
 ```
 
 ### Quy ước
 
 - Không sửa `dist/` hay `.build/`: đó là bản tự sinh.
-- Chữ hiển thị cho người dùng viết bằng tiếng Việt; ký hiệu nước đi lưu nội bộ bằng chữ Hán và được chuyển sang tiếng Việt khi hiển thị.
+- Chữ hiển thị cho người dùng viết bằng tiếng Việt. Cờ tướng: ký hiệu nước đi lưu nội bộ bằng chữ Hán, chuyển sang tiếng Việt khi hiển thị. Cờ vua: ký hiệu quốc tế (SAN).
 - Khi phát hành bản mới: tăng `version` trong `package.json` và ghi vào `CHANGELOG.md`. Tên cache của service worker tự đổi theo phiên bản và nội dung, nên người dùng luôn nhận bản mới.
 
 ## Triển khai
@@ -106,7 +104,7 @@ Mỗi lần đẩy lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yml
 
 ## Chơi qua mạng
 
-`src/shared/45-net.js`: hai máy nối thẳng bằng WebRTC. Để tìm thấy nhau, app dùng điểm hẹn nói giao thức PeerJS (phần kết nối tự viết) và STUN của Google, Cloudflare; nước đi không qua máy chủ.
+`src/shared/app/45-net.js`: hai máy nối thẳng bằng WebRTC. Để tìm thấy nhau, app dùng điểm hẹn nói giao thức PeerJS (phần kết nối tự viết) và STUN của Google, Cloudflare; nước đi không qua máy chủ.
 
 - **Điểm hẹn riêng** (`server/`, chạy trên Cloudflare Workers + Durable Objects, mỗi phòng một ô riêng): dùng trước nếu đã điền `NET_OWN` trong `45-net.js`. Mã máy cờ tướng bắt đầu bằng `xqvn-`, cờ vua bằng `xcvn-`; điểm hẹn giữ phòng của hai loại cờ tách riêng. Khi mạng chặn nối thẳng, ván tự đi qua điểm hẹn này.
 - **Điểm hẹn công cộng** `0.peerjs.com`: dự phòng khi điểm hẹn riêng hỏng hoặc chưa cài.

@@ -9,7 +9,7 @@ Các tệp trong thư mục này được chép nguyên sang `dist/engine/` khi 
 | `stockfish.worker.js` | gói npm `fairy-stockfish-nnue.wasm` 1.1.12, giữ nguyên | `067be484ac62f728b0dad28496997e5862f3c61f9091f59bb35d9d1b1ed14573` |
 | `xiangqi-c07e94a5c7cb.nnue` | mạng NNUE cờ tướng trong [danh sách mạng của Fairy-Stockfish](https://fairy-stockfish.github.io/nnue/) | `c07e94a5c7cbeae443ed79a8fa412875d833a7f8e04333815e39729c59d52e11` |
 
-Mã băm cũng nằm trong `SHA256SUMS`; bộ kiểm tra `tests/unit/engine-integrity.test.js` so từng tệp với danh sách này, nên tệp engine bị thay là kiểm tra báo lỗi ngay. Cố ý cập nhật engine thì sửa cả `SHA256SUMS` và bảng trên.
+Mã băm cũng nằm trong `SHA256SUMS`; bộ kiểm tra `tests/unit/shared/engine-integrity.test.js` so từng tệp với danh sách này, nên tệp engine bị thay là kiểm tra báo lỗi ngay. Cố ý cập nhật engine thì sửa cả `SHA256SUMS` và bảng trên.
 
 ## Chỉnh sửa so với bản gốc
 
@@ -17,9 +17,9 @@ Bản gốc khai báo bộ nhớ dùng chung tối đa 2 GB (`maximum: 32768` tr
 
 ## Cách app dùng engine
 
-- Cần `SharedArrayBuffer`, tức trang phải có tiêu đề `Cross-Origin-Opener-Policy: same-origin` và `Cross-Origin-Embedder-Policy: require-corp`. GitHub Pages không cho đặt tiêu đề, nên service worker (`src/assets/sw.js`) tự thêm vào mọi phản hồi; lần mở đầu app tải lại trang một lần để bật chế độ này.
+- Cần `SharedArrayBuffer`, tức trang phải có tiêu đề `Cross-Origin-Opener-Policy: same-origin` và `Cross-Origin-Embedder-Policy: require-corp`. GitHub Pages không cho đặt tiêu đề, nên service worker (`src/shared/assets/sw.js`) tự thêm vào mọi phản hồi; lần mở đầu app tải lại trang một lần để bật chế độ này.
 - Mạng NNUE phải được ghi vào hệ thống tệp ảo với **đúng tên gốc** (`/xiangqi-c07e94a5c7cb.nnue`) và bật `Use NNUE`; đặt tên khác thì engine lặng lẽ dùng hàm đánh giá cũ.
-- Tọa độ hàng của Fairy-Stockfish đánh số 1–10, của lõi app đánh số 0–9 (`h3e3` ở engine là `h2e2` trong app); chuyển đổi nằm trong `src/app/30-fsf.js`.
+- Tọa độ hàng của Fairy-Stockfish đánh số 1–10, của lõi app đánh số 0–9 (`h3e3` ở engine là `h2e2` trong app); chuyển đổi nằm trong `src/shared/app/30-fsf.js`.
 
 ## Giấy phép
 

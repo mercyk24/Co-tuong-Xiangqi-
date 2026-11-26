@@ -28,7 +28,7 @@ Hệ quả:
 - [x] Chính sách quyền riêng tư trong app (Giới thiệu › Quyền riêng tư) và `docs/CHINH-SACH-RIENG-TU.md`. Nút xoá toàn bộ dữ liệu trên máy.
 - [x] Máy chủ: giới hạn số kết nối theo địa chỉ IP; tắt nhật ký từng lượt truy cập (nhật ký đó chứa IP và thẻ phiên).
 - [x] Chuỗi cung ứng: tệp `NOTICE`, kiểm tra mã băm SHA-256 của engine trong bộ kiểm tra, Dependabot, `npm audit` trong CI, ghim GitHub Actions theo mã commit.
-- [x] Nguồn gốc dữ liệu: bài chiếu hết do công cụ của dự án tự sinh (`docs/data.md`).
+- [x] Nguồn gốc dữ liệu: bài chiếu hết do công cụ của dự án tự sinh (`docs/DU-LIEU-CO-TUONG.md`).
 
 ### Bước 1 – Việc của chủ dự án (không cần code)
 
@@ -115,7 +115,7 @@ Phần luyện tập (đấu máy, bài tập, phân tích) **không gửi dữ 
 | Mã app | GPL-3.0-or-later, mã nguồn công khai | Giữ công khai mã nguồn của mọi bản phát hành |
 | Fairy-Stockfish (GPL-3.0) | Dùng thương mại được nếu giữ mã nguồn mở | Không đưa lên App Store kèm engine này |
 | Mạng NNUE | **Chưa xác minh** | Bước 1 |
-| Bài chiếu hết | Tự sinh bằng công cụ của dự án | Đã ghi nguồn trong `docs/data.md` |
+| Bài chiếu hết | Tự sinh bằng công cụ của dự án | Đã ghi nguồn trong `docs/DU-LIEU-CO-TUONG.md` |
 | Dữ liệu sinh bằng Pikafish | Kết quả phân tích, ghi công trong `NOTICE` | — |
 | Chú giải khai cuộc | Tự viết; chuỗi nước đi là kiến thức phổ biến | — |
 
