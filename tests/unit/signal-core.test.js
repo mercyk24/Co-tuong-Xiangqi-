@@ -127,3 +127,34 @@ test('người xem: vào riêng (không tính vào chỗ người chơi), chủ 
   assert.strictEqual(onConnect(ad, over, P('xqvn-wover'), 0), false);
   assert.deepStrictEqual(over.got[0], { type: 'ERROR', payload: { msg: 'watch-full' } });
 });
+
+test('cờ vua dùng tiền tố xcvn-: phòng tách hẳn cờ tướng, không trộn hai loại trong một phòng', async () => {
+  const { checkJoin, gameOf, roomKey, onConnect } = await load();
+  assert.strictEqual(checkJoin(P('xcvn-abc234')), '');
+  assert.strictEqual(checkJoin(P('xcvn-gq1w2e3r')), '');
+  assert.strictEqual(checkJoin(P('xcvn-wq1w2e3r')), '');
+  assert.strictEqual(checkJoin(P('xzvn-abc234')), 'bad-id');
+  assert.strictEqual(gameOf('xcvn-abc234'), 'xcvn-');
+  assert.notStrictEqual(roomKey(P('xcvn-abc234')), roomKey(P('xqvn-abc234')));
+  assert.strictEqual(roomKey(P('xqvn-abc234')), 'abc234');   // phòng cờ tướng giữ nguyên tên như trước
+  // một máy cờ tướng lọt vào phòng cờ vua (cùng Durable Object) thì bị từ chối
+  const { ad, add } = fakeRoom();
+  assert.ok(onConnect(ad, add(), P('xcvn-abc234'), 0));
+  const intruder = add();
+  assert.ok(!onConnect(ad, intruder, P('xqvn-gzz'), 0));
+  assert.ok(intruder.closed);
+});
+
+test('mã phòng bắt đầu bằng W: chủ phòng không bị nhầm là người xem, khách vào và gọi được', async () => {
+  const { onConnect, onMessage, isWatcher } = await load();
+  assert.strictEqual(isWatcher('xqvn-wbcme4'), false);       // chủ phòng có mã phòng WBCME4
+  assert.strictEqual(isWatcher('xcvn-wzq4wz'), false);
+  assert.strictEqual(isWatcher('xqvn-w1a2b3c4d5e'), true);   // người xem thật
+  const { ad, add } = fakeRoom();
+  const h = add(), g = add(), W = id => ({ ...P(id), room: 'wbcme4' });
+  assert.ok(onConnect(ad, h, W('xqvn-wbcme4'), 0));
+  assert.ok(onConnect(ad, g, W('xqvn-gk3j4h5g6f'), 0));
+  onMessage(ad, g, JSON.stringify({ type: 'RELAY', dst: 'xqvn-wbcme4', payload: { d: '{}' } }), 1);
+  assert.ok(h.got.some(m => m.type === 'RELAY' && m.src === 'xqvn-gk3j4h5g6f'), 'tin của khách tới được chủ phòng');
+  assert.ok(!g.got.some(m => m.type === 'EXPIRE'));
+});

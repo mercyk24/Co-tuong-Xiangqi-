@@ -42,6 +42,7 @@
   };
 
   function boot() {
+    try { localStorage.setItem('cl_last', GAME.id); } catch (e) { /* bỏ qua */ }   // để trang chủ đánh dấu loại cờ chơi gần nhất
     Engine.init();
     Play.init(); Puz.init(); Tac.init(); Op.init(); Ana.init();
     $('#set-nmode').onchange = e => applyNmode(e.target.value); applyNmode(noteMode());
@@ -71,7 +72,8 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden && Play.net()) Net.wake(); });
     window.addEventListener('online', () => { if (Play.net()) Net.wake(); });
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-      navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(() => {
+      // Service worker chung đặt ở gốc trang (phục vụ cả trang chủ, cờ tướng, cờ vua)
+      navigator.serviceWorker.register('../sw.js', { scope: '../' }).then(() => navigator.serviceWorker.ready).then(() => {
         // Lần đầu (hoặc sau khi cập nhật) trang chưa có tiêu đề COOP/COEP: tải lại một lần để bật engine mạnh.
         let tried = false; try { tried = sessionStorage.getItem('xq_coi') === '1'; } catch (e) { /* bỏ qua */ }
         if (!window.crossOriginIsolated && !tried) { try { sessionStorage.setItem('xq_coi', '1'); } catch (e) { /* bỏ qua */ } location.reload(); }

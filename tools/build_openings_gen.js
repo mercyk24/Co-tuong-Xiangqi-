@@ -113,7 +113,7 @@ const book = {};
 for (const k of Object.keys(tree)) {
   const n = tree[k]; if (n.ply >= 12 || !n.c.length) continue;
   const top = n.c[0].cp, margin = n.ply === 0 ? 70 : 40;
-  const sn = {}, kids = n.c.filter(x => top - x.cp <= margin && !sn[x.m] && (sn[x.m] = 1)).slice(0, n.ply === 0 ? 7 : 3).map(x => x.m);
+  const sn = {}, kids = n.c.filter(x => top - x.cp <= margin && !sn[x.m] && (sn[x.m] = 1)).slice(0, n.ply === 0 ? 7 : 4).map(x => x.m);
   if (kids.length && tree[k ? k + ' ' + kids[0] : kids[0]]) book[k] = kids; // chỉ giữ nút có con đã phân tích
 }
 // bỏ nút không có con trong cây (cụt)

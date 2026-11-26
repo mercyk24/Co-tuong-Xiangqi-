@@ -1,13 +1,14 @@
-  // 30-fsf.js — Engine mạnh: Fairy-Stockfish (WebAssembly) với mạng NNUE cờ tướng. Dùng cho cấp 6 và phân tích ván.
-  // ---------- Engine mạnh (Fairy-Stockfish + mạng NNUE cờ tướng) ----------
+  // 30-fsf.js (dùng chung) — Engine mạnh: Fairy-Stockfish (WebAssembly). Dùng cho cấp 6 và phân tích ván.
+  // Cờ tướng: biến thể xiangqi + mạng NNUE; cờ vua: biến thể chess, đánh giá cổ điển (không cần tải mạng NNUE).
+  // Cấu hình riêng (tên biến thể, mạng NNUE, cách đổi FEN và nước đi) nằm trong GAME.fsf.
   const FSF = {
     sf: null, p: null, lines: [], failed: false, chain: Promise.resolve(),
     run(fn) { const p = this.chain.then(() => fn()); this.chain = p.catch(() => {}); return p; },
-    DIR: 'engine/', NNUE: 'xiangqi-c07e94a5c7cb.nnue',
+    DIR: GAME.fsf.dir, NNUE: GAME.fsf.nnue,
     supported() { return !!(window.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined' && !this.failed); },
-    fen6(f) { const t = f.trim().split(/\s+/); return t[0] + ' ' + (t[1] || 'w') + ' - - 0 1'; },
-    toFsf(u) { return u.replace(/^([a-i])(\d)([a-i])(\d)/, (_, a, b, c, d) => a + (+b + 1) + c + (+d + 1)); },
-    fromFsf(u) { const m = /^([a-i])(\d+)([a-i])(\d+)/.exec(u); return m ? m[1] + (+m[2] - 1) + m[3] + (+m[4] - 1) : ''; },
+    fen6(f) { return GAME.fsf.fen(f); },
+    toFsf(u) { return GAME.fsf.toE(u); },
+    fromFsf(u) { return GAME.fsf.fromE(u); },
     wait(re, ms) {
       return new Promise((res, rej) => {
         const t0 = Date.now();
@@ -25,11 +26,13 @@
         sf.addMessageListener(l => { this.lines.push(l); if (this.lines.length > 400) this.lines.splice(0, 200); });
         this.sf = sf;
         sf.postMessage('uci'); await this.wait(/^uciok/, 15000);
-        sf.postMessage('setoption name UCI_Variant value xiangqi');
-        const r = await fetch(this.DIR + this.NNUE); if (!r.ok) throw new Error('không tải được mạng NNUE');
-        sf.FS.writeFile('/' + this.NNUE, new Uint8Array(await r.arrayBuffer()));
-        sf.postMessage('setoption name EvalFile value /' + this.NNUE);
-        sf.postMessage('setoption name Use NNUE value true');
+        sf.postMessage('setoption name UCI_Variant value ' + GAME.fsf.variant);
+        if (this.NNUE) {
+          const r = await fetch(this.DIR + this.NNUE); if (!r.ok) throw new Error('không tải được mạng NNUE');
+          sf.FS.writeFile('/' + this.NNUE, new Uint8Array(await r.arrayBuffer()));
+          sf.postMessage('setoption name EvalFile value /' + this.NNUE);
+          sf.postMessage('setoption name Use NNUE value true');
+        } else sf.postMessage('setoption name Use NNUE value false');
         sf.postMessage('setoption name Hash value 16');
         this.lines.length = 0; sf.postMessage('isready'); await this.wait(/^readyok/, 20000);
       })().catch(e => { this.failed = true; this.p = null; throw e; });

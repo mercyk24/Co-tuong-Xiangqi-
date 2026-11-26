@@ -1,11 +1,11 @@
-  // 45-net.js — Chơi qua mạng giữa hai thiết bị: kết nối thẳng WebRTC (DataChannel).
+  // 45-net.js (dùng chung cho mọi loại cờ) — Chơi qua mạng giữa hai thiết bị: kết nối thẳng WebRTC (DataChannel).
   // Hai máy tìm nhau qua "điểm hẹn" nói giao thức PeerJS: điểm hẹn riêng của app (Cloudflare, server/) nếu đã cài,
   // dự phòng bằng điểm hẹn công cộng 0.peerjs.com. Nước đi đi thẳng giữa hai máy; nếu mạng không cho nối thẳng
   // và đang dùng điểm hẹn riêng thì tin ván cờ đi qua điểm hẹn (RELAY).
   // Người tạo phòng (host) giữ bản gốc của ván: khi nối lại sau rớt mạng, host gửi lại toàn bộ ván để hai máy khớp nhau.
   // ---------- Chơi qua mạng ----------
   const NET_PROTO = 1;                      // đổi khi giao thức giữa hai máy thay đổi
-  const NET_PREFIX = 'xqvn-';               // tiền tố mã máy trên điểm hẹn, tránh trùng với ứng dụng khác
+  const NET_PREFIX = GAME.netPrefix;        // tiền tố mã máy trên điểm hẹn: 'xqvn-' cờ tướng, 'xcvn-' cờ vua (không bao giờ nối nhầm sang loại cờ khác)
   const NET_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const NET_ICE_FAIL = 'Hai máy đã tìm thấy nhau nhưng không nối thẳng được: mạng của một bên (thường là 4G hoặc Wi-Fi công ty) chặn kết nối trực tiếp. Hãy thử cho cả hai máy dùng chung một Wi-Fi, hoặc đổi sang mạng khác.';
   // Địa chỉ điểm hẹn riêng (Cloudflare Worker trong server/), ví dụ 'wss://co-tuong.ten-ban.workers.dev'.
@@ -108,7 +108,7 @@
     get() { const c = Store.get('consent_net', null); return c && c.v === this.VERSION ? c : null; },
     ok() { return !!this.get(); },
     give() { Store.set('consent_net', { v: this.VERSION, t: Date.now() }); },
-    revoke() { try { localStorage.removeItem('xq_consent_net'); } catch (e) { /* bỏ qua */ } }
+    revoke() { try { localStorage.removeItem(GAME.store + 'consent_net'); } catch (e) { /* bỏ qua */ } }
   };
 
   const Net = {
@@ -142,7 +142,7 @@
       if (this.role === 'watch') return;
       if (!this.code || this.state === 'idle' || this.state === 'error') { Store.set('net_sess', null); return; }
       Store.set('net_sess', { t: Date.now(), role: this.role, code: this.code, myId: this.myId, peerId: this.peerId, mySide: this.mySide, clockSet: this.clockSet, si: this.si, token: this.token,
-        moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
+        moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
     },
     resumeSaved() {
       if (!Consent.ok()) { Store.set('net_sess', null); return false; }
@@ -226,7 +226,7 @@
       const si = this.si;
       this.reset();
       this.role = 'watch'; this.code = code; this.si = si; this.mySide = 0; this.peerId = NET_PREFIX + code.toLowerCase();
-      this.myId = NET_PREFIX + 'w' + Math.random().toString(36).slice(2, 12); this.token = this.newToken();
+      this.myId = NET_PREFIX + 'w' + (Math.random().toString(36).slice(2) + '0000000000').slice(0, 10);   // luôn dài 16 ký tự, khác độ dài mã chủ phòng (11) this.token = this.newToken();
       this.state = 'joining'; this.status('Đang vào xem phòng ' + code + '…');
       try { await this.openSignal(); } catch (e) {
         if (this.state !== 'joining') return;
@@ -248,7 +248,7 @@
     cast(to) {
       if (!this.sig || !this.sig.ready() || !this.sig.watch) return;
       const c = Play.clock;
-      const snap = { t: 'snap', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => XQ.mvStr(m)), left: c ? c.left.map(x => Math.round(x)) : null,
+      const snap = { t: 'snap', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => RULES.mvStr(m)), left: c ? c.left.map(x => Math.round(x)) : null,
         run: !!(c && c.at && !Play.over), over: Play.over || '', n: this.watchers, live: this.state === 'playing' || this.state === 'ended' };
       const d = JSON.stringify(snap), key = d.replace(/"left":\[[^\]]*\],/, '');
       if (!to && key === this.lastCast) return;   // không đổi gì (chỉ đồng hồ chạy): khỏi gửi
@@ -529,7 +529,7 @@
       if (fresh) { Play.netStart(this.mySide, this.clockSet); }
       this.state = Play.over ? 'ended' : 'playing';
       if (Play.clock && !Play.over) Play.clock.at = Date.now();
-      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => XQ.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '', watchers: this.watchers });
+      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '', watchers: this.watchers });
       this.status(fresh ? '' : 'Đã nối lại.');
       this.save();
     },
@@ -575,7 +575,7 @@
         this.mySide = m.hostSide ^ 1; this.clockSet = m.clock; this.watchers = +m.watchers || 0;
         if (fresh) Play.netStart(this.mySide, this.clockSet);
         else {
-          const mine = Play.moves.map(x => XQ.mvStr(x)).join(' ');
+          const mine = Play.moves.map(x => RULES.mvStr(x)).join(' ');
           if (mine !== m.moves.join(' ')) toast('Đã đồng bộ lại ván theo máy của đối thủ.');
         }
         Play.netLoad(m.moves, m.left, m.over || null, true);

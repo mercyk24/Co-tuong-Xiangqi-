@@ -40,7 +40,7 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
 - **`server/dev-server.mjs`:** bản chạy bằng Node trên máy (WebSocket tự viết, không cần cài gì). Dùng để kiểm tra tự động và thử tải.
 - **`wrangler.jsonc`:** cấu hình đưa lên Cloudflare.
 
-### 2.2 App (`src/app/45-net.js`)
+### 2.2 App (`src/shared/45-net.js`, dùng chung cho cờ tướng và cờ vua)
 - **Danh sách điểm hẹn:** điểm hẹn riêng (`NET_OWN`) trước, `0.peerjs.com` dự phòng.
   - Tạo phòng: điểm hẹn riêng không vào được thì tạo ở điểm hẹn dự phòng.
   - Vào phòng: không vào được điểm hẹn riêng, hoặc không thấy phòng ở đó, thì tìm tiếp ở điểm hẹn dự phòng.
@@ -61,6 +61,12 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
   - Đồng hồ không đổi thì không gửi lại; người xem tự đếm giờ.
 - **Khi có người vào hoặc rời:** chủ phòng nhận `WATCH {n}`, gửi thế cờ riêng cho người mới, và báo số người xem cho khách qua kênh nối thẳng.
 - **Chủ phòng tắt cho xem:** người xem nhận `{t:'nowatch'}` và được báo không xem được.
+
+### 2.4 Cờ vua dùng chung điểm hẹn (từ bản 2.0.0)
+- **Tiền tố mã máy:** cờ tướng `xqvn-…` (người xem `xqvn-w…`), cờ vua `xcvn-…` (người xem `xcvn-w…`). Điểm hẹn chỉ nhận hai tiền tố này.
+- **Phòng tách riêng:** ô phòng (Durable Object) của cờ vua có tên `c:<mã phòng>`, của cờ tướng giữ nguyên tên cũ, nên cùng một mã 6 ký tự ở hai loại cờ là hai phòng khác nhau. Một máy cờ vua cố vào ô của cờ tướng (hoặc ngược lại) bị từ chối (`bad-id`).
+- **Cần đưa lại `server/worker.mjs` lên Cloudflare** (`npx wrangler deploy`) để cờ vua dùng được điểm hẹn riêng. Chưa đưa lên thì cờ vua tự dùng `0.peerjs.com`, cờ tướng không bị ảnh hưởng.
+- Hạn mức và chi phí ở mục 4 tính chung cho cả hai loại cờ.
 
 ## 3. Đã đo
 

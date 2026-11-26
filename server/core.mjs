@@ -29,7 +29,11 @@ export const LIMITS = {
 };
 
 const ROOM_RE = /^[a-z0-9]{6}$/;
-const ID_RE = /^xqvn-[a-z0-9]{2,24}$/;
+const ID_RE = /^x[qc]vn-[a-z0-9]{2,24}$/;
+// Mỗi loại cờ một tiền tố mã máy: 'xqvn-' cờ tướng, 'xcvn-' cờ vua. Phòng của hai loại cờ tách hẳn nhau
+// (khác Durable Object), nên mã phòng trùng nhau cũng không bao giờ nối nhầm sang loại cờ khác.
+export const gameOf = id => String(id).slice(0, 5);
+export const roomKey = p => (gameOf(p.id) === 'xcvn-' ? 'c:' : '') + p.room;
 const TOKEN_RE = /^[a-z0-9]{4,32}$/;
 
 // Kiểm tra tham số khi máy mở kết nối. Trả về '' nếu hợp lệ, ngược lại là lý do.
@@ -38,8 +42,9 @@ export function checkJoin(p) {
   if (!ROOM_RE.test(p.room || '')) return 'bad-room';
   if (!ID_RE.test(p.id || '')) return 'bad-id';
   if (!TOKEN_RE.test(p.token || '')) return 'bad-token';
-  // Chủ phòng có mã máy đúng bằng mã phòng; khách bắt đầu bằng "xqvn-g"; người xem bắt đầu bằng "xqvn-w"
-  if (p.id !== 'xqvn-' + p.room && p.id.indexOf('xqvn-g') !== 0 && p.id.indexOf('xqvn-w') !== 0) return 'bad-id';
+  // Chủ phòng có mã máy đúng bằng mã phòng; khách bắt đầu bằng "<tiền tố>g"; người xem bắt đầu bằng "<tiền tố>w"
+  const g = gameOf(p.id);
+  if (p.id !== g + p.room && p.id.indexOf(g + 'g') !== 0 && p.id.indexOf(g + 'w') !== 0) return 'bad-id';
   return '';
 }
 
@@ -62,8 +67,10 @@ export function validPayload(type, p) {
 const ROUTED = new Set(['OFFER', 'ANSWER', 'CANDIDATE', 'RELAY']);
 
 function others(ad, ws) { return ad.list().filter(s => s.ws !== ws && s.meta); }
-export const isWatcher = id => String(id).indexOf('xqvn-w') === 0;
-const hostOf = (ad, room) => ad.list().find(s => s.meta && s.meta.id === 'xqvn-' + room);
+// Người xem: mã máy "<tiền tố>w…". Mã của chủ phòng là tiền tố + 6 ký tự mã phòng (dài đúng 11 ký tự) và có thể cũng
+// bắt đầu bằng "w" khi mã phòng bắt đầu bằng W, nên mã dài đúng 11 ký tự không bao giờ là người xem.
+export const isWatcher = id => { const s = String(id); return /^x[qc]vn-w/.test(s) && s.length !== 11; };
+const hostOf = (ad, room) => ad.list().find(s => s.meta && s.meta.id === gameOf(s.meta.id) + room);
 const watchersOf = (ad, skip) => ad.list().filter(s => s.ws !== skip && s.meta && isWatcher(s.meta.id));
 // Báo chủ phòng số người xem hiện tại (src: người vừa vào, để chủ phòng gửi thế cờ cho riêng người đó)
 function tellHost(ad, room, src, skip) {
@@ -78,6 +85,7 @@ function kick(ad, ws, why) {
 // Máy mới vào phòng (tham số đã qua checkJoin). Trả về true nếu được nhận.
 export function onConnect(ad, ws, p, now) {
   const rest = others(ad, ws);
+  if (rest.some(s => gameOf(s.meta.id) !== gameOf(p.id))) { kick(ad, ws, 'bad-id'); return false; }   // không trộn hai loại cờ
   const same = rest.find(s => s.meta.id === p.id);
   if (same) {
     // Cùng mã máy và cùng thẻ = chính máy đó nối lại (kết nối cũ chưa kịp đóng): thay kết nối cũ.
@@ -91,7 +99,7 @@ export function onConnect(ad, ws, p, now) {
   ad.setMeta(ws, { id: p.id, token: p.token, room: p.room, tokens: LIMITS.burst, at: now });
   ad.send(ws, { type: 'OPEN', payload: { relay: 1, watch: 1, proto: PROTO } });
   if (watch) tellHost(ad, p.room, p.id);
-  else if (p.id === 'xqvn-' + p.room && watchersOf(ad).length) tellHost(ad, p.room, '');  // chủ phòng nối lại: gửi lại thế cờ
+  else if (p.id === gameOf(p.id) + p.room && watchersOf(ad).length) tellHost(ad, p.room, '');  // chủ phòng nối lại: gửi lại thế cờ
   return true;
 }
 
@@ -115,7 +123,7 @@ export function onMessage(ad, ws, data, now) {
   if (isWatcher(me.id)) return;                          // người xem chỉ nhận, không gửi gì
   if (m.type === 'CAST') {
     // Chỉ chủ phòng được phát thế cờ; to: gửi riêng một người xem (người vừa vào), không có thì gửi tất cả
-    if (me.id !== 'xqvn-' + me.room || !validPayload('CAST', m.payload)) { kick(ad, ws, 'bad-message'); return; }
+    if (me.id !== gameOf(me.id) + me.room || !validPayload('CAST', m.payload)) { kick(ad, ws, 'bad-message'); return; }
     for (const w of watchersOf(ad)) if (!m.payload.to || w.meta.id === m.payload.to) ad.send(w.ws, { type: 'CAST', src: me.id, payload: { d: m.payload.d } });
     return;
   }

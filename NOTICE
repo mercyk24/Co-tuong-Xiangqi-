@@ -1,4 +1,4 @@
-Cờ Tướng Luyện Tập
+Cờ Luyện Tập (Cờ Tướng Luyện Tập, Cờ Vua Luyện Tập)
 Bản quyền mã nguồn của app: người phát triển dự án (tài khoản GitHub mercyk24) và những người đóng góp.
 Phát hành theo GNU General Public License phiên bản 3 hoặc mới hơn (GPL-3.0-or-later), xem tệp LICENSE.
 
@@ -25,6 +25,13 @@ Mạng NNUE cờ tướng
   Giấy phép: CHƯA XÁC MINH. Cần hỏi tác giả mạng trước khi dùng cho mục đích thương mại
             (xem docs/PHAP-LY.md, mục giấy phép phần mềm).
 
+Hình quân cờ vua "cburnett" (app cờ vua)
+  Tệp:      src/chess/pieces/*.svg (nhúng vào co-vua/index.html khi dựng)
+  Nguồn:    https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
+  Giấy phép: GNU GPL phiên bản 2 hoặc mới hơn (tương thích GPL-3.0-or-later của app)
+  Bản quyền: Colin M.L. Burnett
+  Chỉnh sửa: không sửa hình; khi dựng chỉ bỏ thẻ <svg> ngoài cùng để đặt vào <symbol>.
+
 ------------------------------------------------------------------------------
 2. DỮ LIỆU CỦA APP
 ------------------------------------------------------------------------------
@@ -43,6 +50,18 @@ Bài chiến thuật, cây khai cuộc, sách khai cuộc của máy
 Chú giải khai cuộc Bình phong mã (data/openings_src.js)
   Chuỗi nước đi lấy từ lý thuyết khai cuộc phổ biến (thông tin thực tế về nước đi, không sao chép văn bản).
   Lời giải thích do người phát triển tự viết bằng tiếng Việt.
+
+Bài chiếu hết và chiến thuật cờ vua (data/chess/puzzles.json, data/chess/tactics.json)
+  Nguồn:    kho bài tập Lichess, https://database.lichess.org/#puzzles
+  Giấy phép: Creative Commons CC0 (dùng tự do, kể cả thương mại)
+  Cách lấy: tools/chess/fetch-data.mjs lọc vài nghìn bài phổ biến; tools/chess/build-data.js kiểm lại
+            mọi lời giải bằng lõi luật của app (src/core/chess.js). Mã bài gốc giữ ở trường "lid".
+
+Danh mục khai cuộc cờ vua (data/chess/openings.json, data/chess/book.json)
+  Tên và chuỗi nước: lichess-org/chess-openings, https://github.com/lichess-org/chess-openings
+  Giấy phép: Creative Commons CC0
+  Các biến chính, nhóm và lời giới thiệu tiếng Việt do người phát triển tự chọn và tự viết
+  (tools/chess/build-data.js).
 
 ------------------------------------------------------------------------------
 3. DỊCH VỤ BÊN NGOÀI KHI CHƠI QUA MẠNG (không phân phối kèm app)

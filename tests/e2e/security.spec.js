@@ -83,10 +83,10 @@ test('chơi qua mạng: phải đồng ý trước, không đánh dấu sẵn; t
 
 test('link mời trên máy chưa đồng ý: hiện mã phòng, đồng ý xong mới vào phòng', async ({ page }) => {
   await page.addInitScript(() => { window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 3000; });
-  await page.goto('index.html');
+  await page.goto('co-tuong/index.html');
   await page.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 20_000 });
   await page.goto('about:blank');
-  await page.goto('index.html#phong=ABC234');
+  await page.goto('co-tuong/index.html#phong=ABC234');
   await page.waitForFunction(() => window.__xq && window.__xq.Net && window.__xq.Net.pendingJoin === 'ABC234', null, { timeout: 10_000 });
   await expect(page.locator('#net-consent')).toBeVisible();
   await expect(page.locator('#net-consent-code')).toContainText('ABC234');

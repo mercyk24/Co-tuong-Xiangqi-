@@ -29,7 +29,7 @@ async function device(context, errors, opt) {
     window.__XQ_SIGNAL__ = o.servers; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000;
     if (o.noP2P) { window.__XQ_NO_P2P__ = true; window.__XQ_P2P_MS__ = 1500; }
   }, opt);
-  await p.goto('index.html');
+  await p.goto('co-tuong/index.html');
   await p.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 20_000 });
   return p;
 }

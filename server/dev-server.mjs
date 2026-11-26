@@ -6,7 +6,7 @@
 import http from 'node:http';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { checkJoin, paramsOf, onConnect, onMessage, onClose } from './core.mjs';
+import { checkJoin, paramsOf, roomKey, onConnect, onMessage, onClose } from './core.mjs';
 
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
@@ -67,7 +67,7 @@ class Sock {
 }
 
 export function startServer(port = 4174, log = () => {}) {
-  const rooms = new Map();          // mã phòng -> Set<Sock>
+  const rooms = new Map();          // khoá phòng (roomKey: tách cờ vua / cờ tướng) -> Set<Sock>
   const stats = { open: 0, peak: 0, msgs: 0, rooms: 0 };
   const adapterFor = room => ({
     list: () => [...(rooms.get(room) || [])].map(ws => ({ ws, meta: ws.meta })),
@@ -88,15 +88,16 @@ export function startServer(port = 4174, log = () => {}) {
     if (bad || !key) { socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n' + (bad || 'no-key')); return; }
     const accept = crypto.createHash('sha1').update(key + GUID).digest('base64');
     socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + accept + '\r\n\r\n');
-    const ad = adapterFor(p.room);
+    const rk = roomKey(p);
+    const ad = adapterFor(rk);
     const ws = new Sock(socket, (w, text) => { stats.msgs++; onMessage(ad, w, text, Date.now()); }, w => {
-      const set = rooms.get(p.room);
-      if (set) { set.delete(w); if (!set.size) rooms.delete(p.room); }
+      const set = rooms.get(rk);
+      if (set) { set.delete(w); if (!set.size) rooms.delete(rk); }
       stats.open--; stats.rooms = rooms.size;
       onClose(ad, w, w.meta);
     });
-    if (!rooms.has(p.room)) rooms.set(p.room, new Set());
-    rooms.get(p.room).add(ws);
+    if (!rooms.has(rk)) rooms.set(rk, new Set());
+    rooms.get(rk).add(ws);
     stats.open++; stats.peak = Math.max(stats.peak, stats.open); stats.rooms = rooms.size;
     if (!onConnect(ad, ws, p, Date.now())) log('từ chối ' + p.id);
   });

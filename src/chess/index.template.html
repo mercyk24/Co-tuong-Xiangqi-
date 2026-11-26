@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<!--__CSP__-->
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ Vua Luyện Tập</title>
+<meta name="theme-color" content="#2e6b5a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cờ Vua">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#f3eee3; --card:#fffaf0; --ink:#2a2118; --muted:#7a6b58; --accent:#2e6b5a; --accent-ink:#fff;
+  --red:#b3261e; --line:#ddd1b9; --board:#e9cd93; --boardline:#5b3d17; --piece:#fbf0d5; --shadow:0 1px 2px rgba(60,40,10,.12),0 6px 18px rgba(60,40,10,.08);
+  --han:"Kaiti SC","STKaiti","KaiTi","Songti SC","PingFang SC","Noto Serif CJK SC","Noto Serif CJK TC","Source Han Serif SC","Microsoft YaHei",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14110d; --card:#1f1a14; --ink:#efe6d6; --muted:#a79a85; --accent:#5fb89e; --accent-ink:#0d1f19; --red:#ff7b70; --line:#3a3227; --board:#cba868; --boardline:#3b2a12; --piece:#f6e8c7; --shadow:none; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+body{min-height:100vh;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;padding:12px 12px 24px}
+h1{font-size:20px;margin:6px 0 10px}
+h2{font-size:17px;margin:14px 0 6px}
+p{margin:6px 0}
+.muted{color:var(--muted)}
+small{font-weight:400;color:var(--muted)}
+.view[hidden],[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+.btn,.chip,.tab{cursor:pointer}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 14px;min-height:42px;box-shadow:var(--shadow)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.row .btn{flex:1 1 auto;text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
+.board-wrap{width:100%;touch-action:manipulation}
+svg.board{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
+.bd-bg{fill:var(--board);stroke:var(--boardline);stroke-width:3}
+.bd-line line,.bd-line polyline{stroke:var(--boardline);stroke-width:2;fill:none;stroke-linecap:round}
+.river{font-family:var(--han);font-size:34px;fill:var(--boardline);opacity:.55;letter-spacing:6px}
+.fl{font-family:var(--han);font-size:18px;fill:var(--boardline);opacity:.75}
+.pc-o{fill:var(--piece);stroke:var(--boardline);stroke-width:2.5;filter:drop-shadow(0 2px 2px rgba(0,0,0,.28))}
+.pc-i{fill:none;stroke-width:2}
+.pc.r .pc-i{stroke:#b3261e}.pc.b .pc-i{stroke:#1d1a16}
+.pc-t{font-family:var(--han);font-size:36px;font-weight:700;pointer-events:none}
+.pc.r .pc-t{fill:#b3261e}.pc.b .pc-t{fill:#1d1a16}
+.last{fill:rgba(46,107,90,.22);stroke:rgba(46,107,90,.6);stroke-width:2}
+.selring{fill:none;stroke:#1f8a5f;stroke-width:5}
+.tgt{fill:rgba(31,138,95,.8)}
+.tgt.cap{fill:none;stroke:rgba(214,60,40,.9);stroke-width:5}
+/* Bàn cờ vua: ô sáng / tối kiểu gỗ, quân đứng trong ô */
+.sq-l{fill:#f0d9b5}.sq-d{fill:#b58863}
+.coord{font:600 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}.coord.on-l{fill:#b58863}.coord.on-d{fill:#f0d9b5}
+.cboard .last{fill:rgba(205,210,106,.55);stroke:none}
+.selsq{fill:rgba(20,85,30,.45)}
+.cboard .tgt{fill:rgba(20,85,30,.5)}
+.cboard .tgt.cap{fill:none;stroke:rgba(20,85,30,.55);stroke-width:7}
+.chk{fill:rgba(230,30,20,.55);filter:blur(5px)}
+.cp{pointer-events:none}
+.pcico{width:100%;height:100%;display:block}
+.promo{position:relative;margin:6px 0;padding:10px;border:2px solid var(--accent);border-radius:14px;background:var(--card);text-align:center}
+.promo.rot{transform:rotate(180deg)}
+.promo p{margin:0 0 6px;font-weight:600}
+.promo-row{display:flex;gap:8px;justify-content:center}
+.promo-row button{width:64px;height:64px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#f0d9b5;cursor:pointer}
+.gl svg,.tab b svg{width:72%;height:72%}
+.tab b svg{width:26px;height:26px}
+.hintbox{fill:none;stroke:#e0a100;stroke-width:5;stroke-dasharray:8 6}
+.hintline{stroke:#e0a100;stroke-width:7;stroke-linecap:round;opacity:.8}
+.hintdot{fill:#e0a100;opacity:.9}
+.status{min-height:28px;margin:8px 2px 0;font-size:15px}
+.chk-t{color:var(--red)}.okt{color:var(--accent)}
+.moves{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:10px;max-height:116px;overflow:auto;line-height:2;font-size:16px}
+.mn{color:var(--muted);margin-right:4px;font-size:14px;font-family:-apple-system,sans-serif}
+.mv{margin-right:10px;padding:1px 3px;border-radius:6px}
+.mv.red{color:var(--red)}
+.grp{margin:10px 0}.grp>summary{cursor:pointer;padding:8px 2px;font-size:15px}.grp[open]>summary{border-bottom:1px solid var(--line);margin-bottom:6px}
+.seg{display:flex;gap:6px;margin:0 0 10px}.seg .btn{flex:1}
+.pbar{display:flex;align-items:center;gap:6px;margin:6px 0;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.pbar.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.pbar.rot,.ask.rot,.sheet.rot{transform:rotate(180deg)}
+.pinfo{flex:1;display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;min-width:0}
+.pl1{display:flex;align-items:baseline;gap:6px}.pst{font-size:12px;color:var(--muted);white-space:nowrap}.pbar.on .pst{color:var(--accent);font-weight:600}.pst.chk{color:var(--red)!important}
+.pname{font-weight:700;font-size:16px}
+.pclk{font:600 18px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}.pclk:empty{display:none}
+.pbar.low .pclk{color:var(--red)}
+.btn.sm{min-height:36px;padding:6px 9px;font-size:13px}.btn.ic{min-height:40px;min-width:44px;font-size:20px;padding:4px 8px}
+.btn.wide{width:100%}
+.setup p{margin:4px 0 8px}.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.tgrid .btn{min-height:54px;font-size:15px}.tgrid .btn small{display:block;font-size:12px;opacity:.75}
+.pm-acts{display:flex;gap:6px}
+.joinrow{display:flex;gap:8px;margin:10px 0}.joinrow input{flex:1;min-width:0;font:600 20px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:4px;text-transform:uppercase;text-align:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.netcode{font:700 40px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:8px;text-align:center;margin:6px 0 10px;color:var(--accent)}
+.neterr{color:var(--red);font-weight:600}
+.netbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;padding:8px 10px;border-radius:12px;background:rgba(192,57,43,.12);color:var(--red);font-size:14px;font-weight:600}.pm-acts .btn{flex:1}
+.pbar .pinfo{align-items:flex-start}
+.result{margin-top:8px;text-align:center}.result p{margin:4px 0}#play-result-text{font-weight:700;font-size:17px}
+.sheet-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet-back.top{align-items:flex-start}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:80vh;overflow:auto;padding:14px 14px calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.sheet.rot{border-radius:0 0 18px 18px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}
+.sheet label{display:flex;flex-direction:column;gap:4px}.sheet label.chk2{flex-direction:row;align-items:center}
+
+.ask{margin-top:8px}.ask p{margin:0 0 6px;font-weight:600}
+.mv.q1{color:#b8860b}.mv.q2{color:#d9822b;font-weight:700}.mv.q3{color:#c0392b;font-weight:700}
+.mv.ck{cursor:pointer}.mv.cur{background:rgba(46,107,90,.2);outline:1px solid var(--accent)}
+.settings{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:10px;font-size:14px}
+select{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+label.chk2{display:flex;align-items:center;gap:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.chip.on small{color:inherit;opacity:.8}
+.h2{font-size:16px;margin:16px 0 6px}
+.rate{margin-left:auto;font-size:12px;background:var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
+.pz small{color:var(--muted);font-size:12px}
+.tacbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+.tacbar .tm{font-variant-numeric:tabular-nums}
+.hrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
+.pz.ok{border-color:var(--accent)}
+.pz-n{font-weight:700}.pz-s{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%}.dot.w{background:#fff;box-shadow:0 0 0 1px #888}.dot.b{background:#1d1a16;box-shadow:0 0 0 1px var(--line)}
+.tick{position:absolute;right:10px;top:8px;color:var(--accent);font-weight:700}
+.line-h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.badge{font-size:12px;color:var(--muted);white-space:nowrap}
+.note{background:var(--card);border-left:4px solid var(--accent);border-radius:8px;padding:8px 12px;margin-top:10px;font-size:15px;min-height:48px}
+.title{font-weight:700;margin:4px 2px 6px;font-size:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.tab{flex:1;border:0;background:none;padding:9px 4px 8px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-handle{display:none;position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.18);align-items:center;justify-content:center;font-size:22px;line-height:1;cursor:pointer;z-index:6}
+body.nav-min nav.tabs{background:none;border:0;padding:0}body.nav-min nav.tabs .tab{display:none}body.nav-min .nav-handle{display:flex}
+body.nav-min{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+body.game-play #play-title{display:none}
+body.game-play #v-play{display:flex;flex-direction:column;justify-content:center;min-height:calc(100dvh - 94px - env(safe-area-inset-bottom))}
+.pbar .ic[hidden]{display:none}
+.tab b{font-family:var(--han);font-size:22px;font-weight:700;line-height:1.1}
+.tab.on{color:var(--accent)}
+#toast{position:fixed;left:50%;top:12px;transform:translate(-50%,-80px);opacity:0;visibility:hidden;pointer-events:none;max-width:92vw;background:#2a2118;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;transition:transform .25s,opacity .25s,visibility .25s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}#toast.warn{background:#8a3b12}#toast.ok{background:#1f6f4f}
+/* Trang chủ: chọn cách chơi */
+.hero{display:flex;align-items:center;gap:12px;margin:10px 2px 6px}.hero h1{margin:0;font-size:24px}.hero p{margin:0}
+.hero-gl,.gl{flex:none;display:grid;place-items:center;border-radius:50%;background:var(--piece);border:2px solid var(--boardline);font-family:var(--han);font-weight:700;box-shadow:inset 0 0 0 3px var(--piece),inset 0 0 0 5px currentColor}
+.hero-gl{width:52px;height:52px;font-size:28px;color:#b3261e}
+/* Cờ vua: biểu tượng là hình quân trên nền ô sáng, không có vòng viền đỏ kiểu quân cờ tướng */
+.hero-gl{box-shadow:none;background:#f0d9b5;border:2px solid #b58863;color:inherit}
+.hero-gl svg{width:40px;height:40px}
+.gl{width:54px;height:54px;font-size:28px}.gl.r{color:#b3261e}.gl.b{color:#1d1a16}.gl.sm{width:38px;height:38px;font-size:20px;box-shadow:inset 0 0 0 2px var(--piece),inset 0 0 0 3.5px currentColor}
+.modes{display:flex;flex-direction:column;gap:10px;margin:10px 0 4px}
+.mode{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;min-height:84px}
+.mode:active,.drill:active{transform:translateY(1px)}
+.mt{flex:1;min-width:0}.mt b{display:block;font-size:18px;line-height:1.25}.mt small{display:block;font-size:14px;margin-top:2px}
+.go{color:var(--muted);font-size:26px;line-height:1}
+.drills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.drill{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px;text-align:left;box-shadow:var(--shadow);cursor:pointer;min-height:58px}
+@keyframes pulse{0%,100%{transform:none}30%{transform:scale(1.03)}60%{transform:scale(.99)}}.resume.pulse{animation:pulse .5s ease 2}
+.resume{border:2px solid var(--accent)}
+.netbar.watch{background:rgba(46,107,90,.12);color:var(--accent)}
+.watchn{text-align:center;font-size:13px;margin:2px 0}
+.watchask{border:2px solid var(--accent);margin-top:8px}.watchask p{margin:2px 0 6px}.resume-t{display:flex;flex-direction:column}.resume-t b{font-size:16px}.resume .row{margin:8px 0 0}
+.phead{display:flex;align-items:center;gap:8px;margin:2px 0 4px}.phead h1{margin:0}
+.lbl{font-weight:600;font-size:14px;margin:10px 0 6px}.lbl:first-child{margin-top:2px}
+.lvls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lvl{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;min-height:54px}
+.lvl b{font-size:15px}.lvl small{font-size:12px}
+.lvl.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.lvl.on small{color:inherit;opacity:.85}
+.setup .fld{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px;font-size:14px}.setup .chk2.fld{flex-direction:row}
+.setup #ai-start{margin-top:14px;min-height:50px;font-size:17px}
+ul.tidy{padding-left:18px}.tidy li{margin:4px 0}
+a{color:var(--accent)}
+#rp-text{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:inherit;resize:vertical}
+details.policy{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+details.policy summary{cursor:pointer;font-weight:600;padding:6px 0}
+details.policy p,details.policy li{font-size:14px}
+a.tohub{color:var(--accent)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><!--__PIECES__--></defs></svg>
+<main>
+  <section class="view" id="v-play" hidden>
+    <div id="play-home">
+      <div class="hero"><span class="hero-gl gl">__IC_bK__</span><div><h1>Cờ Vua</h1><p class="muted">Chọn cách chơi · <a class="tohub" href="../">Đổi loại cờ</a></p></div></div>
+      <div class="card resume" id="home-resume" hidden>
+        <div class="resume-t"><b id="home-resume-title"></b><span class="muted" id="home-resume-sub"></span></div>
+        <div class="row"><button class="btn primary" id="home-resume-go">Tiếp tục</button><button class="btn" id="home-resume-drop">Bỏ ván</button></div>
+      </div>
+      <div class="modes" id="play-mode">
+        <button class="mode" data-m="ai"><span class="gl">__IC_wQ__</span><span class="mt"><b>Đấu với máy</b><small>6 cấp độ, từ tập sự tới cao thủ</small></span><span class="go">›</span></button>
+        <button class="mode" data-m="pvp"><span class="gl">__IC_bN__</span><span class="mt"><b>Hai người một máy</b><small>Ngồi đối diện, chung một màn hình</small></span><span class="go">›</span></button>
+        <button class="mode" data-m="net"><span class="gl">__IC_wR__</span><span class="mt"><b>Chơi qua mạng</b><small>Tạo phòng, gửi mã cho bạn bè</small></span><span class="go">›</span></button>
+      </div>
+      <h2 class="h2">Luyện tập</h2>
+      <div class="drills">
+        <button class="drill" data-go="puz"><span class="gl sm">__IC_bQ__</span>Chiếu hết</button>
+        <button class="drill" data-go="tac"><span class="gl sm">__IC_wN__</span>Chiến thuật</button>
+        <button class="drill" data-go="op"><span class="gl sm">__IC_bP__</span>Khai cuộc</button>
+        <button class="drill" data-go="ana"><span class="gl sm">__IC_wB__</span>Phân tích ván</button>
+      </div>
+    </div>
+    <div class="phead" id="play-head" hidden><button class="btn ic" id="play-back" aria-label="Về trang chủ">‹</button><h1 id="play-title">Đấu với máy</h1></div>
+    <div class="card setup" id="ai-setup" hidden>
+      <div class="lbl">Bạn cầm quân</div>
+      <div class="chips" id="ai-side"><button class="chip" data-v="0">Trắng <small>đi trước</small></button><button class="chip" data-v="1">Đen</button><button class="chip" data-v="r">Ngẫu nhiên</button></div>
+      <div class="lbl">Cấp độ của máy</div>
+      <div class="lvls" id="ai-levels"></div>
+      <label class="fld" id="ai-open-row">Máy mở đầu (khi máy cầm Trắng) <select id="play-open">
+        <option value="">Ngẫu nhiên</option>
+        <option value="e2e4">1. e4 (Tốt Vua)</option>
+        <option value="d2d4">1. d4 (Tốt Hậu)</option>
+        <option value="c2c4">1. c4 (Khai cuộc Anh)</option>
+        <option value="g1f3">1. Nf3 (Réti)</option>
+      </select></label>
+      <label class="chk2 fld"><input type="checkbox" id="ai-warn"> Báo nước yếu sau mỗi nước đi</label>
+      <button class="btn primary wide" id="ai-start">Bắt đầu</button>
+    </div>
+    <div class="card setup" id="pvp-setup" hidden>
+      <p class="muted">Đặt máy nằm giữa hai người: Trắng ngồi phía dưới, Đen ngồi phía trên (quân Đen quay về phía Đen). Chọn thời gian để bắt đầu ngay.</p>
+      <div class="tgrid" id="pvp-times"></div>
+    </div>
+    <div class="card setup" id="net-setup" hidden>
+      <div id="net-consent" hidden>
+        <p><b>Trước khi chơi qua mạng</b></p>
+        <p id="net-consent-code" hidden></p>
+        <p class="muted">Để hai máy tìm thấy và nối với nhau, app phải gửi một số thông tin kết nối ra khỏi máy của bạn:</p>
+        <ul class="tidy">
+          <li><b>Địa chỉ IP</b> của bạn: đối thủ biết được khi hai máy nối thẳng; các máy chủ trung gian cũng xử lý nó (điểm hẹn của app trên Cloudflare, điểm hẹn dự phòng 0.peerjs.com, máy chủ STUN của Google và Cloudflare). Các máy chủ này có thể đặt ở nước ngoài.</li>
+          <li><b>Mã phòng, nước đi và đồng hồ</b>: đi qua điểm hẹn của app khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ chuyển tin, không lưu ván cờ.</li>
+          <li>App không hỏi tên, số điện thoại hay tài khoản nào.</li>
+        </ul>
+        <p class="muted">Nếu bạn dưới 16 tuổi, hãy hỏi ý kiến cha mẹ trước khi đồng ý. Bạn rút lại sự đồng ý được bất cứ lúc nào ở mục Giới thiệu › Quyền riêng tư. Không đồng ý thì vẫn dùng được mọi chế độ khác.</p>
+        <div class="row"><button class="btn primary" id="net-consent-yes">Tôi đồng ý</button><button class="btn" id="net-consent-no">Không, quay lại</button></div>
+        <button class="btn wide" id="net-consent-policy">Đọc chính sách quyền riêng tư</button>
+      </div>
+      <div id="net-home">
+        <p class="muted">Hai máy nối thẳng với nhau qua Internet, không cần tài khoản. Một người tạo phòng rồi gửi mã (hoặc link) cho người kia.</p>
+        <p class="neterr" id="net-err" hidden></p>
+        <div class="card watchask" id="net-watch-ask" hidden>
+          <p><b>Bạn có muốn vào xem trận đấu không?</b></p>
+          <p class="muted">Bạn chỉ xem bàn cờ và đồng hồ, không đi quân được. Hai người chơi sẽ thấy có người đang xem.</p>
+          <div class="row"><button class="btn primary" id="net-watch-yes">Xem trận đấu</button><button class="btn" id="net-watch-no">Không</button></div>
+        </div>
+        <button class="btn primary wide" id="net-go-create">Tạo phòng mới</button>
+        <div class="lbl">Hoặc vào phòng bạn bè đã tạo</div>
+        <div class="joinrow"><input id="net-code" maxlength="6" placeholder="Mã phòng" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" id="net-join">Vào phòng</button></div>
+      </div>
+      <div id="net-create" hidden>
+        <p><b>Tạo phòng</b></p>
+        <label class="chk2 fld"><input type="checkbox" id="net-allow-watch"> Cho người khác vào xem trận (khi phòng đã đủ hai người)</label>
+        <label>Bạn cầm <select id="net-side"><option value="r">Ngẫu nhiên</option><option value="0">Trắng</option><option value="1">Đen</option></select></label>
+        <p class="muted">Chọn thời gian để tạo phòng:</p>
+        <div class="tgrid" id="net-times"></div>
+        <button class="btn wide" id="net-create-back">Quay lại</button>
+      </div>
+      <div id="net-wait" hidden>
+        <p class="muted" id="net-wait-title">Mã phòng</p>
+        <div class="netcode" id="net-code-show"></div>
+        <p id="net-status"></p>
+        <div class="row" id="net-share-row"><button class="btn primary" id="net-share">Gửi link mời</button><button class="btn" id="net-copy">Sao chép mã</button></div>
+        <button class="btn wide" id="net-wait-cancel">Huỷ</button>
+      </div>
+    </div>
+    <div class="pbar" id="pbar-top" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
+    <div class="netbar" id="net-banner" hidden><span id="net-banner-text"></span><button class="btn sm" id="net-banner-leave">Rời phòng</button></div>
+    <div class="ask-slot" id="ask-top"></div>
+    <div class="board-wrap" id="play-board"></div>
+    <div class="promo" id="promo" hidden>
+      <p>Phong cấp thành quân nào?</p>
+      <div class="promo-row"><button data-t="5" aria-label="Hậu"></button><button data-t="4" aria-label="Xe"></button><button data-t="3" aria-label="Tượng"></button><button data-t="2" aria-label="Mã"></button></div>
+      <button class="btn sm" id="promo-cancel" style="margin-top:6px">Huỷ</button>
+    </div>
+    <div class="ask-slot" id="ask-bot"></div>
+    <div class="pbar" id="pbar-bot" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
+    <div class="watchn muted" id="net-watchn" hidden></div>
+    <div class="card ask" id="play-ask" hidden><p id="play-ask-text"></p><div class="row"><button class="btn primary" id="play-ask-yes"></button><button class="btn" id="play-ask-no"></button></div></div>
+    <div class="card result" id="play-result" hidden>
+      <p id="play-result-text"></p>
+      <div class="row"><button class="btn primary" id="play-result-ana">Phân tích ván</button><button class="btn" id="play-result-new">Ván mới</button><button class="btn" id="play-result-mode">Trang chủ</button></div>
+      <p class="muted" id="play-result-note"></p>
+    </div>
+    <div class="sheet-back" id="am-back" hidden>
+      <div class="sheet" id="am" role="dialog" aria-label="Tùy chọn ván">
+        <div class="sheet-h"><b>Tùy chọn ván</b><button class="btn sm" id="am-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" id="play-hint">Gợi ý</button><button class="btn" id="play-undo">Đi lại</button><button class="btn" id="play-flip">Lật bàn</button></div>
+        <button class="btn wide" id="play-resign">Chịu thua</button>
+        <label>Cấp độ (đổi được giữa ván) <select id="play-level"></select></label>
+        <label class="chk2"><input type="checkbox" id="play-warn"> Báo nước yếu sau mỗi nước đi</label>
+        <button class="btn wide" id="am-home">‹ Về trang chủ (giữ ván để chơi tiếp)</button>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="play-moves"></div>
+      </div>
+    </div>
+    <div class="sheet-back" id="pm-back" hidden>
+      <div class="sheet" id="pm" role="dialog" aria-label="Menu ván hai người">
+        <div class="sheet-h"><b id="pm-title">Menu</b><button class="btn sm" id="pm-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" data-act="undo">Xin đi lại</button><button class="btn" data-act="draw">Xin hòa</button><button class="btn" data-act="resign">Chịu thua</button></div>
+        <label class="chk2"><input type="checkbox" id="pm-warn"> Báo nước yếu sau mỗi nước đi</label>
+        <button class="btn wide" id="pm-home">‹ Về trang chủ (giữ ván để chơi tiếp)</button>
+        <p class="muted" id="pm-netinfo" hidden></p>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="pm-moves"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-ana" hidden>
+    <h1>Phân tích ván</h1>
+    <div id="ana-list-wrap">
+      <p class="muted">Engine mạnh duyệt lại từng nước trong ván bạn đã chơi, chỉ ra nước nào làm bạn mất lợi thế và nước đúng là gì. Các thế bạn đi sai nặng sẽ tự thành bài tập ở tab Chiến thuật (mục "Lỗi của bạn").</p>
+      <div class="grid" id="ana-list"></div>
+      <div class="row"><button class="btn" id="ana-toplay">‹ Về trang chủ</button></div>
+    </div>
+    <div id="ana-detail" hidden>
+      <div class="title" id="ana-title"></div>
+      <div class="board-wrap" id="ana-board"></div>
+      <div class="status" id="ana-info"></div>
+      <div class="row">
+        <button class="btn" id="ana-first">⏮</button><button class="btn" id="ana-prev">◀</button><button class="btn" id="ana-next">▶</button><button class="btn" id="ana-last">⏭</button><button class="btn" id="ana-best">Ẩn nước đúng</button>
+      </div>
+      <div class="row"><button class="btn primary" id="ana-deep">Soi sâu thế này</button></div>
+      <div class="status" id="ana-live" hidden></div>
+      <div class="card" style="margin:8px 0">
+        <label>Mức phân tích <select id="ana-mode" style="width:100%;max-width:100%"><option value="fast">Nhanh (~0,5 giây mỗi thế)</option><option value="deep">Kỹ (~2 giây mỗi thế)</option><option value="max">Rất kỹ (soi sâu nước sai)</option></select></label>
+        <div class="muted" style="margin-top:4px">Rất kỹ: quét nhanh cả ván rồi cho engine nghĩ 8 giây ở từng nước sai. Một ván 40 nước mất khoảng 2–3 phút.</div>
+        <div class="row"><button class="btn" id="ana-redo">Phân tích lại ván này</button></div>
+        <div class="muted" id="ana-modeinfo"></div>
+      </div>
+      <div id="ana-graph"></div>
+      <div class="muted" id="ana-sum" style="margin:8px 2px"></div>
+      <div class="moves" id="ana-moves"></div>
+      <div class="row"><button class="btn" id="ana-back">‹ Danh sách ván</button><button class="btn primary" id="ana-mine">Luyện lỗi của tôi ›</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-puz" hidden>
+    <h1>Luyện chiếu hết</h1>
+    <div id="puz-list-wrap">
+      <p class="muted">Tìm chuỗi nước chiếu hết trong 1 đến 5 nước. Bài lấy từ kho bài tập mở của Lichess (thế cờ từ ván thật, giấy phép CC0), chọn những bài được chơi và đánh giá cao; mỗi bài được lõi luật của app kiểm tra lại.</p>
+      <div id="puz-list"></div>
+    </div>
+    <div id="puz-play" hidden>
+      <div class="title" id="puz-title"></div>
+      <div class="board-wrap" id="puz-board"></div>
+      <div class="status" id="puz-status"></div>
+      <div class="row">
+        <button class="btn" id="puz-back">‹ Danh sách</button>
+        <button class="btn" id="puz-hint">Gợi ý</button>
+        <button class="btn" id="puz-reset">Làm lại</button>
+        <button class="btn" id="puz-sol">Xem đáp án</button>
+        <button class="btn primary" id="puz-next" hidden>Bài kế ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-tac" hidden>
+    <h1>Chiến thuật</h1>
+    <div id="tac-list-wrap">
+      <p class="muted">Tìm chuỗi nước mạnh nhất: bắt đôi, ghim, xiên, thí quân… Bài lấy từ kho bài tập mở của Lichess (giấy phép CC0), có độ khó theo điểm Lichess. Máy tự đi nước đáp của đối phương.</p>
+      <div id="tac-stats" class="muted"></div>
+      <div id="tac-mine" style="margin:8px 0"></div>
+      <div class="chips" id="tac-bands"></div>
+      <div class="grid" id="tac-modes"></div>
+      <h2 class="h2">Luyện tập từng bài</h2>
+      <div class="grid" id="tac-grid"></div>
+      <h2 class="h2">Lịch sử</h2>
+      <div id="tac-hist" class="muted"></div>
+    </div>
+    <div id="tac-play" hidden>
+      <div class="title" id="tac-title"></div>
+      <div class="board-wrap" id="tac-board"></div>
+      <div class="status" id="tac-status"></div>
+      <div class="row">
+        <button class="btn" id="tac-back">‹ Danh sách</button>
+        <button class="btn" id="tac-hint">Gợi ý</button>
+        <button class="btn" id="tac-reset">Làm lại</button>
+        <button class="btn" id="tac-sol">Xem đáp án</button>
+        <button class="btn" id="tac-more" hidden>Xem tiếp</button>
+        <button class="btn primary" id="tac-next" hidden>Bài kế ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-op" hidden>
+    <h1>Khai cuộc</h1>
+    <div id="op-list-wrap">
+      <p class="muted">Các khai cuộc phổ biến, mỗi nhóm có giới thiệu ý tưởng bằng tiếng Việt và các biến chính (tên gốc tiếng Anh theo danh sách khai cuộc của Lichess). Chọn "Xem" để đi từng nước, "Tập" để tự đi các nước của bên mình, máy đi các nước của đối phương.</p>
+      <div id="op-list"></div>
+    </div>
+    <div id="op-play" hidden>
+      <div class="title" id="op-title"></div>
+      <div class="board-wrap" id="op-board"></div>
+      <div class="note" id="op-note"></div>
+      <div class="row" id="op-nav">
+        <button class="btn" id="op-first">⏮</button><button class="btn" id="op-prev">◀</button>
+        <button class="btn primary" id="op-next">▶</button><button class="btn" id="op-last">⏭</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="op-back">‹ Danh sách</button>
+        <button class="btn" id="op-study">Xem</button>
+        <button class="btn" id="op-drill">Tập</button>
+        <button class="btn" id="op-hint">Gợi ý</button>
+        <button class="btn" id="op-again">Tập lại</button>
+        <button class="btn" id="op-flip">Lật bàn</button>
+      </div>
+      <div class="moves" id="op-moves"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-about" hidden>
+    <h1>Giới thiệu</h1>
+    <div class="card"><label class="chk2"><input type="checkbox" id="set-autoq"> Luôn phong Hậu (không hỏi chọn quân khi Tốt tới hàng cuối)</label></div>
+    <div class="card">
+      <p><b>Cờ Vua Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản. Tiến độ được lưu trên máy của bạn; app không gửi dữ liệu đi đâu, trừ thông tin kết nối khi bạn chơi qua mạng (xem mục Quyền riêng tư).</p>
+      <p class="muted" id="app-version">Phiên bản __VERSION__ · bản dựng __BUILD_DATE__</p>
+    </div>
+    <h2>Dữ liệu của bạn</h2>
+    <div class="card">
+      <p class="muted" id="bk-now"></p>
+      <p class="muted">Dữ liệu chỉ nằm trong trình duyệt này. Xoá lịch sử Safari hoặc đổi máy sẽ mất, nên thỉnh thoảng hãy sao lưu ra file (lưu vào Tệp hoặc gửi cho chính mình).</p>
+      <div class="row"><button class="btn primary" id="bk-export">Sao lưu ra file</button><button class="btn" id="bk-import">Khôi phục từ file</button></div>
+      <input type="file" id="bk-file" accept="application/json,.json" hidden>
+      <div id="bk-confirm" hidden>
+        <p id="bk-what"></p>
+        <div class="row"><button class="btn primary" id="bk-apply">Khôi phục</button><button class="btn" id="bk-cancel">Huỷ</button></div>
+      </div>
+    </div>
+    <h2 id="privacy">Quyền riêng tư</h2>
+    <div class="card">
+      <p class="muted" id="pv-status"></p>
+      <button class="btn wide" id="pv-revoke" hidden>Rút lại đồng ý chơi qua mạng</button>
+      <p class="muted">Xoá toàn bộ dữ liệu của app trên máy này: tiến độ, ván đã lưu, cài đặt và sự đồng ý. Không lấy lại được nếu chưa sao lưu.</p>
+      <button class="btn wide" id="pv-wipe">Xoá dữ liệu trên máy này</button>
+      <div id="pv-wipe-confirm" hidden>
+        <p><b>Xoá hết dữ liệu của app trên máy này?</b></p>
+        <div class="row"><button class="btn primary" id="pv-wipe-yes">Xoá hết</button><button class="btn" id="pv-wipe-no">Huỷ</button></div>
+      </div>
+      <details class="policy">
+        <summary>Chính sách quyền riêng tư (bản ngày 25/11/2026)</summary>
+        <p><b>1. Ai xử lý dữ liệu.</b> Người phát triển app Cờ Vua Luyện Tập và Cờ Tướng Luyện Tập (tài khoản GitHub mercyk24). Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn github.com/mercyk24/Co-tuong-Xiangqi-. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.</p>
+        <p><b>2. Dữ liệu trên máy của bạn.</b> Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt, sự đồng ý của bạn và nhật ký lỗi gần đây (để bạn tự chép gửi khi báo lỗi) được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu ở trên.</p>
+        <p><b>3. Khi chơi qua mạng (chỉ khi bạn đồng ý).</b> Dữ liệu được xử lý: địa chỉ IP, mã phòng, mã kết nối ngẫu nhiên, nước đi và đồng hồ của ván. Mục đích duy nhất: nối hai máy với nhau và chuyển nước đi. Bên nhận:</p>
+        <ul class="tidy">
+          <li>Đối thủ của bạn: biết địa chỉ IP của bạn khi hai máy nối thẳng (WebRTC).</li>
+          <li>Điểm hẹn của app chạy trên Cloudflare (Cloudflare, Inc., Hoa Kỳ; máy chủ đặt ở nhiều nước): nhận IP và tin kết nối, chuyển nước đi khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ giữ thông tin trong lúc đang kết nối, không lưu ván cờ, và đã tắt ghi nhật ký từng lượt truy cập.</li>
+          <li>Điểm hẹn dự phòng 0.peerjs.com (dự án PeerJS, máy chủ ở nước ngoài): chỉ dùng khi điểm hẹn của app không vào được.</li>
+          <li>Máy chủ STUN của Google và Cloudflare: giúp mỗi máy biết địa chỉ IP công khai của mình.</li>
+          <li>Người xem trận: nhận thế cờ và đồng hồ qua điểm hẹn của app, không biết địa chỉ IP của người chơi.</li>
+        </ul>
+        <p><b>4. Chuyển ra nước ngoài.</b> Các máy chủ ở mục 3 có thể đặt ngoài Việt Nam, nên địa chỉ IP của bạn có thể được xử lý ở nước ngoài trong lúc kết nối. Đây là lý do app xin bạn đồng ý trước khi chơi qua mạng.</p>
+        <p><b>5. Quyền của bạn.</b> Bạn có quyền được biết, đồng ý hoặc không đồng ý, rút lại sự đồng ý (nút ở trên), xem, sao chép và xoá dữ liệu trên máy (nút Sao lưu và Xoá dữ liệu), yêu cầu hạn chế xử lý, phản đối và khiếu nại theo Luật Bảo vệ dữ liệu cá nhân. Rút lại đồng ý không ảnh hưởng các lần kết nối trước đó; sau khi rút lại, app không kết nối qua mạng nữa cho đến khi bạn đồng ý lại.</p>
+        <p><b>6. Trẻ em.</b> App không hỏi tuổi. Người dưới 16 tuổi nên hỏi ý kiến cha mẹ trước khi chơi qua mạng.</p>
+        <p><b>7. Không dùng cho mục đích khác.</b> App không có quảng cáo, không theo dõi hành vi, không bán hay chia sẻ dữ liệu cho bên thứ ba ngoài các bên ở mục 3.</p>
+        <p><b>8. Thay đổi.</b> Khi chính sách thay đổi về nội dung chính, app sẽ hỏi lại sự đồng ý trước lần chơi qua mạng tiếp theo.</p>
+      </details>
+    </div>
+    <h2>Báo lỗi</h2>
+    <div class="card">
+      <p class="muted" id="rp-count"></p>
+      <p class="muted">Gặp lỗi thì bấm "Xem thông tin lỗi", đọc qua nội dung rồi chép gửi cho người phát triển (mục Issues trên GitHub, hoặc nhắn trực tiếp). Nội dung chỉ gồm phiên bản app, loại máy và trình duyệt, các lỗi gần đây và nhật ký kết nối; không có ván cờ hay dữ liệu cá nhân. App không tự gửi gì đi.</p>
+      <button class="btn wide" id="rp-show">Xem thông tin lỗi</button>
+      <div id="rp-box" hidden>
+        <textarea id="rp-text" readonly rows="10" spellcheck="false" aria-label="Thông tin lỗi"></textarea>
+        <div class="row"><button class="btn primary" id="rp-copy">Chép</button><button class="btn" id="rp-open">Mở trang báo lỗi</button></div>
+        <button class="btn wide" id="rp-clear">Xoá nhật ký lỗi</button>
+      </div>
+    </div>
+    <h2>Cài lên iPhone</h2>
+    <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
+    <h2>Luật cờ trong app</h2>
+    <ul class="tidy">
+      <li>Luật cờ vua quốc tế (FIDE): nhập thành, bắt tốt qua đường, phong cấp (chọn Hậu, Xe, Tượng hoặc Mã).</li>
+      <li>Ván hòa tự động khi: hết nước đi mà không bị chiếu (pat), thế cờ lặp lại ba lần, 50 nước mỗi bên không ăn quân và không đi Tốt, hoặc hai bên không đủ quân để chiếu hết.</li>
+      <li>Ghi nước theo ký hiệu quốc tế: K Vua, Q Hậu, R Xe, B Tượng, N Mã, Tốt không ghi chữ (ví dụ Nf3, exd5, O-O là nhập thành cánh Vua, O-O-O cánh Hậu, e8=Q là phong Hậu, + chiếu, # chiếu hết).</li>
+    </ul>
+    <h2>Ghi chú</h2>
+    <ul class="tidy">
+      <li>Cấp 1–5 dùng engine tự viết của app. Cấp 6 (Cao thủ) và phân tích ván dùng engine Fairy-Stockfish (bản WebAssembly, giấy phép GPL-3.0) chơi cờ vua, không cần tải mạng NNUE.</li>
+      <li>Bài chiếu hết và chiến thuật lấy từ kho bài tập mở của Lichess (database.lichess.org, giấy phép CC0).</li>
+      <li>Tên và nước đi khai cuộc lấy từ danh sách khai cuộc mở của Lichess (github.com/lichess-org/chess-openings, giấy phép CC0); phần giới thiệu tiếng Việt do dự án viết.</li>
+      <li>Hình quân cờ: bộ "cburnett" của Colin M.L. Burnett (giấy phép GPLv2 trở lên), bộ quân mặc định của Lichess.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC); nếu mạng chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app. Phòng cờ vua tách hẳn phòng cờ tướng. Dữ liệu được gửi đi và nơi nhận: xem mục Quyền riêng tư ở trên.</li>
+      <li>Mã nguồn mở theo giấy phép GPL-3.0. Danh sách thành phần bên thứ ba và ghi công: tệp NOTICE trong mã nguồn.</li>
+    </ul>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button class="nav-handle" id="nav-handle" aria-label="Mở thanh điều hướng" title="Mở thanh điều hướng">▦</button>
+  <button class="tab" data-tab="play"><b>__IC_wK__</b>Trang chủ</button>
+  <button class="tab" data-tab="puz"><b>__IC_wQ__</b>Chiếu hết</button>
+  <button class="tab" data-tab="tac"><b>__IC_wN__</b>Chiến thuật</button>
+  <button class="tab" data-tab="op"><b>__IC_wP__</b>Khai cuộc</button>
+  <button class="tab" data-tab="about"><b>？</b>Giới thiệu</button>
+</nav>
+<div id="toast"></div>
+
+<script id="core-src" type="text/plain">/*__CORE__*/</script>
+<script>
+/*__CORE__*/
+var APP_VERSION = '__VERSION__';
+var PUZZLES = /*__PUZZLES__*/;
+var OPENINGS = /*__OPENINGS__*/;
+var TACTICS = /*__TACTICS__*/;
+var BOOK = /*__BOOK__*/;
+</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

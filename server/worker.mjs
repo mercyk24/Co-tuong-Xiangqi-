@@ -6,7 +6,7 @@
 // Durable Object dùng "WebSocket ngủ đông": khi hai máy đang nối thẳng với nhau và không gửi gì lên,
 // phòng ngủ và không tốn tiền; tin nhịp tim được Cloudflare tự trả lời mà không đánh thức phòng.
 import { DurableObject } from 'cloudflare:workers';
-import { checkJoin, paramsOf, onConnect, onMessage, onClose, HEARTBEAT } from './core.mjs';
+import { checkJoin, paramsOf, roomKey, onConnect, onMessage, onClose, HEARTBEAT } from './core.mjs';
 
 // Giới hạn số lần mở kết nối từ một địa chỉ IP (mặc định 120 lần / phút, đặt trong wrangler.jsonc): chặn kẻ xấu mở ồ ạt
 // kết nối để làm tốn tài nguyên hay dò mã phòng để vào xem trộm. Mức này rộng để nhiều người dùng chung một IP
@@ -35,7 +35,8 @@ export default {
       const p = paramsOf(req.url);
       const bad = checkJoin(p);
       if (bad) return new Response(bad, { status: 400 });
-      return env.ROOMS.get(env.ROOMS.idFromName(p.room)).fetch(req);
+      // Một Durable Object cho mỗi phòng; phòng cờ vua mang tiền tố "c:" nên không bao giờ trùng phòng cờ tướng
+      return env.ROOMS.get(env.ROOMS.idFromName(roomKey(p))).fetch(req);
     }
     if (url.pathname === '/health') return Response.json({ ok: true, service: 'co-tuong-signal' });
     if (env.ASSETS) return env.ASSETS.fetch(req);

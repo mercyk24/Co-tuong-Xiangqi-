@@ -1,24 +1,15 @@
-  // 70-settings.js — Cài đặt và dữ liệu: cách ghi nước đi, sao lưu / khôi phục dữ liệu người dùng.
-  function applyNmode(v) {
-    Store.set('nmode', v);
-    const sel = $('#set-nmode'); if (sel) sel.value = v;
-    const b = $('#ana-nm'); if (b) b.textContent = 'Ghi nước: ' + { vi: 'Việt', han: 'Hán', both: 'Cả hai' }[v];
-    try { Play.draw(); } catch (e) { /* bỏ qua */ }
-    try { if (Ana.cur) Ana.draw(); } catch (e) { /* bỏ qua */ }
-    try { Tac.renderList(); if (Tac.cur && !$('#tac-play').hidden) Tac.draw(); } catch (e) { /* bỏ qua */ }
-    try { Op.renderList(); if (!$('#op-play').hidden) Op.draw(); } catch (e) { /* bỏ qua */ }
-  }
-
-  // Sao lưu / khôi phục: mọi dữ liệu của app nằm trong localStorage với tiền tố "xq_".
+  // 70-settings.js (dùng chung) — Sao lưu / khôi phục dữ liệu người dùng, quyền riêng tư (rút lại đồng ý, xoá dữ liệu).
+  // Phần riêng của từng loại cờ nằm trong GAME (00-game.js): tên app, tiền tố lưu trữ, danh sách khoá, kiểm tra dữ liệu.
+  // Sao lưu / khôi phục: mọi dữ liệu của app nằm trong localStorage với tiền tố GAME.store ("xq_" cờ tướng, "xc_" cờ vua).
   const Backup = {
-    KEY: 'xq_', pending: null,
+    KEY: GAME.store, pending: null,
     collect() {
       const data = {};
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.indexOf(this.KEY) === 0) data[k.slice(this.KEY.length)] = localStorage.getItem(k);
       }
-      return { app: 'co-tuong-luyen-tap', version: APP_VERSION, exportedAt: new Date().toISOString(), data };
+      return { app: GAME.app, version: APP_VERSION, exportedAt: new Date().toISOString(), data };
     },
     summary(data) {
       const j = k => { try { return JSON.parse(data[k] || 'null'); } catch (e) { return null; } };
@@ -54,10 +45,9 @@
     // Tệp sao lưu đến từ bên ngoài nên được kiểm tra kỹ trước khi ghi vào máy: chỉ nhận đúng các mục app dùng,
     // mỗi mục phải là JSON hợp lệ, không chứa ký tự dùng được để chèn mã vào trang (< > " ' ` &), và không quá lớn.
     MAX_FILE: 5 * 1024 * 1024,
-    KEYS: ['ai_side', 'ana_mode', 'games', 'mine', 'net_side', 'net_watch', 'nmode', 'op_stats', 'play_clock', 'play_level', 'play_mode',
-      'play_open', 'play_user', 'play_warn', 'puz_done', 'done', 'puz_filter', 'tab', 'tac_band', 'tac_best', 'tac_done', 'tac_hist'],
+    KEYS: GAME.keys,
     clean(o) {
-      if (!o || typeof o !== 'object' || o.app !== 'co-tuong-luyen-tap' || !o.data || typeof o.data !== 'object' || Array.isArray(o.data)) return null;
+      if (!o || typeof o !== 'object' || o.app !== GAME.app || !o.data || typeof o.data !== 'object' || Array.isArray(o.data)) return null;
       const bad = v => typeof v === 'string' && /[<>"'`&\u0000-\u001f]/.test(v);
       const deepOk = (v, depth) => {
         if (depth > 8) return false;
@@ -76,6 +66,7 @@
         if (!deepOk(v, 0)) return null;
         if (k === 'games' && !(Array.isArray(v) && v.every(g => g && /^g[A-Za-z0-9_-]{1,40}$/.test(g.id) && isFinite(g.t) && Array.isArray(g.moves)))) return null;
         if (k === 'mine' && !(Array.isArray(v) && v.every(m => m && typeof m.id === 'string' && /^m[A-Za-z0-9_-]{0,40}$/.test(m.id)))) return null;
+        if (GAME.checkKey && !GAME.checkKey(k, v)) return null;
         data[k] = raw;
       }
       const ver = String(o.version || '').slice(0, 20), when = Date.parse(o.exportedAt);
@@ -93,7 +84,7 @@
     },
     apply() {
       const o = this.pending; if (!o) return;
-      const old = [], keep = ['xq_consent_net', 'xq_net_sess'];  // sự đồng ý là của máy này, không lấy từ tệp
+      const old = [], keep = [GAME.store + 'consent_net', GAME.store + 'net_sess'];  // sự đồng ý là của máy này, không lấy từ tệp
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf(this.KEY) === 0 && keep.indexOf(k) < 0) old.push(k); }
       old.forEach(k => localStorage.removeItem(k));
       Object.keys(o.data).forEach(k => { if (typeof o.data[k] === 'string') localStorage.setItem(this.KEY + k, o.data[k]); });
@@ -124,7 +115,7 @@
     wipe() {
       try { if (Play.net() && Net.state !== 'idle') Net.leave(); } catch (e) { /* bỏ qua */ }
       const ks = [];
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('xq_') === 0) ks.push(k); }
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf(GAME.store) === 0) ks.push(k); }
       ks.forEach(k => localStorage.removeItem(k));
       try { sessionStorage.clear(); } catch (e) { /* bỏ qua */ }
       toast('Đã xoá dữ liệu của app trên máy này. Đang tải lại…', 'ok');

@@ -10,7 +10,7 @@ test.describe.configure({ timeout: 120_000 });
 async function device(context, errors) {
   const p = await context.newPage();
   p.on('pageerror', e => errors.push(e.message));
-  await p.goto('index.html');
+  await p.goto('co-tuong/index.html');
   await p.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 20_000 });
   return p;
 }
@@ -152,7 +152,7 @@ test('qua mạng: vào bằng link mời; chủ phòng rời thì máy kia đư�
   expect(link).toContain('#phong=' + code);
   // Máy B mở link mời lần đầu: trình duyệt mới hoàn toàn (chưa có service worker), app sẽ tự tải lại một lần rồi mới vào phòng.
   const B = await context.newPage();
-  await B.goto('index.html#phong=' + code);
+  await B.goto('co-tuong/index.html#phong=' + code);
   await B.waitForFunction(() => window.__xq && window.__xq.Net.state === 'playing', null, { timeout: 30_000 });
   expect(await B.evaluate(() => location.hash)).toBe('');
   await A.locator('#pbar-bot [data-act="menu"]').count();
@@ -179,7 +179,7 @@ test('qua mạng: máy mới mở link mời lần đầu (app tự tải lại 
   const ctx = await browser.newContext();
   await ctx.addInitScript(() => { localStorage.setItem('xq_consent_net', '{"v":"2026-11-25","t":1}'); window.__XQ_SIGNAL__ = 'local'; window.__XQ_ICE__ = []; window.__XQ_JOIN_MS__ = 20000; });
   const p = await ctx.newPage();
-  await p.goto('index.html#phong=K7P2QD');
+  await p.goto('co-tuong/index.html#phong=K7P2QD');
   await p.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Net.code === 'K7P2QD', null, { timeout: 30_000 });
   expect(await p.evaluate(() => sessionStorage.getItem('xq_coi'))).toBe('1'); // đã tải lại một lần
   expect(['joining', 'error']).toContain(await p.evaluate(() => window.__xq.Net.state));
@@ -223,7 +223,7 @@ test('qua mạng: máy thứ ba vào phòng đã đủ người thì được b�
   const C = await context.newPage();
   C.on('pageerror', e => errors.push(e.message));
   await C.addInitScript(() => localStorage.removeItem('xq_net_sess'));
-  await C.goto('index.html');
+  await C.goto('co-tuong/index.html');
   await C.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 20_000 });
   await C.evaluate(c => { window.__xq.Play.setMode('net'); return window.__xq.Net.join(c); }, code);
   await C.waitForFunction(() => window.__xq.Net.state === 'error', null, { timeout: 30_000 });

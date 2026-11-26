@@ -17,7 +17,7 @@ async function run(browser, signal) {
     const p = await ctx.newPage();
     await p.addInitScript(s => { localStorage.setItem('xq_consent_net', '{"v":"2026-11-25","t":1}'); if (s) window.__XQ_SIGNAL__ = s; }, signal || '');
     p.on('pageerror', e => errors.push(e.message));
-    await p.goto('index.html');
+    await p.goto('co-tuong/index.html');
     await p.waitForFunction(() => window.crossOriginIsolated === true && window.__xq && window.__xq.Play, null, { timeout: 20_000 });
     return p;
   };

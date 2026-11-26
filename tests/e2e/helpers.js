@@ -7,7 +7,7 @@ async function openApp(page, { isolated = true } = {}) {
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  await page.goto('index.html');
+  await page.goto('co-tuong/index.html');
   await page.waitForFunction(() => window.__xq && window.__xq.Play);
   if (isolated) {
     await page.waitForFunction(() => window.crossOriginIsolated === true, null, { timeout: 20_000 });

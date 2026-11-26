@@ -1,33 +1,4 @@
-  // 01-util.js — Tiện ích chung: truy vấn DOM, lưu trữ (localStorage), nhật ký lỗi trên máy, chuyển ký hiệu nước đi sang tiếng Việt, danh sách nước, thông báo nổi.
-  const $ = (s, el) => (el || document).querySelector(s);
-  const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
-  // ---------- Lưu trữ ----------
-  const Store = {
-    get(k, d) { try { const v = localStorage.getItem('xq_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('xq_' + k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } }
-  };
-
-  // ---------- Nhật ký lỗi trên máy ----------
-  // Ghi tối đa 30 lỗi gần nhất vào bộ nhớ của trình duyệt, chỉ để người dùng tự xem và chép gửi khi báo lỗi
-  // (Giới thiệu › Báo lỗi). App không tự gửi nhật ký này đi đâu.
-  const ErrLog = {
-    KEY: 'xq_errlog', MAX: 30,
-    list() { try { const l = JSON.parse(localStorage.getItem(this.KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } },
-    add(kind, msg, where) {
-      try {
-        const l = this.list(), m = String(msg || '?').slice(0, 300), w = String(where || '').slice(0, 160), last = l[l.length - 1];
-        if (last && last.m === m && last.w === w) { last.n = (last.n || 1) + 1; last.t = Date.now(); }  // lỗi lặp lại: chỉ đếm
-        else l.push({ t: Date.now(), k: kind, m, w, v: APP_VERSION });
-        localStorage.setItem(this.KEY, JSON.stringify(l.slice(-this.MAX)));
-      } catch (e) { /* bỏ qua */ }
-    },
-    clear() { try { localStorage.removeItem(this.KEY); } catch (e) { /* bỏ qua */ } }
-  };
-  window.addEventListener('error', e => ErrLog.add('lỗi', e.message, (e.filename ? e.filename.split('/').pop() : '') + ':' + e.lineno + ':' + e.colno));
-  window.addEventListener('unhandledrejection', e => { const r = e.reason; ErrLog.add('promise', r && (r.stack || r.message) || r, ''); });
-
+  // 02-notation.js — Cờ tướng: chữ Hán của quân, chuyển ký hiệu nước đi sang tiếng Việt, danh sách nước, cài đặt cách ghi nước.
   // ---------- Hiển thị quân & ký hiệu ----------
   const HAN_RED = ['', '俥', '傌', '相', '仕', '帥', '炮', '兵'];
   const HAN_BLK = ['', '車', '馬', '象', '士', '將', '砲', '卒'];
@@ -60,8 +31,14 @@
     return h;
   }
 
-  function toast(msg, kind) {
-    const t = $('#toast'); t.textContent = ndt(msg); t.className = 'show ' + (kind || '');
-    clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = ''; }, 2600);
+
+  function applyNmode(v) {
+    Store.set('nmode', v);
+    const sel = $('#set-nmode'); if (sel) sel.value = v;
+    const b = $('#ana-nm'); if (b) b.textContent = 'Ghi nước: ' + { vi: 'Việt', han: 'Hán', both: 'Cả hai' }[v];
+    try { Play.draw(); } catch (e) { /* bỏ qua */ }
+    try { if (Ana.cur) Ana.draw(); } catch (e) { /* bỏ qua */ }
+    try { Tac.renderList(); if (Tac.cur && !$('#tac-play').hidden) Tac.draw(); } catch (e) { /* bỏ qua */ }
+    try { Op.renderList(); if (!$('#op-play').hidden) Op.draw(); } catch (e) { /* bỏ qua */ }
   }
 

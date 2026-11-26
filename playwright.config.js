@@ -23,7 +23,7 @@ module.exports = defineConfig({
   },
   webServer: {
     command: 'node scripts/serve.js ' + PORT,
-    url: 'http://localhost:' + PORT + '/index.html',
+    url: 'http://localhost:' + PORT + '/co-tuong/index.html',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000
   }

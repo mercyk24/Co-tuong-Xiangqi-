@@ -1,4 +1,4 @@
-  // 75-report.js — Báo lỗi tự nguyện (Giới thiệu › Báo lỗi): người dùng xem trước nội dung, tự chép rồi gửi cho người phát triển.
+  // 75-report.js (dùng chung) — Báo lỗi tự nguyện (Giới thiệu › Báo lỗi): người dùng xem trước nội dung, tự chép rồi gửi cho người phát triển.
   // Nội dung chỉ gồm phiên bản app, loại máy / trình duyệt, khả năng của trình duyệt, lỗi gần đây (ErrLog) và nhật ký kết nối;
   // không có ván cờ, tiến độ hay dữ liệu cá nhân. App không tự gửi gì đi.
   const Report = {
@@ -6,7 +6,7 @@
     text() {
       const L = [], yn = b => (b ? 'có' : 'không');
       const fmt = t => { try { return new Date(t).toISOString().replace('T', ' ').slice(0, 19) + ' UTC'; } catch (e) { return '?'; } };
-      L.push('Cờ Tướng Luyện Tập ' + ($('#app-version') ? $('#app-version').textContent : APP_VERSION));
+      L.push(GAME.title + ' ' + ($('#app-version') ? $('#app-version').textContent : APP_VERSION));
       L.push('Lúc: ' + fmt(Date.now()));
       L.push('Trình duyệt: ' + navigator.userAgent);
       L.push('Màn hình: ' + window.innerWidth + '×' + window.innerHeight + ' @' + (window.devicePixelRatio || 1) +

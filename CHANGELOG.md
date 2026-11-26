@@ -2,6 +2,32 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.0.0] – 2026-11-26
+
+### Thêm
+- **Trang chủ chọn loại cờ** ở địa chỉ gốc. Cờ tướng chuyển sang `/co-tuong/`, cờ vua ở `/co-vua/`. Trang chủ đánh dấu loại cờ chơi gần nhất. Link mời cũ dạng `…/#phong=ABC123` tự chuyển sang cờ tướng và vào đúng phòng.
+- **Cờ Vua** với đủ các phần như cờ tướng:
+  - Luật đầy đủ: nhập thành, bắt tốt qua đường, phong cấp (chọn quân, hoặc bật "Luôn phong Hậu"), chiếu hết, pat, lặp lại ba lần, luật 50 nước, không đủ quân. Lõi luật mới `src/core/chess.js`, kiểm bằng perft.
+  - Ghi nước theo ký hiệu quốc tế (SAN).
+  - Đấu máy 6 cấp (cấp 6: Fairy-Stockfish), sách khai cuộc của máy; hai người một máy; chơi qua mạng và xem trận; phân tích ván và "Lỗi của bạn".
+  - Chiếu hết 1–5 nước và chiến thuật từ kho bài tập Lichess (CC0), lời giải được kiểm lại bằng lõi luật.
+  - Khai cuộc: 13 nhóm có giới thiệu tiếng Việt, 92 biến chính, tên theo danh mục Lichess (CC0).
+  - Hình quân cburnett (GPLv2+).
+- Công cụ `tools/chess/fetch-data.mjs` (tải nguyên liệu) và `tools/chess/build-data.js` (dựng `data/chess/*.json`, kiểm từng nước).
+
+### Thay đổi
+- Mã dùng chung hai app chuyển sang `src/shared/` (tiện ích, lưu trữ, engine mạnh, chơi qua mạng, cài đặt, sao lưu, báo lỗi), đọc cấu hình `GAME` của từng app. Dữ liệu, tiến độ, cài đặt, tệp sao lưu và sự đồng ý chơi qua mạng của hai loại cờ tách riêng; tệp sao lưu cờ tướng không khôi phục được vào cờ vua và ngược lại.
+- Một service worker dùng chung cho cả ba trang (lưu ngoại tuyến từng trang, engine dùng chung). Mỗi loại cờ cài lên màn hình chính thành một biểu tượng riêng.
+- Điểm hẹn riêng (`server/`) nhận thêm mã máy cờ vua `xcvn-…`, giữ phòng của hai loại cờ tách riêng. **Cần `wrangler deploy` lại** để cờ vua dùng điểm hẹn riêng; chưa deploy thì cờ vua tự dùng `0.peerjs.com`.
+- Máy mở đầu đa dạng hơn: sách khai cuộc cờ tướng do Pikafish sinh mở rộng từ 597 lên 2355 thế (mỗi thế giữ tới 4 nước tốt, sâu tới 7 nửa nước); sách cờ vua 3500 thế, sâu tới 16 nửa nước, bỏ các khai cuộc đùa và nước kém.
+- Chính sách quyền riêng tư ghi tên cả hai app; cách xử lý dữ liệu không đổi nên không hỏi đồng ý lại.
+
+### Sửa lỗi
+- Chơi qua mạng với điểm hẹn riêng: khi mã phòng bắt đầu bằng chữ W (khoảng 1/32 số phòng), điểm hẹn nhầm chủ phòng là người xem nên khách không vào được phòng (báo không tìm thấy). Lỗi có từ bản 1.6.0; cần deploy lại điểm hẹn để hết.
+
+### Lưu ý khi nâng cấp
+- Người đã cài cờ tướng lên màn hình chính từ bản cũ (địa chỉ gốc): mở biểu tượng cũ sẽ vào trang chủ; chọn Cờ Tướng rồi cài lại để có biểu tượng mở thẳng vào cờ tướng. Dữ liệu cũ vẫn còn vì cùng tên miền và cùng khoá lưu trữ.
+
 ## [1.8.0] – 2026-11-25
 
 ### Thêm
