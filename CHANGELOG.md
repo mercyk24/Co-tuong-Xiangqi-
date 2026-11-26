@@ -2,6 +2,12 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.0.1] – 2026-11-26
+
+### Thay đổi
+- Repo đổi tên thành `mercyk24/co-luyen-tap`. Trang web chuyển sang https://mercyk24.github.io/co-luyen-tap/ (địa chỉ cũ `…/Co-tuong-Xiangqi-/` không còn). Liên kết báo lỗi và mục liên hệ trong chính sách quyền riêng tư trỏ sang repo mới; nội dung chính sách không đổi nên không hỏi đồng ý lại.
+- Cập nhật thư viện kiểm tra và GitHub Actions theo các đề xuất của Dependabot (#1–#6): @playwright/test 1.65.1, actions/checkout 7, actions/setup-node 7, actions/upload-artifact 7, actions/upload-pages-artifact 5, actions/deploy-pages 5.
+
 ## [2.0.0] – 2026-11-26
 
 ### Thêm

@@ -2,7 +2,7 @@
   // Nội dung chỉ gồm phiên bản app, loại máy / trình duyệt, khả năng của trình duyệt, lỗi gần đây (ErrLog) và nhật ký kết nối;
   // không có ván cờ, tiến độ hay dữ liệu cá nhân. App không tự gửi gì đi.
   const Report = {
-    ISSUES: 'https://github.com/mercyk24/Co-tuong-Xiangqi-/issues/new',
+    ISSUES: 'https://github.com/mercyk24/co-luyen-tap/issues/new',
     text() {
       const L = [], yn = b => (b ? 'có' : 'không');
       const fmt = t => { try { return new Date(t).toISOString().replace('T', ' ').slice(0, 19) + ' UTC'; } catch (e) { return '?'; } };
