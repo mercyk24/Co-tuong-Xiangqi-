@@ -6,7 +6,7 @@
 
 ### Thêm
 - Cờ tướng: bài chiếu hết tăng từ 98 lên 1078 bài (1–6 nước; 718 bài Đen đi), sinh bằng bộ giải chiếu hết của app, mỗi bài được kiểm chứng đúng số nước tối thiểu và chỉ một nước đầu đúng.
-- Cờ tướng: thêm bài chiến thuật sinh bằng Pikafish (số bài: xem ghi chú phát hành). Hạng bài nay chia tới 1800.
+- Cờ tướng: bài chiến thuật tăng từ 89 lên 429 bài, sinh bằng Pikafish tự đấu (2.079 ván, 3 Pikafish chạy song song trong 2 giờ). Hạng bài nay chia tới 1800: Nhập môn 337, Trung bình 47, Nâng cao 45.
 
 ### Thay đổi
 - `tools/xiangqi/gen_puzzles.js`: đặt được số bài mỗi mức, chọn đa dạng tổ hợp quân, bỏ bài trùng (kể cả lật, xoay bàn). `build_puzzles.js --append` giữ bài cũ.

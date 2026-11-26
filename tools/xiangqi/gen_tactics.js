@@ -21,9 +21,9 @@ const deadline = Date.now() + MINUTES * 60000;
 // ---- Một Pikafish (giao tiếp UCI) ----
 function Engine() {
   const eng = spawn(exe, [], { cwd: path.dirname(exe) });
-  let buf = '', waiters = [];
+  let buf = '', waiters = [], closing = false;   // closing: chính công cụ đã bảo Pikafish này thoát
   eng.stdout.on('data', d => { buf += d; let i; while ((i = buf.indexOf('\n')) >= 0) { const l = buf.slice(0, i).trim(); buf = buf.slice(i + 1); waiters = waiters.filter(w => !w(l)); } });
-  eng.on('exit', c => { if (!quitting) { console.error('Pikafish thoát bất ngờ (mã ' + c + ')'); process.exit(1); } });
+  eng.on('exit', c => { if (!closing) { console.error('Pikafish thoát bất ngờ (mã ' + c + ')'); process.exit(1); } });
   const send = s => eng.stdin.write(s + '\n');
   const until = (pred, col) => new Promise(r => waiters.push(l => { if (col) col(l); if (pred(l)) { r(); return true; } return false; }));
   return {
@@ -39,10 +39,9 @@ function Engine() {
       await until(l => l.startsWith('bestmove'), l => { const p = info(l); if (p && !p.bound) best[p.k] = p; if (l.startsWith('bestmove')) bm = l.split(/\s+/)[1]; });
       return { lines: Object.values(best).sort((a, b) => a.k - b.k), bm };
     },
-    quit() { send('quit'); }
+    quit() { closing = true; send('quit'); }
   };
 }
-let quitting = false;
 const info = l => { const m = l.match(/depth (\d+).* multipv (\d+) score (cp|mate) (-?\d+)(?: (lowerbound|upperbound))?.* pv (.+)$/); return m ? { d: +m[1], k: +m[2], kind: m[3], v: +m[4], bound: m[5], pv: m[6].trim().split(/\s+/) } : null; };
 const val = p => p.kind === 'mate' ? (p.v > 0 ? 100000 - p.v : -100000 - p.v) : p.v;
 
@@ -119,7 +118,6 @@ async function worker() {
 (async () => {
   console.log(`Chạy ${WORKERS} Pikafish × ${THREADS} luồng, tối đa ${MINUTES} phút${MAX_GAMES ? ', ' + MAX_GAMES + ' ván' : ''}. Có sẵn ${res.length} bài.`);
   await Promise.all(Array.from({ length: WORKERS }, worker));
-  quitting = true;
   const by = {}; res.forEach(r => { by[r.rating] = (by[r.rating] || 0) + 1; });
   console.log(`Xong: ${gamesStarted} ván, thêm ${added} bài, tổng ${res.length} bài trong ${outFile}. Theo hạng:`, by);
   process.exit(0);
