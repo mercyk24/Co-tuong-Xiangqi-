@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ (cờ tướng, cờ vua, cờ vây) chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
   // 75-report.js (dùng chung) — Báo lỗi tự nguyện (Giới thiệu › Báo lỗi): người dùng xem trước nội dung, tự chép rồi gửi cho người phát triển.
   // Nội dung chỉ gồm phiên bản app, loại máy / trình duyệt, khả năng của trình duyệt, lỗi gần đây (ErrLog) và nhật ký kết nối;
   // không có ván cờ, tiến độ hay dữ liệu cá nhân. App không tự gửi gì đi.
@@ -13,7 +13,7 @@
       L.push('Màn hình: ' + window.innerWidth + '×' + window.innerHeight + ' @' + (window.devicePixelRatio || 1) +
         ' · cài lên màn hình chính: ' + yn(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)));
       L.push('Engine mạnh: cách ly ' + yn(window.crossOriginIsolated) + ', SharedArrayBuffer ' + yn(typeof SharedArrayBuffer !== 'undefined') +
-        ', đã tải ' + yn(FSF.sf) + ', lỗi ' + yn(FSF.failed) + ' · service worker: ' + yn(navigator.serviceWorker && navigator.serviceWorker.controller));
+        HOOKS.boot.engineInfo(yn) + ' · service worker: ' + yn(navigator.serviceWorker && navigator.serviceWorker.controller));
       L.push('Đang ở: tab ' + Store.get('tab', '?') + ', chế độ ' + Play.mode + ', màn ' + Play.screen + (Play.over ? ', ván đã kết thúc' : ''));
       const errs = ErrLog.list();
       L.push('', 'Lỗi gần đây (' + errs.length + '):');

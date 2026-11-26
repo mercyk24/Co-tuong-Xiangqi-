@@ -1,15 +1,15 @@
-// [DÙNG CHUNG] Một service worker cho cả ba trang (trang chủ, /co-tuong/, /co-vua/). Sơ đồ: docs/CAU-TRUC.md
-// Service worker chung cho cả trang (trang chủ, /co-tuong/, /co-vua/): lưu app để dùng ngoại tuyến, đồng thời thêm hai tiêu đề
+// [DÙNG CHUNG] Một service worker cho mọi trang (trang chủ, /co-tuong/, /co-vua/, /co-vay/). Sơ đồ: docs/CAU-TRUC.md
+// Service worker chung cho cả trang (trang chủ và các trang cờ): lưu app để dùng ngoại tuyến, đồng thời thêm hai tiêu đề
 // COOP/COEP để trình duyệt cho phép engine mạnh (SharedArrayBuffer) và các tiêu đề bảo mật (CSP, chống nhúng trang vào khung).
 const CACHE = '__CACHE__'; // build tự điền: phiên bản + mã băm nội dung, nên mỗi bản mới tự xoá cache cũ
 const ENGINE = 'xq-engine-v2'; // file engine nặng (13 MB) được giữ riêng, không bị xoá khi cập nhật app
-// build tự điền: CSP của từng trang theo thư mục ('' trang chủ, 'co-tuong/', 'co-vua/'), giống thẻ meta trong trang,
+// build tự điền: CSP của từng trang theo thư mục ('' trang chủ, 'co-tuong/', 'co-vua/', 'co-vay/'), giống thẻ meta trong trang,
 // thêm frame-ancestors (thẻ meta không làm được). Mỗi trang có mã nhúng riêng nên CSP khác nhau.
 const CSP = '__CSP__';
-const PAGES = ['', 'co-tuong/', 'co-vua/'];
+const PAGES = '__PAGES__';   // build tự điền từ danh sách app trong scripts/build.js: ['', 'co-tuong/', 'co-vua/', 'co-vay/']
 const ASSETS = ['manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 for (const d of PAGES) { ASSETS.push(d || './', d + 'index.html'); if (d) ASSETS.push(d + 'manifest.webmanifest'); }
-// Thư mục của trang chứa địa chỉ này, tính từ gốc của service worker ('' / 'co-tuong/' / 'co-vua/')
+// Thư mục của trang chứa địa chỉ này, tính từ gốc của service worker ('' / 'co-tuong/' / 'co-vua/' / 'co-vay/')
 function pageDir(url) {
   const base = new URL(self.registration.scope).pathname, p = url.pathname;
   const rel = p.indexOf(base) === 0 ? p.slice(base.length) : p;

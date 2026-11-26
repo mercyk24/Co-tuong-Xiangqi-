@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ (cờ tướng, cờ vua, cờ vây) chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
   // 45-net.js (dùng chung cho mọi loại cờ) — Chơi qua mạng giữa hai thiết bị: kết nối thẳng WebRTC (DataChannel).
   // Hai máy tìm nhau qua "điểm hẹn" nói giao thức PeerJS: điểm hẹn riêng của app (Cloudflare, server/) nếu đã cài,
   // dự phòng bằng điểm hẹn công cộng 0.peerjs.com. Nước đi đi thẳng giữa hai máy; nếu mạng không cho nối thẳng
@@ -143,13 +143,14 @@
       if (this.role === 'watch') return;
       if (!this.code || this.state === 'idle' || this.state === 'error') { Store.set('net_sess', null); return; }
       Store.set('net_sess', { t: Date.now(), role: this.role, code: this.code, myId: this.myId, peerId: this.peerId, mySide: this.mySide, clockSet: this.clockSet, si: this.si, token: this.token,
-        moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
+        fen: Play.startFen, moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left.slice() : null, over: Play.over, started: this.state !== 'waiting' });
     },
     resumeSaved() {
       if (!Consent.ok()) { Store.set('net_sess', null); return false; }
       const s = Store.get('net_sess', null);
       if (!s || Date.now() - s.t > 2 * 3600 * 1000 || s.over || !s.started) { Store.set('net_sess', null); return false; }
       Object.assign(this, { role: s.role, code: s.code, myId: s.myId, peerId: s.peerId, mySide: s.mySide, clockSet: s.clockSet, si: s.si || 0, token: s.token || this.newToken() });
+      Play.startFen = s.fen || RULES.START_FEN;
       Play.netLoad(s.moves, s.left, null, false);
       this.state = 'lost'; this.everConnected = true;
       this.status('Đang nối lại ván với đối thủ…');
@@ -249,7 +250,7 @@
     cast(to) {
       if (!this.sig || !this.sig.ready() || !this.sig.watch) return;
       const c = Play.clock;
-      const snap = { t: 'snap', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => RULES.mvStr(m)), left: c ? c.left.map(x => Math.round(x)) : null,
+      const snap = { t: 'snap', hostSide: this.mySide, clock: this.clockSet, fen: Play.startFen, moves: Play.moves.map(m => RULES.mvStr(m)), left: c ? c.left.map(x => Math.round(x)) : null,
         run: !!(c && c.at && !Play.over), over: Play.over || '', n: this.watchers, live: this.state === 'playing' || this.state === 'ended' };
       const d = JSON.stringify(snap), key = d.replace(/"left":\[[^\]]*\],/, '');
       if (!to && key === this.lastCast) return;   // không đổi gì (chỉ đồng hồ chạy): khỏi gửi
@@ -263,6 +264,7 @@
       if (o.t !== 'snap') return;
       clearTimeout(this.watchT);
       this.gotSnap = true; this.hostSide = o.hostSide; this.clockSet = o.clock; this.watchers = o.n || 0;
+      Play.startFen = o.fen || RULES.START_FEN;   // thế bắt đầu (cờ vây: cỡ bàn); bản cũ không gửi thì là thế mặc định
       Play.netLoad(o.moves, o.left, o.over || null, o.run);
       this.msgText = o.live ? '' : 'Hai người chơi đang mất kết nối, chờ nối lại…';
       Play.draw();
@@ -530,7 +532,7 @@
       if (fresh) { Play.netStart(this.mySide, this.clockSet); }
       this.state = Play.over ? 'ended' : 'playing';
       if (Play.clock && !Play.over) Play.clock.at = Date.now();
-      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '', watchers: this.watchers });
+      this.sendMsg({ t: 'state', hostSide: this.mySide, clock: this.clockSet, fen: Play.startFen, moves: Play.moves.map(m => RULES.mvStr(m)), left: Play.clock ? Play.clock.left : null, over: Play.over || '', watchers: this.watchers });
       this.status(fresh ? '' : 'Đã nối lại.');
       this.save();
     },
@@ -574,6 +576,7 @@
       if (m.t === 'state' && this.role === 'guest') {
         const fresh = this.state === 'joining';
         this.mySide = m.hostSide ^ 1; this.clockSet = m.clock; this.watchers = +m.watchers || 0;
+        Play.startFen = m.fen || RULES.START_FEN;   // thế bắt đầu do chủ phòng chọn (cờ vây: cỡ bàn)
         if (fresh) Play.netStart(this.mySide, this.clockSet);
         else {
           const mine = Play.moves.map(x => RULES.mvStr(x)).join(' ');
@@ -601,7 +604,7 @@
         if (!c || (mine && c.left[this.mySide] > 3000)) return;
         Play.netOver(SIDE[m.s] + ' hết giờ – ' + SIDE[m.s ^ 1] + ' thắng.'); this.save(); return;
       }
-      if (m.t === 'rematch' && this.role === 'guest') { this.mySide = m.hostSide ^ 1; this.clockSet = m.clock; Play.netStart(this.mySide, this.clockSet); this.state = 'playing'; this.save(); return; }
+      if (m.t === 'rematch' && this.role === 'guest') { this.mySide = m.hostSide ^ 1; this.clockSet = m.clock; Play.startFen = m.fen || RULES.START_FEN; Play.netStart(this.mySide, this.clockSet); this.state = 'playing'; this.save(); return; }
       if (m.t === 'bye') {
         this.closePeer(); clearInterval(this.ping);
         if (!Play.over) Play.netOver('Đối thủ đã rời phòng.');
@@ -618,7 +621,7 @@
       this.mySide ^= 1;
       Play.netStart(this.mySide, this.clockSet);
       this.state = 'playing';
-      this.sendMsg({ t: 'rematch', hostSide: this.mySide, clock: this.clockSet });
+      this.sendMsg({ t: 'rematch', hostSide: this.mySide, clock: this.clockSet, fen: Play.startFen });
       this.save();
     }
   };

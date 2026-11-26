@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ (cờ tướng, cờ vua, cờ vây) chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
   // 70-settings.js (dùng chung) — Sao lưu / khôi phục dữ liệu người dùng, quyền riêng tư (rút lại đồng ý, xoá dữ liệu).
   // Phần riêng của từng loại cờ nằm trong GAME (00-game.js): tên app, tiền tố lưu trữ, danh sách khoá, kiểm tra dữ liệu.
   // Sao lưu / khôi phục: mọi dữ liệu của app nằm trong localStorage với tiền tố GAME.store ("xq_" cờ tướng, "xc_" cờ vua).
@@ -14,8 +14,11 @@
     },
     summary(data) {
       const j = k => { try { return JSON.parse(data[k] || 'null'); } catch (e) { return null; } };
-      const games = j('games') || [], mine = j('mine') || [], tdone = j('tac_done') || {}, pdone = j('puz_done') || j('done') || {};
-      return games.length + ' ván đã lưu · ' + mine.length + ' bài "Lỗi của bạn" · ' + Object.keys(tdone).length + ' bài chiến thuật đã giải' + (Object.keys(pdone).length ? ' · ' + Object.keys(pdone).length + ' bài chiếu hết' : '');
+      const games = j('games') || [], mine = j('mine') || [], tdone = j('tac_done') || {}, pdone = j('puz_done') || j('done') || {}, ldone = j('les_done') || [];
+      // Mục nào app không có (cờ vây không có "Lỗi của bạn", chiến thuật) thì không nhắc; tên bài tập theo GAME.puzName
+      const k = o => Object.keys(o).length, has = key => GAME.keys.indexOf(key) >= 0;
+      return games.length + ' ván đã lưu' + (has('mine') ? ' · ' + mine.length + ' bài "Lỗi của bạn"' : '') + (has('tac_done') ? ' · ' + k(tdone) + ' bài chiến thuật đã giải' : '') +
+        (k(pdone) ? ' · ' + k(pdone) + ' bài ' + (GAME.puzName || 'chiếu hết') : '') + (k(ldone) ? ' · ' + k(ldone) + ' bài học đã xong' : '');
     },
     init() {
       $('#bk-export').onclick = () => this.exportFile();
@@ -32,7 +35,7 @@
     },
     exportFile() {
       const obj = this.collect(), txt = JSON.stringify(obj);
-      const name = 'co-tuong-sao-luu-' + obj.exportedAt.slice(0, 10) + '.json';
+      const name = GAME.app.replace(/-luyen-tap$/, '') + '-sao-luu-' + obj.exportedAt.slice(0, 10) + '.json';   // co-tuong / co-vua / co-vay
       const blob = new Blob([txt], { type: 'application/json' });
       const file = typeof File !== 'undefined' ? new File([blob], name, { type: 'application/json' }) : null;
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Dựng bản phát hành vào thư mục dist/ gồm ba trang:
+// Dựng bản phát hành vào thư mục dist/ gồm bốn trang:
 //   dist/index.html            trang chủ: chọn loại cờ (src/portal/index.html)
 //   dist/co-tuong/index.html   Cờ Tướng: src/xiangqi/ (lõi, module, giao diện) + src/shared/ + dữ liệu data/xiangqi/
 //   dist/co-vua/index.html     Cờ Vua:   src/chess/   (lõi, module, giao diện) + src/shared/ + dữ liệu data/chess/
+//   dist/co-vay/index.html     Cờ Vây:   src/go/      (lõi, module, giao diện) + src/shared/ (trừ các module trong `skip`) + data/go/
 // Mỗi app: ghép module src/shared/app/ + src/<loại cờ>/app/ (theo số đầu tên tệp) thành một khối 'use strict', ghi kèm
 // .build/<app>.js để kiểm tra lỗi mã; nhúng CSS (src/shared/base.css rồi src/<loại cờ>/game.css), lõi luật, dữ liệu và mã
 // vào mẫu HTML (một file, chạy được ngoại tuyến). Sơ đồ đầy đủ: docs/CAU-TRUC.md.
@@ -19,9 +20,11 @@ const read = p => fs.readFileSync(r(p), 'utf8').replace(/^﻿/, '');
 const pkg = JSON.parse(read('package.json'));
 
 // Ghép module của một app: các tệp .js trong các thư mục `dirs`, sắp theo tên (số đầu tên quyết định thứ tự)
+// `skip`: tên các module dùng chung mà app này không cần (cờ vây không có engine Fairy-Stockfish nên bỏ 30-fsf.js, 80-analysis.js)
 function bundleApp(app) {
-  const files = [];
-  for (const d of app.modules) for (const f of fs.readdirSync(r(d)).filter(x => x.endsWith('.js'))) files.push({ f, d });
+  const files = [], skip = app.skip || [];
+  for (const s of skip) if (!fs.existsSync(r(SHARED.modules, s))) throw new Error(app.id + ': skip "' + s + '" không có trong ' + SHARED.modules);
+  for (const d of app.modules) for (const f of fs.readdirSync(r(d)).filter(x => x.endsWith('.js'))) if (!(d === SHARED.modules && skip.includes(f))) files.push({ f, d });
   files.sort((a, b) => a.f < b.f ? -1 : a.f > b.f ? 1 : 0);
   for (let i = 1; i < files.length; i++) if (files[i].f === files[i - 1].f) throw new Error('Hai module trùng tên: ' + files[i].d + '/' + files[i].f + ' và ' + files[i - 1].d + '/' + files[i - 1].f);
   const parts = files.map(x => '// ==== ' + x.d + '/' + x.f + ' ====\n' + read(path.join(x.d, x.f)).replace(/\s+$/, '') + '\n');
@@ -100,7 +103,7 @@ function headersFile(pages) {
 
 // Phần dùng chung của mọi app
 const SHARED = { modules: 'src/shared/app', css: 'src/shared/base.css', assets: 'src/shared/assets' };
-// Hai app cờ. Thêm loại cờ mới: thêm một mục ở đây và một thư mục src/<loại cờ>/ giống src/chess/ (xem docs/CAU-TRUC.md).
+// Các app cờ. Thêm loại cờ mới: thêm một mục ở đây và một thư mục src/<loại cờ>/ giống src/chess/ (xem docs/CAU-TRUC.md).
 const APPS = [
   {
     id: 'xiangqi', dir: 'co-tuong/', title: 'Cờ Tướng Luyện Tập', short: 'Cờ Tướng',
@@ -111,6 +114,12 @@ const APPS = [
     id: 'chess', dir: 'co-vua/', title: 'Cờ Vua Luyện Tập', short: 'Cờ Vua',
     template: 'src/chess/index.template.html', css: 'src/chess/game.css', core: 'src/chess/core/chess.js', modules: [SHARED.modules, 'src/chess/app'], pieces: 'src/chess/pieces',
     blocks: { '/*__PUZZLES__*/': ['chess/puzzles.json', '[]'], '/*__OPENINGS__*/': ['chess/openings.json', '{"groups":{},"lines":[],"names":{}}'], '/*__TACTICS__*/': ['chess/tactics.json', '[]'], '/*__BOOK__*/': ['chess/book.json', '{}'] }
+  },
+  {
+    id: 'go', dir: 'co-vay/', title: 'Cờ Vây Luyện Tập', short: 'Cờ Vây',
+    template: 'src/go/index.template.html', css: 'src/go/game.css', core: 'src/go/core/go.js', modules: [SHARED.modules, 'src/go/app'],
+    skip: ['30-fsf.js', '80-analysis.js'],   // không có engine Fairy-Stockfish; xem lại ván ở src/go/app/80-review.js
+    blocks: { '/*__PUZZLES__*/': ['go/puzzles.json', '[]'], '/*__LESSONS__*/': ['go/lessons.json'] }
   }
 ];
 
@@ -204,8 +213,10 @@ function main() {
   const sw = fs.readFileSync(swPath, 'utf8');
   if (sw.indexOf('__CACHE__') < 0) throw new Error('sw.js thiếu chỗ điền __CACHE__');
   if (sw.indexOf('__CSP__') < 0) throw new Error('sw.js thiếu chỗ điền __CSP__');
+  if (sw.indexOf("'__PAGES__'") < 0) throw new Error('sw.js thiếu chỗ điền __PAGES__');
   const cspMap = {}; for (const [dir, csp] of pages) cspMap[dir] = csp;
-  fs.writeFileSync(swPath, sw.split('__CACHE__').join('xq-' + pkg.version + '-' + hash).split("'__CSP__'").join(JSON.stringify(cspMap)));
+  fs.writeFileSync(swPath, sw.split('__CACHE__').join('xq-' + pkg.version + '-' + hash).split("'__CSP__'").join(JSON.stringify(cspMap))
+    .split("'__PAGES__'").join(JSON.stringify([''].concat(APPS.map(a => a.dir)))));
 
   const eng = r('engine');
   if (fs.existsSync(eng)) copyDir(eng, path.join(dist, 'engine'), f => !/\.md$/i.test(f) && f !== 'SHA256SUMS');

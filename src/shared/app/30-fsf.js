@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Cờ tướng và cờ vua chạy tệp này (cờ vây không dùng: scripts/build.js bỏ qua nhờ mục skip). Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
   // 30-fsf.js (dùng chung) — Engine mạnh: Fairy-Stockfish (WebAssembly). Dùng cho cấp 6 và phân tích ván.
   // Cờ tướng: biến thể xiangqi + mạng NNUE; cờ vua: biến thể chess, đánh giá cổ điển (không cần tải mạng NNUE).
   // Cấu hình riêng (tên biến thể, mạng NNUE, cách đổi FEN và nước đi) nằm trong GAME.fsf.

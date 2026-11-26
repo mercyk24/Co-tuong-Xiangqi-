@@ -62,6 +62,21 @@
         $('#set-autoq').checked = !!Store.get('autoq', false);
         $('#set-autoq').onchange = e => Store.set('autoq', e.target.checked);
       },
-      expose() { return {}; }
+      // Dòng tình trạng engine mạnh trong thông tin báo lỗi (75-report.js)
+      engineInfo(yn) { return ', đã tải ' + yn(FSF.sf) + ', lỗi ' + yn(FSF.failed); },
+      // Các tab riêng: Chiếu hết / Tàn cuộc (Puz), Chiến thuật (Tac), Khai cuộc (Op), Phân tích ván (Ana)
+      init() { Puz.init(); Tac.init(); Op.init(); Ana.init(); },
+      onTab(name) {
+        if (name === 'tac') Tac.renderList();
+        if (name === 'ana' && !Ana.cur) Ana.renderList();
+      },
+      // Đang giải bài / tập khai cuộc dở: thu gọn thanh điều hướng để khỏi bấm nhầm
+      busy(tab) {
+        if (tab === 'puz') return !$('#puz-play').hidden && !Puz.solved;
+        if (tab === 'tac') return !$('#tac-play').hidden && (Tac.mode === 'free' ? !Tac.solved : !Tac.over);
+        if (tab === 'op') return !$('#op-play').hidden && Op.mode === 'drill' && !Op.finished;
+        return false;
+      },
+      expose() { return { Puz, Tac, Op, FSF, Ana }; }
     }
   };

@@ -63,10 +63,10 @@ Nó ghi lại những gì đã đo, những chỗ sẽ nghẽn và cách đã l�
 - **Chủ phòng tắt cho xem:** người xem nhận `{t:'nowatch'}` và được báo không xem được.
 
 ### 2.4 Cờ vua dùng chung điểm hẹn (từ bản 2.0.0)
-- **Tiền tố mã máy:** cờ tướng `xqvn-…` (người xem `xqvn-w…`), cờ vua `xcvn-…` (người xem `xcvn-w…`). Điểm hẹn chỉ nhận hai tiền tố này.
-- **Phòng tách riêng:** ô phòng (Durable Object) của cờ vua có tên `c:<mã phòng>`, của cờ tướng giữ nguyên tên cũ, nên cùng một mã 6 ký tự ở hai loại cờ là hai phòng khác nhau. Một máy cờ vua cố vào ô của cờ tướng (hoặc ngược lại) bị từ chối (`bad-id`).
+- **Tiền tố mã máy:** cờ tướng `xqvn-…` (người xem `xqvn-w…`), cờ vua `xcvn-…` (người xem `xcvn-w…`), cờ vây `xgvn-…` (người xem `xgvn-w…`). Điểm hẹn chỉ nhận ba tiền tố này (`ID_RE` trong `server/core.mjs`); thêm tiền tố mới phải triển khai lại điểm hẹn.
+- **Phòng tách riêng:** ô phòng (Durable Object) của cờ vua có tên `c:<mã phòng>`, của cờ vây `g:<mã phòng>`, của cờ tướng giữ nguyên tên cũ (`ROOM_NS` trong `server/core.mjs`), nên cùng một mã 6 ký tự ở các loại cờ là các phòng khác nhau. Một máy loại cờ này cố vào ô của loại cờ khác bị từ chối (`bad-id`).
 - **Cần đưa lại `server/worker.mjs` lên Cloudflare** (`npx wrangler deploy`) để cờ vua dùng được điểm hẹn riêng. Chưa đưa lên thì cờ vua tự dùng `0.peerjs.com`, cờ tướng không bị ảnh hưởng.
-- Hạn mức và chi phí ở mục 4 tính chung cho cả hai loại cờ.
+- Hạn mức và chi phí ở mục 4 tính chung cho mọi loại cờ.
 
 ## 3. Đã đo
 

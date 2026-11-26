@@ -1,0 +1,35 @@
+/* [CỜ VÂY] Phần giao diện riêng của cờ vây, nhúng SAU src/shared/base.css. */
+/* Bàn cờ vây: nền gỗ, lưới, sao, quân đá có bóng */
+.gwood{fill:#dcb46a}
+.gl1{stroke:#3b2a12;stroke-width:1.2}.gl1.ge{stroke-width:2}
+.g19 .gl1{stroke-width:1}.g19 .gl1.ge{stroke-width:1.6}
+.hoshi{fill:#3b2a12}
+.gco{font:600 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:#5a4320}
+.g19 .gco{font-size:13px}
+.st{pointer-events:none}
+.st.sb{stroke:#000;stroke-width:.8}
+.st.sw{stroke:#7d776a;stroke-width:1}
+.st.ghost{opacity:.5}
+.st.dead{opacity:.38}
+.lastm{fill:none;stroke-width:3}.lastm.on-b{stroke:#fff}.lastm.on-w{stroke:#111}
+.tgtm{fill:#d62a1f;stroke:none}
+.hintg{fill:none;stroke:#1d7f5a;stroke-width:4;stroke-dasharray:6 5}
+.terr{pointer-events:none}.terr.tb{fill:#111}.terr.tw{fill:#fff;stroke:#555;stroke-width:1}
+.mkbg{fill:#dcb46a}
+.mk{font:700 20px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;pointer-events:none}.mk.on-b{fill:#fff}.mk.on-w{fill:#b3261e}
+/* Biểu tượng: quân đá đen / trắng có chữ Hán */
+.gl.gs,.hero-gl.gs{box-shadow:none;border:none}
+.gs.b{background:radial-gradient(circle at 35% 30%,#666,#0d0d0d 70%);color:#f3eee3}
+.gs.w{background:radial-gradient(circle at 35% 30%,#fff,#d9d4c8 75%);color:#1d1a16;border:1px solid #a9a397}
+/* Dưới bàn cờ: nút Bỏ lượt, số quân đã ăn; bảng đếm điểm */
+.gobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 2px}
+.gobar:empty{display:none}
+.goscore{margin:8px 0}
+.goscore p{margin:4px 0}
+.lestext{margin:6px 2px 10px;line-height:1.5}
+#ana-paste{width:100%;box-sizing:border-box;margin:8px 0;font:14px/1.4 ui-monospace,Menlo,Consolas,monospace}
+/* Danh sách nước: toạ độ, chấm màu theo bên đi */
+.moves{font-size:15px}
+.moves .mv.mb::before,.moves .mv.mw::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:1px}
+.moves .mv.mb::before{background:#111}.moves .mv.mw::before{background:#fff;box-shadow:0 0 0 1px #888}
+.dot.w{background:#fff;box-shadow:0 0 0 1px #888}

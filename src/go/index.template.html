@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!-- [CỜ VÂY] Khung trang của app cờ vây. Phần màn chơi, chơi qua mạng, giới thiệu, quyền riêng tư giống src/chess/index.template.html và src/xiangqi/index.template.html (sửa phần chung thì sửa cả ba); các tab luyện tập riêng của cờ vây. CSS chung ở src/shared/base.css. Sơ đồ: docs/CAU-TRUC.md -->
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<!--__CSP__-->
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ Vây Luyện Tập</title>
+<meta name="theme-color" content="#2e6b5a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cờ Vây">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<main>
+  <section class="view" id="v-play" hidden>
+    <div id="play-home">
+      <div class="hero"><span class="hero-gl gs b">圍</span><div><h1>Cờ Vây</h1><p class="muted">Chọn cách chơi · <a class="tohub" href="../">Đổi loại cờ</a></p></div></div>
+      <div class="card resume" id="home-resume" hidden>
+        <div class="resume-t"><b id="home-resume-title"></b><span class="muted" id="home-resume-sub"></span></div>
+        <div class="row"><button class="btn primary" id="home-resume-go">Tiếp tục</button><button class="btn" id="home-resume-drop">Bỏ ván</button></div>
+      </div>
+      <div class="modes" id="play-mode">
+        <button class="mode" data-m="ai"><span class="gl gs b">機</span><span class="mt"><b>Đấu với máy</b><small>Bàn 9×9, 13×13, 19×19 · 5 cấp độ · có kiểu cờ bắt quân</small></span><span class="go">›</span></button>
+        <button class="mode" data-m="pvp"><span class="gl gs w">對</span><span class="mt"><b>Hai người một máy</b><small>Ngồi đối diện, chung một màn hình</small></span><span class="go">›</span></button>
+        <button class="mode" data-m="net"><span class="gl gs b">網</span><span class="mt"><b>Chơi qua mạng</b><small>Tạo phòng, gửi mã cho bạn bè</small></span><span class="go">›</span></button>
+      </div>
+      <h2 class="h2">Luyện tập</h2>
+      <div class="drills">
+        <button class="drill" data-go="les"><span class="gl sm gs w">學</span>Bài học luật</button>
+        <button class="drill" data-go="puz"><span class="gl sm gs b">吃</span>Bắt quân</button>
+        <button class="drill" data-go="ana"><span class="gl sm gs w">譜</span>Ván đã lưu, SGF</button>
+      </div>
+    </div>
+    <div class="phead" id="play-head" hidden><button class="btn ic" id="play-back" aria-label="Về trang chủ">‹</button><h1 id="play-title">Đấu với máy</h1></div>
+    <div class="card setup" id="ai-setup" hidden>
+      <div class="lbl">Bạn cầm quân</div>
+      <div class="chips" id="ai-side"><button class="chip" data-v="0">Đen <small>đi trước</small></button><button class="chip" data-v="1">Trắng</button><button class="chip" data-v="r">Ngẫu nhiên</button></div>
+      <div class="lbl">Cỡ bàn</div>
+      <div class="chips go-size" id="ai-size"></div>
+      <div class="lbl">Kiểu chơi</div>
+      <div class="chips" id="ai-var"><button class="chip" data-v="area">Ván đầy đủ <small>đếm điểm</small></button><button class="chip" data-v="cg">Cờ bắt quân <small>ăn trước là thắng</small></button></div>
+      <div class="lbl">Cấp độ của máy</div>
+      <div class="lvls" id="ai-levels"></div>
+      <p class="muted">Máy chơi bằng cách thử hàng nghìn ván ngẫu nhiên mỗi nước (Monte-Carlo), đủ cho người mới học và chơi phong trào. Bàn 19×19 máy nghĩ lâu hơn.</p>
+      <button class="btn primary wide" id="ai-start">Bắt đầu</button>
+    </div>
+    <div class="card setup" id="pvp-setup" hidden>
+      <p class="muted">Đặt máy nằm giữa hai người: Đen ngồi phía dưới, Trắng ngồi phía trên. Chọn cỡ bàn rồi chọn thời gian để bắt đầu ngay.</p>
+      <div class="chips go-size" id="pvp-size"></div>
+      <div class="tgrid" id="pvp-times"></div>
+    </div>
+    <div class="card setup" id="net-setup" hidden>
+      <div id="net-consent" hidden>
+        <p><b>Trước khi chơi qua mạng</b></p>
+        <p id="net-consent-code" hidden></p>
+        <p class="muted">Để hai máy tìm thấy và nối với nhau, app phải gửi một số thông tin kết nối ra khỏi máy của bạn:</p>
+        <ul class="tidy">
+          <li><b>Địa chỉ IP</b> của bạn: đối thủ biết được khi hai máy nối thẳng; các máy chủ trung gian cũng xử lý nó (điểm hẹn của app trên Cloudflare, điểm hẹn dự phòng 0.peerjs.com, máy chủ STUN của Google và Cloudflare). Các máy chủ này có thể đặt ở nước ngoài.</li>
+          <li><b>Mã phòng, nước đi và đồng hồ</b>: đi qua điểm hẹn của app khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ chuyển tin, không lưu ván cờ.</li>
+          <li>App không hỏi tên, số điện thoại hay tài khoản nào.</li>
+        </ul>
+        <p class="muted">Nếu bạn dưới 16 tuổi, hãy hỏi ý kiến cha mẹ trước khi đồng ý. Bạn rút lại sự đồng ý được bất cứ lúc nào ở mục Giới thiệu › Quyền riêng tư. Không đồng ý thì vẫn dùng được mọi chế độ khác.</p>
+        <div class="row"><button class="btn primary" id="net-consent-yes">Tôi đồng ý</button><button class="btn" id="net-consent-no">Không, quay lại</button></div>
+        <button class="btn wide" id="net-consent-policy">Đọc chính sách quyền riêng tư</button>
+      </div>
+      <div id="net-home">
+        <p class="muted">Hai máy nối thẳng với nhau qua Internet, không cần tài khoản. Một người tạo phòng rồi gửi mã (hoặc link) cho người kia.</p>
+        <p class="neterr" id="net-err" hidden></p>
+        <div class="card watchask" id="net-watch-ask" hidden>
+          <p><b>Bạn có muốn vào xem trận đấu không?</b></p>
+          <p class="muted">Bạn chỉ xem bàn cờ và đồng hồ, không đi quân được. Hai người chơi sẽ thấy có người đang xem.</p>
+          <div class="row"><button class="btn primary" id="net-watch-yes">Xem trận đấu</button><button class="btn" id="net-watch-no">Không</button></div>
+        </div>
+        <button class="btn primary wide" id="net-go-create">Tạo phòng mới</button>
+        <div class="lbl">Hoặc vào phòng bạn bè đã tạo</div>
+        <div class="joinrow"><input id="net-code" maxlength="6" placeholder="Mã phòng" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" id="net-join">Vào phòng</button></div>
+      </div>
+      <div id="net-create" hidden>
+        <p><b>Tạo phòng</b></p>
+        <label class="chk2 fld"><input type="checkbox" id="net-allow-watch"> Cho người khác vào xem trận (khi phòng đã đủ hai người)</label>
+        <label>Bạn cầm <select id="net-side"><option value="r">Ngẫu nhiên</option><option value="0">Đen (đi trước)</option><option value="1">Trắng</option></select></label>
+        <div class="lbl">Cỡ bàn</div>
+        <div class="chips go-size" id="net-size"></div>
+        <p class="muted">Chọn thời gian để tạo phòng:</p>
+        <div class="tgrid" id="net-times"></div>
+        <button class="btn wide" id="net-create-back">Quay lại</button>
+      </div>
+      <div id="net-wait" hidden>
+        <p class="muted" id="net-wait-title">Mã phòng</p>
+        <div class="netcode" id="net-code-show"></div>
+        <p id="net-status"></p>
+        <div class="row" id="net-share-row"><button class="btn primary" id="net-share">Gửi link mời</button><button class="btn" id="net-copy">Sao chép mã</button></div>
+        <button class="btn wide" id="net-wait-cancel">Huỷ</button>
+      </div>
+    </div>
+    <div class="pbar" id="pbar-top" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
+    <div class="netbar" id="net-banner" hidden><span id="net-banner-text"></span><button class="btn sm" id="net-banner-leave">Rời phòng</button></div>
+    <div class="ask-slot" id="ask-top"></div>
+    <div class="board-wrap" id="play-board"></div>
+    <div class="gobar"><button class="btn" id="go-pass" hidden>Bỏ lượt</button><span class="muted" id="go-info" hidden></span></div>
+    <div class="card goscore" id="go-score" hidden>
+      <p><b>Đếm điểm</b> · Máy đã đánh dấu quân chết (vẽ mờ). Bấm vào nhóm quân để đổi chết / sống, rồi bấm Xác nhận.</p>
+      <p id="go-score-text"></p>
+      <div class="row"><button class="btn primary" id="go-score-ok">Xác nhận kết quả</button><button class="btn" id="go-score-resume">Chơi tiếp</button></div>
+    </div>
+    <div class="ask-slot" id="ask-bot"></div>
+    <div class="pbar" id="pbar-bot" hidden>
+      <button class="btn ic" data-act="menu" aria-label="Menu">☰</button>
+      <div class="pinfo"><div class="pl1"><span class="pname"></span><span class="pclk"></span></div><span class="pst"></span></div>
+    </div>
+    <div class="watchn muted" id="net-watchn" hidden></div>
+    <div class="card ask" id="play-ask" hidden><p id="play-ask-text"></p><div class="row"><button class="btn primary" id="play-ask-yes"></button><button class="btn" id="play-ask-no"></button></div></div>
+    <div class="card result" id="play-result" hidden>
+      <p id="play-result-text"></p>
+      <div class="row"><button class="btn primary" id="play-result-ana">Phân tích ván</button><button class="btn" id="play-result-new">Ván mới</button><button class="btn" id="play-result-mode">Trang chủ</button></div>
+      <p class="muted" id="play-result-note"></p>
+    </div>
+    <div class="sheet-back" id="am-back" hidden>
+      <div class="sheet" id="am" role="dialog" aria-label="Tùy chọn ván">
+        <div class="sheet-h"><b>Tùy chọn ván</b><button class="btn sm" id="am-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" id="play-hint">Gợi ý</button><button class="btn" id="play-undo">Đi lại</button><button class="btn" id="play-flip">Lật bàn</button></div>
+        <button class="btn wide" id="play-resign">Chịu thua</button>
+        <label>Cấp độ (đổi được giữa ván) <select id="play-level"></select></label>
+        <button class="btn wide" id="am-home">‹ Về trang chủ (giữ ván để chơi tiếp)</button>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="play-moves"></div>
+      </div>
+    </div>
+    <div class="sheet-back" id="pm-back" hidden>
+      <div class="sheet" id="pm" role="dialog" aria-label="Menu ván hai người">
+        <div class="sheet-h"><b id="pm-title">Menu</b><button class="btn sm" id="pm-close">Đóng</button></div>
+        <div class="pm-acts"><button class="btn" data-act="undo">Xin đi lại</button><button class="btn" data-act="draw">Xin hòa</button><button class="btn" data-act="resign">Chịu thua</button></div>
+        <button class="btn wide" id="pm-home">‹ Về trang chủ (giữ ván để chơi tiếp)</button>
+        <p class="muted" id="pm-netinfo" hidden></p>
+        <div class="muted">Biên bản ván</div>
+        <div class="moves" id="pm-moves"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-ana" hidden>
+    <h1>Ván đã lưu</h1>
+    <div id="ana-list-wrap">
+      <p class="muted">20 ván gần nhất (mỗi bên từ 5 nước trở lên) được lưu trên máy này. Mở ván để xem lại từng nước, ước lượng điểm, hoặc xuất ra tệp SGF để mở bằng phần mềm cờ vây khác.</p>
+      <div class="grid" id="ana-list"></div>
+      <h2 class="h2">Nhập ván từ SGF</h2>
+      <div class="card">
+        <p class="muted">SGF là định dạng ghi ván chung của mọi phần mềm và trang cờ vây. Chỉ đọc nhánh chính, bàn 5×5 tới 19×19.</p>
+        <button class="btn wide" id="ana-imp-file">Chọn tệp .sgf</button>
+        <input type="file" id="ana-file" accept=".sgf,application/x-go-sgf,text/plain" hidden>
+        <textarea id="ana-paste" rows="4" spellcheck="false" placeholder="Hoặc dán nội dung SGF vào đây, ví dụ (;SZ[9];B[ee];W[cc])" aria-label="Nội dung SGF"></textarea>
+        <button class="btn wide" id="ana-imp-text">Nhập đoạn SGF đã dán</button>
+      </div>
+      <div class="row"><button class="btn" id="ana-toplay">‹ Về trang chủ</button></div>
+    </div>
+    <div id="ana-detail" hidden>
+      <div class="title" id="ana-title"></div>
+      <div class="board-wrap" id="ana-board"></div>
+      <div class="status" id="ana-info"></div>
+      <div class="row">
+        <button class="btn" id="ana-first">⏮</button><button class="btn" id="ana-prev">◀</button><button class="btn" id="ana-next">▶</button><button class="btn" id="ana-last">⏭</button>
+      </div>
+      <div class="row"><button class="btn primary" id="ana-est">Ước lượng điểm thế này</button></div>
+      <p class="muted" id="ana-est-text"></p>
+      <div class="moves" id="ana-moves"></div>
+      <div class="row"><button class="btn" id="ana-sgf">Tải tệp SGF</button><button class="btn" id="ana-copy">Chép SGF</button><button class="btn" id="ana-del">Xoá ván này</button></div>
+      <div class="row"><button class="btn" id="ana-back">‹ Danh sách ván</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-puz" hidden>
+    <h1>Bắt quân</h1>
+    <div id="puz-list-wrap">
+      <p class="muted">Bắt nhóm quân có dấu chấm đỏ trong số nước cho trước: ăn ngay, "atari" đúng hướng, thang, lưới… Bài do app tự sinh và được bộ giải của app kiểm tra; máy luôn chạy cho đối phương theo cách cầm cự lâu nhất.</p>
+      <div class="chips" id="puz-filter"></div>
+      <p class="muted" id="puz-stats"></p>
+      <div class="grid" id="puz-list"></div>
+    </div>
+    <div id="puz-play" hidden>
+      <div class="title" id="puz-title"></div>
+      <div class="board-wrap" id="puz-board"></div>
+      <div class="status" id="puz-status"></div>
+      <div class="row">
+        <button class="btn" id="puz-back">‹ Danh sách</button>
+        <button class="btn" id="puz-hint">Gợi ý</button>
+        <button class="btn" id="puz-reset">Làm lại</button>
+        <button class="btn" id="puz-sol">Xem đáp án</button>
+        <button class="btn primary" id="puz-next" hidden>Bài kế ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-les" hidden>
+    <h1>Bài học luật</h1>
+    <div id="les-list-wrap">
+      <p class="muted">Học luật cờ vây từ đầu qua từng bước có bàn cờ: khí, ăn quân, chạy thoát, chỗ cấm đặt quân, kiếp, hai mắt, thang, lưới và cách đếm điểm. Mỗi bài vài phút.</p>
+      <div class="grid" id="les-list"></div>
+    </div>
+    <div id="les-play" hidden>
+      <div class="title" id="les-title"></div>
+      <p class="lestext" id="les-text"></p>
+      <div class="board-wrap" id="les-board"></div>
+      <div class="status" id="les-status"></div>
+      <div class="row">
+        <button class="btn" id="les-back">‹ Danh sách</button>
+        <button class="btn" id="les-reset">Làm lại</button>
+        <button class="btn primary" id="les-next">Tiếp ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-about" hidden>
+    <h1>Giới thiệu</h1>
+    <div class="card"><label>Đặt quân <select id="set-confirm"><option value="auto">Bàn 13×13, 19×19: bấm hai lần (lần đầu hiện quân nháp)</option><option value="on">Luôn bấm hai lần</option><option value="off">Bấm một lần là đặt</option></select></label></div>
+    <div class="card">
+      <p><b>Cờ Vây Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản. Tiến độ được lưu trên máy của bạn; app không gửi dữ liệu đi đâu, trừ thông tin kết nối khi bạn chơi qua mạng (xem mục Quyền riêng tư).</p>
+      <p class="muted" id="app-version">Phiên bản __VERSION__ · bản dựng __BUILD_DATE__</p>
+    </div>
+    <h2>Dữ liệu của bạn</h2>
+    <div class="card">
+      <p class="muted" id="bk-now"></p>
+      <p class="muted">Dữ liệu chỉ nằm trong trình duyệt này. Xoá lịch sử Safari hoặc đổi máy sẽ mất, nên thỉnh thoảng hãy sao lưu ra file (lưu vào Tệp hoặc gửi cho chính mình).</p>
+      <div class="row"><button class="btn primary" id="bk-export">Sao lưu ra file</button><button class="btn" id="bk-import">Khôi phục từ file</button></div>
+      <input type="file" id="bk-file" accept="application/json,.json" hidden>
+      <div id="bk-confirm" hidden>
+        <p id="bk-what"></p>
+        <div class="row"><button class="btn primary" id="bk-apply">Khôi phục</button><button class="btn" id="bk-cancel">Huỷ</button></div>
+      </div>
+    </div>
+    <h2 id="privacy">Quyền riêng tư</h2>
+    <div class="card">
+      <p class="muted" id="pv-status"></p>
+      <button class="btn wide" id="pv-revoke" hidden>Rút lại đồng ý chơi qua mạng</button>
+      <p class="muted">Xoá toàn bộ dữ liệu của app trên máy này: tiến độ, ván đã lưu, cài đặt và sự đồng ý. Không lấy lại được nếu chưa sao lưu.</p>
+      <button class="btn wide" id="pv-wipe">Xoá dữ liệu trên máy này</button>
+      <div id="pv-wipe-confirm" hidden>
+        <p><b>Xoá hết dữ liệu của app trên máy này?</b></p>
+        <div class="row"><button class="btn primary" id="pv-wipe-yes">Xoá hết</button><button class="btn" id="pv-wipe-no">Huỷ</button></div>
+      </div>
+      <details class="policy">
+        <summary>Chính sách quyền riêng tư (bản ngày 25/11/2026)</summary>
+        <p><b>1. Ai xử lý dữ liệu.</b> Người phát triển các app Cờ Tướng, Cờ Vua và Cờ Vây Luyện Tập (tài khoản GitHub mercyk24). Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn github.com/mercyk24/co-luyen-tap. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.</p>
+        <p><b>2. Dữ liệu trên máy của bạn.</b> Tiến độ bài tập, ván đã chơi, kết quả phân tích, cài đặt, sự đồng ý của bạn và nhật ký lỗi gần đây (để bạn tự chép gửi khi báo lỗi) được lưu trong bộ nhớ của trình duyệt trên chính máy này. App không gửi các dữ liệu này đi đâu. Bạn xem bằng nút Sao lưu, xoá bằng nút Xoá dữ liệu ở trên.</p>
+        <p><b>3. Khi chơi qua mạng (chỉ khi bạn đồng ý).</b> Dữ liệu được xử lý: địa chỉ IP, mã phòng, mã kết nối ngẫu nhiên, nước đi và đồng hồ của ván. Mục đích duy nhất: nối hai máy với nhau và chuyển nước đi. Bên nhận:</p>
+        <ul class="tidy">
+          <li>Đối thủ của bạn: biết địa chỉ IP của bạn khi hai máy nối thẳng (WebRTC).</li>
+          <li>Điểm hẹn của app chạy trên Cloudflare (Cloudflare, Inc., Hoa Kỳ; máy chủ đặt ở nhiều nước): nhận IP và tin kết nối, chuyển nước đi khi mạng chặn nối thẳng hoặc khi có người xem. Máy chủ chỉ giữ thông tin trong lúc đang kết nối, không lưu ván cờ, và đã tắt ghi nhật ký từng lượt truy cập.</li>
+          <li>Điểm hẹn dự phòng 0.peerjs.com (dự án PeerJS, máy chủ ở nước ngoài): chỉ dùng khi điểm hẹn của app không vào được.</li>
+          <li>Máy chủ STUN của Google và Cloudflare: giúp mỗi máy biết địa chỉ IP công khai của mình.</li>
+          <li>Người xem trận: nhận thế cờ và đồng hồ qua điểm hẹn của app, không biết địa chỉ IP của người chơi.</li>
+        </ul>
+        <p><b>4. Chuyển ra nước ngoài.</b> Các máy chủ ở mục 3 có thể đặt ngoài Việt Nam, nên địa chỉ IP của bạn có thể được xử lý ở nước ngoài trong lúc kết nối. Đây là lý do app xin bạn đồng ý trước khi chơi qua mạng.</p>
+        <p><b>5. Quyền của bạn.</b> Bạn có quyền được biết, đồng ý hoặc không đồng ý, rút lại sự đồng ý (nút ở trên), xem, sao chép và xoá dữ liệu trên máy (nút Sao lưu và Xoá dữ liệu), yêu cầu hạn chế xử lý, phản đối và khiếu nại theo Luật Bảo vệ dữ liệu cá nhân. Rút lại đồng ý không ảnh hưởng các lần kết nối trước đó; sau khi rút lại, app không kết nối qua mạng nữa cho đến khi bạn đồng ý lại.</p>
+        <p><b>6. Trẻ em.</b> App không hỏi tuổi. Người dưới 16 tuổi nên hỏi ý kiến cha mẹ trước khi chơi qua mạng.</p>
+        <p><b>7. Không dùng cho mục đích khác.</b> App không có quảng cáo, không theo dõi hành vi, không bán hay chia sẻ dữ liệu cho bên thứ ba ngoài các bên ở mục 3.</p>
+        <p><b>8. Thay đổi.</b> Khi chính sách thay đổi về nội dung chính, app sẽ hỏi lại sự đồng ý trước lần chơi qua mạng tiếp theo.</p>
+      </details>
+    </div>
+    <h2>Báo lỗi</h2>
+    <div class="card">
+      <p class="muted" id="rp-count"></p>
+      <p class="muted">Gặp lỗi thì bấm "Xem thông tin lỗi", đọc qua nội dung rồi chép gửi cho người phát triển (mục Issues trên GitHub, hoặc nhắn trực tiếp). Nội dung chỉ gồm phiên bản app, loại máy và trình duyệt, các lỗi gần đây và nhật ký kết nối; không có ván cờ hay dữ liệu cá nhân. App không tự gửi gì đi.</p>
+      <button class="btn wide" id="rp-show">Xem thông tin lỗi</button>
+      <div id="rp-box" hidden>
+        <textarea id="rp-text" readonly rows="10" spellcheck="false" aria-label="Thông tin lỗi"></textarea>
+        <div class="row"><button class="btn primary" id="rp-copy">Chép</button><button class="btn" id="rp-open">Mở trang báo lỗi</button></div>
+        <button class="btn wide" id="rp-clear">Xoá nhật ký lỗi</button>
+      </div>
+    </div>
+    <h2>Cài lên iPhone</h2>
+    <ul class="tidy"><li>Mở trang bằng Safari, bấm nút Chia sẻ, chọn <b>Thêm vào Màn hình chính</b>.</li><li>Sau lần mở đầu, app chạy được cả khi không có mạng.</li></ul>
+    <h2>Luật cờ trong app</h2>
+    <ul class="tidy">
+      <li>Luật Trung Quốc: đếm quân còn sống và đất vây được (mỗi điểm 1 điểm), Trắng được 7,5 điểm bù vì đi sau. Không có hòa khi đếm điểm, trừ khi hai bên đồng ý hòa.</li>
+      <li>Cấm tự sát (đặt quân làm nhóm mình hết khí mà không ăn được quân nào). Cấm mọi nước làm lặp lại đúng một thế cờ toàn bàn đã có (siêu kiếp), nên kiếp không bao giờ lặp mãi.</li>
+      <li>Hai bên bỏ lượt liên tiếp là hết ván. Đấu với máy và hai người một máy: máy đánh dấu sẵn quân chết, bạn sửa được trước khi xác nhận, hoặc bấm Chơi tiếp. Chơi qua mạng: hai máy tự đoán quân chết như nhau; vì cách đếm này không phạt nước đi trong đất mình, nếu thấy cần thì cứ ăn hết quân chết trước khi bỏ lượt.</li>
+      <li>Cờ bắt quân (chỉ khi đấu với máy): ai ăn được quân trước là thắng, dùng để tập đọc khí.</li>
+      <li>Toạ độ kiểu quốc tế: cột A–T (bỏ chữ I), hàng đếm từ dưới lên; A1 là góc dưới bên trái phía Đen.</li>
+    </ul>
+    <h2>Ghi chú</h2>
+    <ul class="tidy">
+      <li>Máy chơi là engine Monte-Carlo (UCT, RAVE) do dự án tự viết, chạy hoàn toàn trên máy của bạn. Mức mạnh nhất vẫn ở trình người mới đến chơi phong trào, phù hợp để học và tập.</li>
+      <li>Bài học và bài bắt quân do dự án soạn và tự sinh, mỗi bài được bộ giải của app kiểm tra lại.</li>
+      <li>Xuất / nhập ván theo định dạng SGF (FF[4]), mở được bằng các phần mềm và trang cờ vây phổ biến.</li>
+      <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC); nếu mạng chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app. Phòng cờ vây tách hẳn phòng cờ tướng, cờ vua. Dữ liệu được gửi đi và nơi nhận: xem mục Quyền riêng tư ở trên.</li>
+      <li>Mã nguồn mở theo giấy phép GPL-3.0. Danh sách thành phần bên thứ ba và ghi công: tệp NOTICE trong mã nguồn.</li>
+    </ul>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button class="nav-handle" id="nav-handle" aria-label="Mở thanh điều hướng" title="Mở thanh điều hướng">▦</button>
+  <button class="tab" data-tab="play"><b>圍</b>Trang chủ</button>
+  <button class="tab" data-tab="les"><b>學</b>Bài học</button>
+  <button class="tab" data-tab="puz"><b>吃</b>Bắt quân</button>
+  <button class="tab" data-tab="ana"><b>譜</b>Ván đã lưu</button>
+  <button class="tab" data-tab="about"><b>？</b>Giới thiệu</button>
+</nav>
+<div id="toast"></div>
+
+<script id="core-src" type="text/plain">/*__CORE__*/</script>
+<script>
+/*__CORE__*/
+var APP_VERSION = '__VERSION__';
+var PUZZLES = /*__PUZZLES__*/;
+var LESSONS = /*__LESSONS__*/;
+</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

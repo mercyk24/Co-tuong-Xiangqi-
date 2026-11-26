@@ -1,0 +1,74 @@
+[
+  { "id": 1, "title": "Bàn cờ và lượt đi", "steps": [
+    { "fen": "9 b 7.5 ........./........./........./........./........./........./........./........./.........", "goal": "look",
+      "text": "Cờ vây chơi trên giao điểm của các đường kẻ, không phải trong ô. Đen đi trước, hai bên lần lượt đặt một quân. Quân đã đặt thì không di chuyển nữa, chỉ có thể bị bắt. Bàn đấu chuẩn là 19×19; người mới nên tập ở bàn 9×9. Mục đích: vây được nhiều đất hơn đối thủ." },
+    { "fen": "9 b 7.5 ........./........./........./........./........./........./........./........./.........", "goal": "at", "ok": ["E5"],
+      "text": "Hãy đặt một quân Đen vào điểm sao ở giữa bàn (E5). Các chấm đậm trên bàn là \"điểm sao\", giúp dễ định vị.",
+      "done": "Đúng rồi! Toạ độ ghi theo cột (chữ, bỏ chữ I) và hàng (số, đếm từ dưới lên)." }
+  ] },
+  { "id": 2, "title": "Khí của quân", "steps": [
+    { "fen": "7 b 7.5 ......./......./......./...x.../......./......./.......", "goal": "look", "marks": { "D5": "1", "C4": "2", "E4": "3", "D3": "4" },
+      "text": "Khí là giao điểm trống nằm sát quân theo hàng ngang hoặc hàng dọc (đường chéo không tính). Quân Đen ở giữa bàn có 4 khí, đánh số 1–4." },
+    { "fen": "7 b 7.5 ......./......./......./x....../......./......./x......", "goal": "look", "marks": { "A5": "1", "B4": "2", "A3": "3", "A2": "1", "B1": "2" },
+      "text": "Quân ở mép bàn chỉ có 3 khí, quân ở góc chỉ có 2 khí. Vì vậy quân ở mép và góc dễ bị bắt hơn." },
+    { "fen": "7 b 7.5 ......./......./......./...xx../......./......./.......", "goal": "look", "marks": { "D5": "1", "E5": "2", "C4": "3", "F4": "4", "D3": "5", "E3": "6" },
+      "text": "Các quân cùng màu đứng sát nhau theo hàng ngang hoặc dọc tạo thành một nhóm và dùng chung khí. Nhóm hai quân này có 6 khí. Nối quân lại với nhau là cách làm quân mạnh lên." }
+  ] },
+  { "id": 3, "title": "Ăn quân", "steps": [
+    { "fen": "7 b 7.5 ......./......./...x.../..xox../......./......./.......", "goal": "capture",
+      "text": "Quân Trắng ở D4 chỉ còn 1 khí (gọi là bị \"atari\"). Đặt quân Đen vào khí cuối cùng đó để ăn nó.",
+      "done": "Ăn được rồi! Quân hết khí bị nhấc khỏi bàn và tính là quân bị bắt." },
+    { "fen": "7 b 7.5 ......./......./...xx../..xoox./...x.../......./.......", "goal": "capture",
+      "text": "Nhóm hai quân Trắng còn đúng 1 khí. Hãy tìm khí đó và ăn cả nhóm.",
+      "done": "Đúng! Cả nhóm hết khí thì bị ăn cùng lúc." },
+    { "fen": "7 b 7.5 ......./......./x....../ox...../......./......./.......", "goal": "capture",
+      "text": "Ở mép bàn quân chỉ có 3 khí nên bắt nhanh hơn. Hãy ăn quân Trắng ở A4.",
+      "done": "Chính xác!" }
+  ] },
+  { "id": 4, "title": "Chạy thoát", "steps": [
+    { "fen": "7 b 7.5 ......./......./...o.../..oxo../......./......./.......", "goal": "save", "t": "D4",
+      "text": "Lần này quân Đen ở D4 bị \"atari\". Hãy kéo dài quân ra khí cuối cùng để có thêm khí và thoát.",
+      "done": "Tốt! Nhóm Đen giờ có 3 khí, Trắng không bắt ngay được nữa." },
+    { "fen": "7 b 7.5 ......./......./...o.../..oxo../......./......./.......", "goal": "look",
+      "text": "Không phải lúc nào chạy cũng thoát: nếu chạy ra mà vẫn chỉ còn 1–2 khí và bị đuổi tiếp (như \"thang\" ở bài sau) thì chỉ mất thêm quân. Khi đó hãy bỏ quân đó và đánh chỗ khác lớn hơn." }
+  ] },
+  { "id": 5, "title": "Chỗ không được đặt quân", "steps": [
+    { "fen": "7 b 7.5 ......./......./...o.../..o.o../...o.../......./.......", "goal": "look", "marks": { "D4": "×" },
+      "text": "Đen không được đặt vào D4: quân đặt xuống sẽ không có khí nào. Đặt quân tự làm mình hết khí gọi là tự sát, luật cấm." },
+    { "fen": "7 b 7.5 ......./...x.../..xox../.xo.ox./..xox../...x.../.......", "goal": "capture",
+      "text": "Nhưng nếu nước đó ăn được quân đối phương thì được phép: quân bị ăn nhấc ra trước nên quân mới có khí. Hãy đặt vào giữa để ăn cả 4 quân Trắng.",
+      "done": "Tuyệt! Ăn quân luôn được ưu tiên trước khi xét tự sát." }
+  ] },
+  { "id": 6, "title": "Kiếp (ko)", "steps": [
+    { "fen": "7 b 7.5 ......./......./..xo.../.xo.o../..xo.../......./.......", "goal": "capture",
+      "text": "Quân Trắng C4 chỉ còn 1 khí ở D4. Hãy ăn nó.",
+      "done": "Ăn được! Nhưng quân Đen vừa đặt ở D4 cũng chỉ còn 1 khí ở C4." },
+    { "fen": "7 w 7.5 ......./......./..xo.../.x.xo../..xo.../......./.......", "goal": "look", "marks": { "C4": "K" },
+      "text": "Nếu Trắng ăn lại ngay ở C4 thì thế cờ quay về y như cũ và hai bên ăn qua ăn lại mãi. Vì vậy luật cấm ăn lại ngay: Trắng phải đánh chỗ khác một nước (thường là một nước đe doạ, gọi là \"tìm kiếp\"), sau đó mới được ăn lại. App cấm mọi nước làm lặp lại đúng một thế cờ đã có." }
+  ] },
+  { "id": 7, "title": "Hai mắt: nhóm sống", "steps": [
+    { "fen": "7 b 7.5 ......./......./......./xxxxx../oooox../.o.ox../oooox..", "goal": "look", "marks": { "A2": "M", "C2": "M" },
+      "text": "Nhóm Trắng có hai chỗ trống tách rời bên trong, gọi là hai \"mắt\" (A2 và C2). Đen không thể đặt vào mắt nào (tự sát), nên không bao giờ ăn được nhóm này. Nhóm có hai mắt thật là nhóm sống mãi." },
+    { "fen": "7 b 7.5 ......./......./......./.xxxxx./xooooox/xo...ox/.......", "goal": "at", "ok": ["D2"],
+      "text": "Nhóm Trắng có một khoảng trống dài 3 điểm. Đen hãy đặt vào điểm giữa để Trắng không thể chia khoảng trống thành hai mắt.",
+      "done": "Đúng! Điểm giữa là \"điểm sống chết\". Trắng giờ chỉ còn một mắt nên nhóm này đã chết." }
+  ] },
+  { "id": 8, "title": "Thang", "steps": [
+    { "fen": "9 b 7.5 ........./........./........./....x..../...xo..../.....x.../........./........./.........", "goal": "kill", "t": "E5", "n": 8,
+      "text": "Quân Trắng E5 có 2 khí. Đánh \"atari\" đúng hướng, Trắng chạy theo hình bậc thang và bị dồn tới mép bàn. Hãy bắt nó (máy sẽ chạy cho Trắng).",
+      "done": "Bắt được! Đây là \"thang\". Nếu trên đường thang có sẵn quân Trắng chặn thì thang hỏng, phải đọc trước khi đuổi." }
+  ] },
+  { "id": 9, "title": "Lưới", "steps": [
+    { "fen": "7 b 7.5 ......./......./..x..../..xo.../...xx../......./.......", "goal": "kill", "t": "D4", "n": 3,
+      "text": "Không phải lúc nào cũng nên \"atari\" ngay. Quân Trắng D4 có 2 khí (D5, E4). Hãy đặt một quân chéo phía trước như giăng lưới, để Trắng chạy hướng nào cũng bị chặn.",
+      "done": "Đúng: nước lưới ở E5. Lưới thường chắc hơn thang vì không phụ thuộc quân ở xa." }
+  ] },
+  { "id": 10, "title": "Hết ván và đếm điểm", "steps": [
+    { "fen": "7 b 7.5 ...xo../...xo../...xo../...xo../...xo../...xo../...xo..", "goal": "look", "score": true,
+      "text": "Khi không còn nước nào có ích, hai bên lần lượt bỏ lượt là hết ván. Luật Trung Quốc: mỗi bên được 1 điểm cho mỗi quân còn sống trên bàn và mỗi điểm đất mình vây kín (ô vuông nhỏ). Trắng được cộng 7,5 điểm bù vì đi sau. Ở đây Đen 7 quân + 21 đất = 28, Trắng 7 + 14 + 7,5 = 28,5: Trắng thắng nửa điểm." },
+    { "fen": "7 b 7.5 ...xo../.o.xo../...xo../...xo../...xo../...xo../...xo..", "goal": "look", "score": true, "dead": ["B6"],
+      "text": "Quân Trắng ở B6 lọt trong đất Đen và không thể sống, gọi là quân chết: khi đếm, nó bị nhấc ra và điểm đó tính cho Đen. Trong app, máy đánh dấu sẵn quân chết (vẽ mờ); bạn bấm vào nhóm quân để sửa nếu máy đoán sai rồi bấm Xác nhận." },
+    { "fen": "9 b 7.5 ........./........./........./........./........./........./........./........./.........", "goal": "look",
+      "text": "Mẹo luyện: khi đấu với máy, chọn kiểu \"Cờ bắt quân\": ai ăn được quân trước là thắng. Đây là cách các lớp cờ vây cho người mới tập đọc khí trước khi chơi ván đầy đủ. Sau đó luyện thêm ở tab Bắt quân." }
+  ] }
+]

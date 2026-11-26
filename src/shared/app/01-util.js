@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ (cờ tướng, cờ vua, cờ vây) chạy tệp này. Chỉ dùng RULES và GAME (00-game.js của từng app), không gọi thẳng XQ/CH. Sơ đồ: docs/CAU-TRUC.md
   // 01-util.js (dùng chung cho mọi loại cờ) — Tiện ích: truy vấn DOM, lưu trữ (localStorage, tiền tố theo GAME.store), nhật ký lỗi trên máy, thông báo nhỏ.
   // chuyển ký hiệu nước đi sang tiếng Việt, danh sách nước, thông báo nổi.
   const $ = (s, el) => (el || document).querySelector(s);

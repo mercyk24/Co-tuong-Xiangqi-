@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần riêng (thang điểm, cách tạo bài "Lỗi của bạn"): HOOKS.ana. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Cờ tướng và cờ vua chạy tệp này (cờ vây không dùng: scripts/build.js bỏ qua nhờ mục skip). Phần riêng (thang điểm, cách tạo bài "Lỗi của bạn"): HOOKS.ana. Sơ đồ: docs/CAU-TRUC.md
   // 80-analysis.js — Phân tích ván bằng engine mạnh (Fairy-Stockfish): điểm từng nước, nước sai, đường đi dự kiến, soi sâu; tạo bài "Lỗi của bạn".
   // ---------- Phân tích ván ----------
   // Ngưỡng điểm (chưa chính xác / sai lầm / sai lầm nặng) và đơn vị hiển thị: riêng từng loại cờ (HOOKS.ana.AN)

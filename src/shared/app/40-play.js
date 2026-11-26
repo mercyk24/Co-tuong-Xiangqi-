@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần dính luật từng loại cờ gọi qua HOOKS.play (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ chạy tệp này. Phần dính luật từng loại cờ gọi qua HOOKS.play (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
   // 40-play.js — Tab Trang chủ: chọn cách chơi rồi vào ván. Ba màn hình nối tiếp, không bao giờ chồng lên nhau:
   //   'home'  : trang chủ (chọn Đấu với máy / Hai người một máy / Chơi qua mạng; tiếp tục ván đang dở; lối tắt luyện tập)
   //   'setup' : chọn bên, cấp độ, thời gian, tạo/vào phòng… (không có bàn cờ)
@@ -130,6 +130,7 @@
     newGame() {
       this.saveGame(); this.rec = null;
       this.gen++;
+      if (HOOKS.play.startFen) this.startFen = HOOKS.play.startFen(this);   // cờ vây: bàn trống theo cỡ bàn đã chọn
       this.ctx = { pos: RULES.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false;
       this.ask = null; this.clock = null;

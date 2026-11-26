@@ -1,4 +1,4 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này (chỉ dùng RULES, GAME). Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ (cờ tướng, cờ vua, cờ vây) chạy tệp này (chỉ dùng RULES, GAME). Sơ đồ: docs/CAU-TRUC.md
   // 42-play-net.js — Phần giao diện của chơi qua mạng: màn tạo / vào phòng, xin đồng ý, xem trận, các hàm Net gọi vào.
   // Kết nối và giao thức nằm trong 45-net.js. Các hàm được gắn thêm vào Play (định nghĩa trong 40-play.js).
   Object.assign(Play, {
@@ -105,8 +105,8 @@
     },
     netLeave() { Net.leave(); this.started = false; this.screen = 'home'; this.netView = 'home'; this.newGame(); },
     netShare() {
-      const url = Net.joinLink(), text = 'Vào chơi cờ tướng với mình nhé! Mã phòng: ' + Net.code;
-      if (navigator.share) navigator.share({ title: 'Cờ Tướng Luyện Tập', text, url }).catch(() => { /* người dùng huỷ */ });
+      const url = Net.joinLink(), text = 'Vào chơi ' + GAME.title.replace(/ Luyện Tập$/, '').toLowerCase() + ' với mình nhé! Mã phòng: ' + Net.code;
+      if (navigator.share) navigator.share({ title: GAME.title, text, url }).catch(() => { /* người dùng huỷ */ });
       else this.netCopy(url);
     },
     netCopy(s) {

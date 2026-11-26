@@ -1,12 +1,11 @@
-  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần riêng: HOOKS.boot (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Mọi loại cờ chạy tệp này. Phần riêng (các tab luyện tập của từng loại cờ): HOOKS.boot (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
   // 99-boot.js — Điều hướng giữa các tab và khởi động app (đăng ký service worker, bật engine mạnh).
   // ---------- Điều hướng ----------
   function showTab(name) {
     $$('.view').forEach(v => v.hidden = v.id !== 'v-' + name);
     $$('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
     if (name !== 'ana') Store.set('tab', name);
-    if (name === 'tac') Tac.renderList();
-    if (name === 'ana' && !Ana.cur) Ana.renderList();
+    HOOKS.boot.onTab(name);   // tab riêng của từng loại cờ: vẽ lại danh sách khi mở tab
     if (name === 'about') { Backup.render(); Privacy.render(); Report.render(); }
     Nav.peek = false; Nav.update();
     window.scrollTo(0, 0);
@@ -20,10 +19,7 @@
     busy() {
       const tab = this.cur();
       if (tab === 'play') return Play.active();
-      if (tab === 'puz') return !$('#puz-play').hidden && !Puz.solved;
-      if (tab === 'tac') return !$('#tac-play').hidden && (Tac.mode === 'free' ? !Tac.solved : !Tac.over);
-      if (tab === 'op') return !$('#op-play').hidden && Op.mode === 'drill' && !Op.finished;
-      return false;
+      return HOOKS.boot.busy(tab);   // đang giải bài, tập khai cuộc… ở các tab riêng của từng loại cờ
     },
     update() {
       const b = document.body, busy = this.busy();
@@ -45,7 +41,8 @@
   function boot() {
     try { localStorage.setItem('cl_last', GAME.id); } catch (e) { /* bỏ qua */ }   // để trang chủ đánh dấu loại cờ chơi gần nhất
     Engine.init();
-    Play.init(); Puz.init(); Tac.init(); Op.init(); Ana.init();
+    Play.init();
+    HOOKS.boot.init();       // các tab riêng của từng loại cờ (bài tập, khai cuộc, phân tích / xem lại ván…)
     HOOKS.boot.settings();   // tuỳ chọn riêng của từng loại cờ trong Cài đặt
     Backup.init();
     Privacy.init();
@@ -81,6 +78,7 @@
       }).catch(() => { /* bỏ qua */ });
     }
   }
-  // Đối tượng cho kiểm tra tự động: window.__xq (cờ tướng) / window.__xc (cờ vua)
-  window[GAME.debug] = Object.assign({ Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Privacy, Consent, Report, ErrLog, Nav, Net, showTab, version: APP_VERSION }, HOOKS.boot.expose());
+  // Đối tượng cho kiểm tra tự động: window.__xq (cờ tướng) / window.__xc (cờ vua) / window.__xv (cờ vây).
+  // Phần chung ở đây; các module riêng (Puz, Tac, Op, Ana…) do HOOKS.boot.expose() thêm vào.
+  window[GAME.debug] = Object.assign({ Play, Store, Engine, Board, Backup, Privacy, Consent, Report, ErrLog, Nav, Net, showTab, version: APP_VERSION }, HOOKS.boot.expose());
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

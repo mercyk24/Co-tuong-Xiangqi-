@@ -1,10 +1,10 @@
-# Chính sách quyền riêng tư – Cờ Tướng Luyện Tập và Cờ Vua Luyện Tập
+# Chính sách quyền riêng tư – Cờ Tướng, Cờ Vua và Cờ Vây Luyện Tập
 
 Bản ngày 25/11/2026 (áp dụng từ phiên bản 1.7.0). Nội dung giống mục Giới thiệu › Quyền riêng tư trong app; sửa ở đây thì sửa cả trong `src/xiangqi/index.template.html` và `src/chess/index.template.html`, và nếu thay đổi nội dung chính thì tăng `Consent.VERSION` trong `src/shared/app/45-net.js` để app hỏi lại sự đồng ý.
 
 ## 1. Ai xử lý dữ liệu
 
-Người phát triển app Cờ Tướng Luyện Tập và Cờ Vua Luyện Tập (tài khoản GitHub mercyk24). Hai app chung một trang chủ, xử lý dữ liệu giống nhau theo chính sách này; dữ liệu của mỗi app lưu riêng trên máy, đồng ý chơi qua mạng cũng hỏi riêng cho từng app. Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn <https://github.com/mercyk24/co-luyen-tap/issues>. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.
+Người phát triển các app Cờ Tướng, Cờ Vua và Cờ Vây Luyện Tập (tài khoản GitHub mercyk24). Ba app chung một trang chủ, xử lý dữ liệu giống nhau theo chính sách này; dữ liệu của mỗi app lưu riêng trên máy, đồng ý chơi qua mạng cũng hỏi riêng cho từng app. Liên hệ và yêu cầu về dữ liệu: mục Issues của kho mã nguồn <https://github.com/mercyk24/co-luyen-tap/issues>. Khi app do doanh nghiệp cung cấp, mục này sẽ ghi tên, địa chỉ và cách liên hệ của doanh nghiệp.
 
 ## 2. Dữ liệu trên máy của bạn
 

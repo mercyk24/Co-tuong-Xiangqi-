@@ -1,4 +1,4 @@
-Cờ Luyện Tập (Cờ Tướng Luyện Tập, Cờ Vua Luyện Tập)
+Cờ Luyện Tập (Cờ Tướng Luyện Tập, Cờ Vua Luyện Tập, Cờ Vây Luyện Tập)
 Bản quyền mã nguồn của app: người phát triển dự án (tài khoản GitHub mercyk24) và những người đóng góp.
 Phát hành theo GNU General Public License phiên bản 3 hoặc mới hơn (GPL-3.0-or-later), xem tệp LICENSE.
 
@@ -62,6 +62,11 @@ Danh mục khai cuộc cờ vua (data/chess/openings.json, data/chess/book.json)
   Giấy phép: Creative Commons CC0
   Các biến chính, nhóm và lời giới thiệu tiếng Việt do người phát triển tự chọn và tự viết
   (tools/chess/build-data.js).
+
+Cờ vây (src/go/, data/go/)
+  Lõi luật, máy chơi Monte-Carlo, bài học luật và bài bắt quân do người phát triển tự viết, tự soạn và
+  tự sinh (tools/go/gen_puzzles.js); không dùng mã, dữ liệu hay mạng thần kinh của bên thứ ba.
+  Định dạng ván SGF (FF[4]) là định dạng mở, chỉ đọc / ghi theo đặc tả công khai.
 
 ------------------------------------------------------------------------------
 3. DỊCH VỤ BÊN NGOÀI KHI CHƠI QUA MẠNG (không phân phối kèm app)

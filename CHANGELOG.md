@@ -2,6 +2,27 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.2.0] – 2026-11-26
+
+### Thêm
+- **Cờ Vây** (`/co-vay/`), app thứ ba dùng chung khung với cờ tướng, cờ vua:
+  - Bàn 9×9, 13×13, 19×19; luật Trung Quốc (đếm quân và đất, Trắng được 7,5 điểm bù), cấm tự sát, cấm lặp lại thế cờ toàn bàn (siêu kiếp). Bàn 13×13, 19×19 bấm hai lần để đặt quân (đổi được trong Cài đặt).
+  - Đấu máy 5 cấp: máy Monte-Carlo (UCT + RAVE) tự viết, chạy trong Web Worker, biết bỏ lượt. Kiểu "cờ bắt quân" (ăn quân trước là thắng) cho người mới.
+  - Hai người một máy, chơi qua mạng và xem trận (chủ phòng chọn cỡ bàn). Hai bên bỏ lượt thì đếm điểm: máy đánh dấu sẵn quân chết, người chơi sửa rồi xác nhận hoặc chơi tiếp; qua mạng thì hai máy tự tính ra cùng một kết quả.
+  - Bài học luật: 10 bài có bàn cờ tương tác (khí, ăn quân, chạy thoát, chỗ cấm đặt quân, kiếp, hai mắt, thang, lưới, đếm điểm).
+  - Bắt quân: 260 bài bắt nhóm quân trong 1–5 nước, sinh bằng `tools/go/gen_puzzles.js`, kiểm bằng bộ giải của lõi luật.
+  - Ván đã lưu: xem lại từng nước, ước lượng điểm, xuất / nhập SGF, xoá ván.
+- Trang chủ có thẻ Cờ Vây. Điểm hẹn nhận tiền tố mã máy `xgvn-` (phòng cờ vây tách riêng, khoá `g:<mã phòng>`); cần triển khai lại điểm hẹn.
+- Kiểm tra mới: `tests/unit/go/` (luật, đếm điểm, SGF, bộ giải, máy chơi, toàn bộ bài học và bài bắt quân), `tests/e2e/go/` (đấu máy, hai người, đếm điểm, bàn 19×19, qua mạng, xem trận, tải lại trang giữa ván, bài học, bắt quân, SGF).
+
+### Thay đổi
+- `scripts/build.js`: mục `skip` cho app không ghép một số module dùng chung (cờ vây bỏ `30-fsf.js`, `80-analysis.js`); danh sách trang của service worker (`PAGES`) do build tự điền từ danh sách app.
+- `99-boot.js` không còn gọi thẳng các tab riêng: `HOOKS.boot` có thêm `init`, `onTab`, `busy`, `engineInfo` ở cả ba app.
+- Chơi qua mạng gửi kèm thế bắt đầu (`fen`) trong tin `state`, `rematch`, `snap` và lưu trong phiên trên máy, để khách và người xem dựng đúng bàn của chủ phòng. Tin của bản cũ không có `fen` vẫn chạy như trước.
+- `40-play.js` gọi `HOOKS.play.startFen` (tuỳ chọn) ở mỗi ván mới.
+- Tóm tắt tệp sao lưu chỉ nhắc các mục app đó có; tên tệp sao lưu theo loại cờ (`co-vua-sao-luu-…`, `co-vay-sao-luu-…`, trước đây luôn là `co-tuong-…`). Lời mời chơi qua mạng ghi đúng loại cờ (trước đây cờ vua cũng ghi "cờ tướng").
+- Chính sách quyền riêng tư (trong app và `docs/CHINH-SACH-RIENG-TU.md`) ghi người phát triển của cả ba app; nội dung xử lý dữ liệu không đổi nên không hỏi lại sự đồng ý.
+
 ## [2.1.0] – 2026-11-26
 
 ### Thêm

@@ -29,11 +29,12 @@ export const LIMITS = {
 };
 
 const ROOM_RE = /^[a-z0-9]{6}$/;
-const ID_RE = /^x[qc]vn-[a-z0-9]{2,24}$/;
-// Mỗi loại cờ một tiền tố mã máy: 'xqvn-' cờ tướng, 'xcvn-' cờ vua. Phòng của hai loại cờ tách hẳn nhau
+const ID_RE = /^x[qcg]vn-[a-z0-9]{2,24}$/;
+// Mỗi loại cờ một tiền tố mã máy: 'xqvn-' cờ tướng, 'xcvn-' cờ vua, 'xgvn-' cờ vây. Phòng của các loại cờ tách hẳn nhau
 // (khác Durable Object), nên mã phòng trùng nhau cũng không bao giờ nối nhầm sang loại cờ khác.
 export const gameOf = id => String(id).slice(0, 5);
-export const roomKey = p => (gameOf(p.id) === 'xcvn-' ? 'c:' : '') + p.room;
+const ROOM_NS = { 'xqvn-': '', 'xcvn-': 'c:', 'xgvn-': 'g:' };   // cờ tướng giữ khoá cũ (không tiền tố) để phòng đang mở không bị ảnh hưởng
+export const roomKey = p => (ROOM_NS[gameOf(p.id)] || '') + p.room;
 const TOKEN_RE = /^[a-z0-9]{4,32}$/;
 
 // Kiểm tra tham số khi máy mở kết nối. Trả về '' nếu hợp lệ, ngược lại là lý do.
@@ -69,7 +70,7 @@ const ROUTED = new Set(['OFFER', 'ANSWER', 'CANDIDATE', 'RELAY']);
 function others(ad, ws) { return ad.list().filter(s => s.ws !== ws && s.meta); }
 // Người xem: mã máy "<tiền tố>w…". Mã của chủ phòng là tiền tố + 6 ký tự mã phòng (dài đúng 11 ký tự) và có thể cũng
 // bắt đầu bằng "w" khi mã phòng bắt đầu bằng W, nên mã dài đúng 11 ký tự không bao giờ là người xem.
-export const isWatcher = id => { const s = String(id); return /^x[qc]vn-w/.test(s) && s.length !== 11; };
+export const isWatcher = id => { const s = String(id); return /^x[qcg]vn-w/.test(s) && s.length !== 11; };
 const hostOf = (ad, room) => ad.list().find(s => s.meta && s.meta.id === gameOf(s.meta.id) + room);
 const watchersOf = (ad, skip) => ad.list().filter(s => s.ws !== skip && s.meta && isWatcher(s.meta.id));
 // Báo chủ phòng số người xem hiện tại (src: người vừa vào, để chủ phòng gửi thế cờ cho riêng người đó)

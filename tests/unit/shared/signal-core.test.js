@@ -158,3 +158,18 @@ test('mã phòng bắt đầu bằng W: chủ phòng không bị nhầm là ngư
   assert.ok(h.got.some(m => m.type === 'RELAY' && m.src === 'xqvn-gk3j4h5g6f'), 'tin của khách tới được chủ phòng');
   assert.ok(!g.got.some(m => m.type === 'EXPIRE'));
 });
+
+test('cờ vây dùng tiền tố xgvn-: phòng tách hẳn cờ tướng và cờ vua', async () => {
+  const { checkJoin, gameOf, roomKey, isWatcher } = await load();
+  const P = id => ({ key: 'peerjs', room: 'abc234', id, token: 'tok1234' });
+  assert.strictEqual(checkJoin(P('xgvn-abc234')), '');
+  assert.strictEqual(checkJoin(P('xgvn-gq1w2e3r')), '');
+  assert.strictEqual(checkJoin(P('xgvn-wq1w2e3r')), '');
+  assert.strictEqual(checkJoin(P('xzvn-abc234')), 'bad-id');
+  assert.strictEqual(gameOf('xgvn-abc234'), 'xgvn-');
+  const keys = new Set([roomKey(P('xgvn-abc234')), roomKey(P('xcvn-abc234')), roomKey(P('xqvn-abc234'))]);
+  assert.strictEqual(keys.size, 3);
+  assert.strictEqual(roomKey(P('xqvn-abc234')), 'abc234');
+  assert.strictEqual(isWatcher('xgvn-wq1w2e3r'), true);
+  assert.strictEqual(isWatcher('xgvn-wzq4wz'), false);   // chủ phòng có mã bắt đầu bằng W
+});
