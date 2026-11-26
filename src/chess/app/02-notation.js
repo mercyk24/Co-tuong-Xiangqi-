@@ -11,3 +11,7 @@
     }
     return h;
   }
+  // Phần dùng chung gọi ndt() (một câu có ký hiệu nước) và nd1() (một nước) để cờ tướng đổi chữ Hán sang cách ghi người dùng
+  // chọn. Cờ vua ghi SAN sẵn, giữ nguyên.
+  function ndt(s) { return s; }
+  function nd1(s) { return s; }

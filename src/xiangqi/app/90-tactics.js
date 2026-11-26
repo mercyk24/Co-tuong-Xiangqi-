@@ -1,4 +1,4 @@
-  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/90-tactics.js (giống ~66%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/90-tactics.js (giống ~67%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 90-tactics.js — Tab Chiến thuật: bài tìm nước đúng theo hạng, chế độ 3 phút / 5 phút / sinh tồn, và "Lỗi của bạn".
   // ---------- Chiến thuật ----------
   const Tac = {
@@ -35,8 +35,9 @@
       }).join('');
       $$('#tac-modes .pz').forEach(b => b.onclick = () => this.startMode(b.dataset.m));
       const pl = this.pool();
-      $('#tac-grid').innerHTML = pl.length ? pl.map(p => '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + esc(p.id) + '"><span class="pz-n">Bài ' + p.id.slice(1) + '</span><span class="pz-s">' + (p.side === 'w' ? '<i class="dot r"></i>Đỏ' : '<i class="dot b"></i>Đen') + ' đi<span class="rate">' + p.rating + '</span></span>' + (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>').join('') : '<p class="muted">Chưa có bài trong mức này.</p>';
-      $$('#tac-grid .pz').forEach(b => b.onclick = () => { this.mode = 'free'; this.open(b.dataset.id); });
+      if (pl.length) pagedGrid($('#tac-grid'), pl, p => '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + esc(p.id) + '"><span class="pz-n">Bài ' + p.id.slice(1) + '</span><span class="pz-s">' + (p.side === 'w' ? '<i class="dot r"></i>Đỏ' : '<i class="dot b"></i>Đen') + ' đi<span class="rate">' + p.rating + '</span></span>' + (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>',
+        id => { this.mode = 'free'; this.open(id); }, p => this.done[p.id]);
+      else { $('#tac-grid').onclick = null; $('#tac-grid').innerHTML = '<p class="muted">Chưa có bài trong mức này.</p>'; }
       const H = this.hist.slice(-10).reverse();
       $('#tac-hist').innerHTML = H.length ? H.map(h => '<div class="hrow"><span>' + new Date(h.t).toLocaleDateString('vi-VN') + ' · ' + esc(this.MODES[h.m][0]) + '</span><b>' + h.s + ' bài</b></div>').join('') : 'Chưa có lượt chơi nào.';
     },

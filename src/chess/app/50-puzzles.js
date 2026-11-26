@@ -1,4 +1,4 @@
-  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/50-puzzles.js (giống ~65%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // [CỜ VUA] Chỉ app cờ vua dùng. Có bản song sinh bên cờ tướng: src/xiangqi/app/50-puzzles.js (giống ~64%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
   // 50-puzzles.js — CỜ VUA, tab Chiếu hết: bài chiếu hết trong 1–5 nước lấy từ kho bài Lichess (CC0).
   // Bài (PUZZLES, tạo bởi tools/chess/build-data.js): { id, lid (mã bài trên Lichess), n (số nước), side (0 Trắng, 1 Đen),
   //   fen (thế người giải đi), pre (nước vừa đi của đối phương, để tô), sol: [nước UCI: người giải, đối phương, người giải…], r (điểm) }
@@ -36,16 +36,13 @@
       let h = '<div class="chips">';
       h += '<button class="chip' + (f === 0 ? ' on' : '') + '" data-f="0">Tất cả</button>';
       for (let n = 1; n <= 5; n++) if (counts[n]) h += '<button class="chip' + (f === n ? ' on' : '') + '" data-f="' + n + '">' + n + ' nước <small>' + counts[n].d + '/' + counts[n].t + '</small></button>';
-      h += '</div><div class="grid">';
-      PUZZLES.filter(p => !f || p.n === f).forEach(p => {
-        h += '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + p.id + '"><span class="pz-n">' + p.id + '</span><span class="pz-s">' +
-          (p.side === 0 ? '<i class="dot w"></i>Trắng' : '<i class="dot b"></i>Đen') + ' · ' + p.n + ' nước <span class="rate">' + p.r + '</span></span>' +
-          (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>';
-      });
-      h += '</div>';
+      h += '</div><div class="grid" id="puz-grid"></div>';
       $('#puz-list').innerHTML = h;
       $$('#puz-list .chip').forEach(b => b.onclick = () => { this.filter = +b.dataset.f; Store.set('puz_filter', this.filter); this.renderList(); });
-      $$('#puz-list .pz').forEach(b => b.onclick = () => this.open(+b.dataset.id));
+      pagedGrid($('#puz-grid'), PUZZLES.filter(p => !f || p.n === f), p => '<button class="pz' + (this.done[p.id] ? ' ok' : '') + '" data-id="' + p.id + '"><span class="pz-n">' + p.id + '</span><span class="pz-s">' +
+          (p.side === 0 ? '<i class="dot w"></i>Trắng' : '<i class="dot b"></i>Đen') + ' · ' + p.n + ' nước <span class="rate">' + p.r + '</span></span>' +
+          (this.done[p.id] ? '<span class="tick">✓</span>' : '') + '</button>',
+        id => this.open(+id), p => this.done[p.id]);
     },
     showList() { this.gen++; closePromo(); $('#puz-play').hidden = true; $('#puz-list-wrap').hidden = false; this.renderList(); },
     open(id) {

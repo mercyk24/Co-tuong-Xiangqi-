@@ -63,24 +63,48 @@ src/<loại cờ>/index.template.html
 ```
 
 Vì các module được ghép vào một hàm, chúng gọi nhau trực tiếp (`Play`, `Store`, `Net`…) mà không cần import.
-Thứ tự ghép theo số đầu tên tệp, xen kẽ giữa hai thư mục: ví dụ với cờ vua là
-`00-game` (riêng) → `01-util` (chung) → `02-notation` (riêng) → `10-engine` (riêng) → `20-board` (riêng) → `30-fsf` (chung)
-→ `40…42-play` (riêng) → `45-net` (chung) → `50…60` (riêng) → `70-settings`, `75-report` (chung) → `80…99` (riêng).
+Thứ tự ghép theo số đầu tên tệp, xen kẽ giữa hai thư mục (giống nhau ở cả hai loại cờ):
+
+| Số | Tệp | Loại | Việc |
+|---|---|---|---|
+| 00 | `00-game.js` | riêng | cấu hình `GAME`, `RULES` |
+| 01 | `01-util.js` | chung | `$`, `Store`, `toast`, `pagedGrid`… |
+| 02 | `02-notation.js` | riêng | ký hiệu nước đi, danh sách nước (`ndt`, `nd1`, `moveListHtml`) |
+| 03 | `03-hooks.js` | riêng | `HOOKS`: mọi chỗ phần chung cần tới luật của loại cờ |
+| 10 | `10-engine.js` | riêng | máy cấp 1–5 (Web Worker), bảng cấp `LEVELS` |
+| 20 | `20-board.js` | riêng | bàn cờ SVG, chọn quân |
+| 30 | `30-fsf.js` | chung | Fairy-Stockfish (cấp 6, phân tích) |
+| 40 | `40-play.js` | chung | màn chơi: ván, đồng hồ, lời xin, lưu ván, thanh hai bên |
+| 41 | `41-play-ai.js` | riêng | đấu với máy, sách khai cuộc |
+| 42 | `42-play-net.js` | chung | màn chơi qua mạng |
+| 45 | `45-net.js` | chung | kết nối WebRTC, điểm hẹn, đồng ý |
+| 50 | `50-puzzles.js` | riêng | tab Chiếu hết |
+| 60 | `60-openings.js` | riêng | tab Khai cuộc |
+| 70 | `70-settings.js` | chung | sao lưu, quyền riêng tư |
+| 75 | `75-report.js` | chung | báo lỗi tự nguyện |
+| 80 | `80-analysis.js` | chung | phân tích ván, tạo bài "Lỗi của bạn" |
+| 90 | `90-tactics.js` | riêng | tab Chiến thuật |
+| 99 | `99-boot.js` | chung | điều hướng tab, khởi động |
 Hai thư mục không được có tệp trùng tên (build báo lỗi).
 
 Trang chủ `src/portal/index.html`, service worker, icon và engine được chép thẳng sang `dist/`.
 
 ## 3. Ranh giới giữa phần chung và phần riêng
 
-Phần chung **không bao giờ** gọi thẳng `XQ` hay `CH`. Nó chỉ biết hai thứ do từng app cung cấp trong `00-game.js`:
+Phần chung **không bao giờ** gọi thẳng `XQ` hay `CH`. Nó chỉ biết ba thứ do từng app cung cấp:
 
-**`RULES`**: lõi luật của app (`XQ` hoặc `CH`). Phần chung hiện chỉ dùng `RULES.mvStr(m)` (đổi nước đi sang chuỗi để gửi qua mạng).
+**`RULES`** (trong `00-game.js`): lõi luật của app (`XQ` hoặc `CH`). Phần chung dùng `RULES.Pos`, `RULES.START_FEN`,
+`RULES.mvStr(m)` (nước đi → chuỗi UCI), `RULES.mFrom(m)`, `RULES.mTo(m)` (ô đi, ô đến). Hai lõi luật phải có đủ các tên này;
+đối tượng `Pos` của hai lõi cũng có chung các hàm `fromFen`, `fen`, `legalMoves`, `make`, `unmake`, `parse`, `notation`,
+`inCheck`, `side`.
 
-**`GAME`**: cấu hình của app.
+**`GAME`** (trong `00-game.js`): cấu hình của app.
 
 | Trường | Cờ tướng | Cờ vua | Phần chung dùng để |
 |---|---|---|---|
-| `id` | `xiangqi` | `chess` | phân biệt app |
+| `id` | `xiangqi` | `chess` | phân biệt app (trang chủ nhớ loại cờ chơi gần nhất) |
+| `debug` | `__xq` | `__xc` | tên đối tượng gắn vào `window` cho kiểm tra tự động |
+| `sides` | `['Đỏ', 'Đen']` | `['Trắng', 'Đen']` | tên hai bên (bên 0 đi trước) |
 | `title` | Cờ Tướng Luyện Tập | Cờ Vua Luyện Tập | tiêu đề báo lỗi |
 | `app` | `co-tuong-luyen-tap` | `co-vua-luyen-tap` | mã app trong tệp sao lưu (không khôi phục chéo) |
 | `store` | `xq_` | `xc_` | tiền tố mọi khoá lưu trên máy |
@@ -90,37 +114,47 @@ Phần chung **không bao giờ** gọi thẳng `XQ` hay `CH`. Nó chỉ biết 
 | `fmt` | đổi ký hiệu Hán | (không có) | định dạng thông báo |
 | `checkKey` | (tuỳ chọn) | (tuỳ chọn) | lọc thêm dữ liệu khi khôi phục |
 
-Ngoài ra, module chơi qua mạng dùng chung (`45-net.js`) gọi vào đối tượng `Play` của từng app. Mỗi app phải có:
-`Play.over`, `Play.draw()`, `Play.clock`, `Play.moves`, `Play.mode`, `Play.screen`, `Play.setup()`, `Play.closeMenu()`,
-`Play.net`, `Play.netStart()`, `Play.netOver()`, `Play.netLoad()`, `Play.netView()`, `Play.netLeave()`, `Play.netAsk()`,
-`Play.netAnswer()`, `Play.netApplyMove()`, `Play.watchStart()`. Đổi tên hay bỏ một hàm trong số này ở một app là làm hỏng
-chơi qua mạng của app đó.
+**`HOOKS`** (trong `03-hooks.js`): các hàm dính luật mà phần chung gọi tới. Hai tệp `03-hooks.js` có **cùng tên hàm**:
 
-## 4. Tệp song sinh: riêng nhưng giống nhau phần lớn
+| Nhóm | Hàm | Cờ tướng | Cờ vua |
+|---|---|---|---|
+| `play` | `select(play, sq, side)` | chọn quân, đi quân | như cờ tướng + hỏi quân phong cấp |
+| | `allowMove(play, m, byUser)` | chặn chiếu dai / đuổi dai (tối đa 4 nước) | luôn cho đi |
+| | `checkEnd(play)` | hết nước đi thua; lặp 3 lần hòa nếu không ai chiếu dai; 300 nửa nước hòa | chiếu hết, pat, 50 nước, lặp 3 lần, không đủ quân |
+| | `init`, `reset`, `drawExtra` | (trống) | bảng chọn quân phong cấp |
+| | `blockedKind(play, m)` | máy dùng để tránh nước bị chặn | (không có) |
+| `ana` | `AN` | ngưỡng điểm theo thang Fairy-Stockfish cờ tướng | ngưỡng theo phần trăm Tốt |
+| | `mineItem(pos, g, i, pv, id)` | bài "Lỗi của bạn" có lời giải ghi sẵn | bài "Lỗi của bạn" theo đường UCI |
+| | `init`, `engineSize`, `unitNote`, `firstClass` | nút đổi cách ghi nước, "(13 MB)", tô đỏ nước của Đỏ | (trống), ", đơn vị là Tốt" |
+| `boot` | `settings()` | Cài đặt › cách ghi nước | Cài đặt › luôn phong Hậu |
+| | `expose()` | thêm `vi` cho kiểm tra | (trống) |
 
-Cờ vua được làm từ khung của cờ tướng, nên nhiều module giao diện là **bản song sinh**: cùng tên, cùng cấu trúc, khác ở chỗ
-dính tới luật (bàn cờ, ký hiệu, phong cấp…). Chúng vẫn là tệp riêng, vì phần khác nhau đan xen khắp nơi.
-Dòng đầu mỗi tệp song sinh ghi tên bản kia và mức giống nhau.
+Thêm một khác biệt mới giữa hai loại cờ vào phần chung: thêm hàm vào **cả hai** `03-hooks.js` (cùng tên), rồi gọi qua `HOOKS`.
+
+Ngoài ra, module chơi qua mạng dùng chung (`45-net.js`) gọi vào đối tượng `Play` (nay là chung, `40-play.js` và
+`42-play-net.js`), nên không còn phụ thuộc riêng từng loại cờ.
+
+## 4. Tệp song sinh: riêng nhưng còn giống nhau một phần
+
+Cờ vua được làm từ khung của cờ tướng. Bốn cặp giống nhau nhiều nhất (`40-play`, `42-play-net`, `80-analysis`, `99-boot`)
+**đã gộp** vào `src/shared/app/`, phần khác nhau đưa vào `HOOKS`. Còn lại là **tệp song sinh**: cùng tên, cùng cấu trúc, khác ở
+chỗ dính tới luật, nên vẫn để riêng. Dòng đầu mỗi tệp song sinh ghi tên bản kia và mức giống nhau.
 
 | Tệp (trong `src/xiangqi/app/` và `src/chess/app/`) | Giống nhau | Phần khác nhau chính |
 |---|---|---|
-| `42-play-net.js` | ~95% | tên bên (Đỏ/Đen ↔ Trắng/Đen), phong cấp |
-| `99-boot.js` | ~92% | đối tượng gắn cho kiểm tra (`__xq` ↔ `__xc`), tuỳ chọn riêng |
-| `40-play.js` | ~89% | kết thúc ván (luật lặp thế cờ tướng ↔ pat, 50 nước, không đủ quân), phong cấp |
-| `80-analysis.js` | ~88% | thang điểm, cách tạo bài "Lỗi của bạn" |
 | `10-engine.js` | ~78% | lõi gọi trong Web Worker, bảng cấp độ |
-| `41-play-ai.js` | ~74% | sách khai cuộc, nước mở đầu |
-| `90-tactics.js` | ~66% | chủ đề bài, nhiều nước trong lời giải, phong cấp |
-| `50-puzzles.js` | ~65% | nguồn bài, cách kiểm tra lời giải |
+| `41-play-ai.js` | ~74% | sách khai cuộc, nước mở đầu, tránh nước bị chặn (cờ tướng) |
+| `90-tactics.js` | ~67% | chủ đề bài, nhiều nước trong lời giải, phong cấp |
+| `50-puzzles.js` | ~64% | nguồn bài, cách kiểm tra lời giải |
 | `60-openings.js` | ~54% | nhóm khai cuộc, bên người học |
 | `20-board.js` | ~39% | bàn 9×10 có sông ↔ bàn 8×8 |
 | `index.template.html` | ~90% | phần Giới thiệu (luật), tuỳ chọn riêng, bảng phong cấp |
 
-Riêng hẳn, không có bản tương ứng: `00-game.js` (cấu hình), `02-notation.js` (ký hiệu nước đi), `game.css`, lõi luật.
+Riêng hẳn, không có bản tương ứng: `00-game.js` (cấu hình), `02-notation.js` (ký hiệu nước đi), `03-hooks.js` (cùng tên hàm,
+khác nội dung), `game.css`, lõi luật.
 
-**Quy tắc khi sửa tệp song sinh:** sửa lỗi ở phần giống nhau (ví dụ đồng hồ, menu ván, màn kết thúc, lưu ván) thì mở bản
-bên kia, sửa giống hệt, rồi chạy `npm test`. Thấy một đoạn giống hệt nhau ở cả hai bản mà không dính tới luật thì nên
-chuyển hẳn sang `src/shared/app/` (xem mục 6).
+**Quy tắc khi sửa tệp song sinh:** sửa lỗi ở phần giống nhau thì mở bản bên kia, sửa giống hệt, rồi chạy `npm test`. Thấy một
+đoạn giống hệt nhau ở cả hai bản mà không dính tới luật thì nên chuyển hẳn sang `src/shared/app/` (xem mục 6).
 
 ## 5. Muốn sửa X thì sửa ở đâu
 
@@ -132,7 +166,11 @@ chuyển hẳn sang `src/shared/app/` (xem mục 6).
 | Màu sắc, bố cục, nút, thẻ | `src/shared/base.css` | cả hai |
 | Màu bàn cờ, quân, ô bị chiếu | `src/<loại cờ>/game.css`, `20-board.js` | chỉ loại cờ đó |
 | Chơi qua mạng (kết nối, phòng, xem trận) | `src/shared/app/45-net.js`, `server/` | cả hai |
-| Màn chơi qua mạng (nút, thông báo) | `42-play-net.js` của từng loại cờ (song sinh) | từng loại cờ |
+| Màn chơi, đồng hồ, lời xin hòa / đi lại, lưu ván | `src/shared/app/40-play.js` | cả hai |
+| Luật kết thúc ván, chặn nước, phong cấp | `HOOKS.play` trong `03-hooks.js` | chỉ loại cờ đó |
+| Màn chơi qua mạng (nút, thông báo) | `src/shared/app/42-play-net.js` | cả hai |
+| Phân tích ván | `src/shared/app/80-analysis.js` (chung), `HOOKS.ana` (ngưỡng điểm, bài "Lỗi của bạn") | chung: cả hai |
+| Danh sách bài (chia phần, "Xem thêm") | `pagedGrid` trong `src/shared/app/01-util.js` | cả hai |
 | Sao lưu, quyền riêng tư, xoá dữ liệu | `src/shared/app/70-settings.js` | cả hai |
 | Chữ trong mục Giới thiệu, chính sách | `index.template.html` của **cả hai** + `docs/CHINH-SACH-RIENG-TU.md` | cả hai |
 | Bài tập, khai cuộc, sách của máy | `tools/<loại cờ>/` rồi dựng lại `data/<loại cờ>/` (không sửa tay JSON) | chỉ loại cờ đó |
@@ -141,14 +179,14 @@ chuyển hẳn sang `src/shared/app/` (xem mục 6).
 
 ## 6. Thêm loại cờ mới hoặc gom thêm phần chung
 
-**Thêm loại cờ mới** (ví dụ cờ úp): sao chép `src/chess/` thành `src/<tên>/`, viết lõi luật mới trong `core/`, sửa
-`00-game.js` (tiền tố lưu trữ, tiền tố mạng, mã app riêng), thêm một mục vào `APPS` trong `scripts/build.js`, thêm tiền tố
+**Thêm loại cờ mới** (ví dụ cờ úp): sao chép `src/chess/` thành `src/<tên>/`, viết lõi luật mới trong `core/` (có đủ các tên ở mục 3), sửa
+`00-game.js` (tiền tố lưu trữ, tiền tố mạng, mã app riêng, `debug`, `sides`), viết `03-hooks.js` (đủ các hàm ở mục 3), thêm một mục vào `APPS` trong `scripts/build.js`, thêm tiền tố
 mạng vào `ID_RE` trong `server/core.mjs`, thêm thẻ vào trang chủ, thêm trang vào `PAGES` trong `sw.js`.
 Tạo `data/<tên>/`, `tools/<tên>/`, `tests/unit/<tên>/`, `tests/e2e/<tên>/`.
 
 **Gom phần chung** (giảm tệp song sinh): chuyển một hàm giống hệt nhau ở hai bản vào một module trong `src/shared/app/`
 (chọn số đầu tên tệp sao cho đứng trước module dùng nó), chỗ khác nhau thì đưa thành trường trong `GAME`. Chạy `npm test`.
-Ứng viên tốt nhất: `42-play-net.js`, `99-boot.js`, `40-play.js` (đồng hồ, menu ván, lưu ván).
+Đã gộp: `40-play.js`, `42-play-net.js`, `80-analysis.js`, `99-boot.js`. Ứng viên tiếp theo: `10-engine.js`, `41-play-ai.js`.
 
 ## 7. Kiểm tra
 

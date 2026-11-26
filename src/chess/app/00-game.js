@@ -4,6 +4,8 @@
   const RULES = CH;   // lõi luật cờ vua (src/chess/core/chess.js)
   const GAME = {
     id: 'chess',
+    debug: '__xc',   // tên đối tượng gắn vào window cho kiểm tra tự động
+    sides: ['Trắng', 'Đen'],   // tên hai bên, bên 0 đi trước
     title: 'Cờ Vua Luyện Tập',
     app: 'co-vua-luyen-tap',
     store: 'xc_',

@@ -1,13 +1,13 @@
-  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/80-analysis.js (giống ~88%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
-  // 80-analysis.js — Phân tích ván bằng engine mạnh: điểm từng nước, nước sai, đường đi dự kiến, soi sâu; tạo bài "Lỗi của bạn".
+  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần riêng (thang điểm, cách tạo bài "Lỗi của bạn"): HOOKS.ana. Sơ đồ: docs/CAU-TRUC.md
+  // 80-analysis.js — Phân tích ván bằng engine mạnh (Fairy-Stockfish): điểm từng nước, nước sai, đường đi dự kiến, soi sâu; tạo bài "Lỗi của bạn".
   // ---------- Phân tích ván ----------
-  // Thang điểm Fairy-Stockfish lớn hơn Pikafish khoảng 1,5 lần (đã đo), nên ngưỡng và đơn vị hiển thị đã quy đổi.
-  const AN = { CLAMP: 1200, INACC: 120, MIST: 270, BLUN: 520, UNIT: 150 };
+  // Ngưỡng điểm (chưa chính xác / sai lầm / sai lầm nặng) và đơn vị hiển thị: riêng từng loại cờ (HOOKS.ana.AN)
+  const AN = HOOKS.ana.AN;
   const fmtPts = v => (v / AN.UNIT).toFixed(1).replace('.', ',');
   const clampV = v => Math.max(-AN.CLAMP, Math.min(AN.CLAMP, v));
   function posAt(g, i) {
-    const p = XQ.Pos.fromFen(g.startFen);
-    for (let j = 0; j < i; j++) { const m = p.legalMoves().find(x => XQ.mvStr(x) === g.moves[j]); if (m === undefined) break; p.make(m); }
+    const p = RULES.Pos.fromFen(g.startFen);
+    for (let j = 0; j < i; j++) { const m = p.legalMoves().find(x => RULES.mvStr(x) === g.moves[j]); if (m === undefined) break; p.make(m); }
     return p;
   }
   // Nước thứ i có phải của người cần nhận xét không (ván hai người: cả hai bên).
@@ -19,7 +19,7 @@
       $('#ana-toplay').onclick = () => { this.cancel(); showTab('play'); Play.goHome(); };
       $('#ana-back').onclick = () => { this.cancel(); this.renderList(); };
       $('#ana-deep').onclick = () => this.toggleLive();
-      $('#ana-nm').onclick = () => applyNmode({ vi: 'both', both: 'han', han: 'vi' }[noteMode()]);
+      HOOKS.ana.init();   // cờ tướng: nút đổi cách ghi nước
       $('#ana-mode').value = Store.get('ana_mode', 'max');
       $('#ana-mode').onchange = e => Store.set('ana_mode', e.target.value);
       $('#ana-redo').onclick = () => { if (this.cur && !this.running) { this.cur.ana = null; Store.set('games', this.games); this.k = 0; this.draw(); this.run(this.cur); } };
@@ -45,15 +45,15 @@
       const G = this.games;
       $('#ana-list').innerHTML = G.length ? G.map(g => {
         const n = g.moves.length, st = g.ana ? ' · đã phân tích' : '';
-        return '<button class="pz" data-id="' + esc(g.id) + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : (g.net ? ' · qua mạng' : '') + ' · bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen')) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp || g.net ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
+        return '<button class="pz" data-id="' + esc(g.id) + '"><span class="pz-n">' + new Date(g.t).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + (g.pvp ? ' · hai người chơi' : (g.net ? ' · qua mạng' : '') + ' · bạn cầm ' + SIDE[g.user]) + '</span><span class="pz-s">' + n + ' nước · ' + (g.pvp || g.net ? '' : 'cấp ' + g.level + ' · ') + esc(g.res || 'chưa kết thúc') + st + '</span></button>';
       }).join('') : '<p class="muted">Chưa có ván nào. Chơi một ván từ Trang chủ (mỗi bên từ 5 nước trở lên) rồi quay lại đây.</p>';
       $$('#ana-list .pz').forEach(b => b.onclick = () => this.open(b.dataset.id));
     },
     open(id) {
       const g = this.games.find(x => x.id === id); if (!g) return;
       this.cancel(); this.liveHtml = ''; this.cur = g; this.running = false;
-      const p = XQ.Pos.fromFen(g.startFen); this.notes = [];
-      for (const u of g.moves) { const m = p.legalMoves().find(x => XQ.mvStr(x) === u); if (m === undefined) break; this.notes.push(p.notation(m)); p.make(m); }
+      const p = RULES.Pos.fromFen(g.startFen); this.notes = [];
+      for (const u of g.moves) { const m = p.legalMoves().find(x => RULES.mvStr(x) === u); if (m === undefined) break; this.notes.push(p.notation(m)); p.make(m); }
       this.showBest = true;
       $('#ana-list-wrap').hidden = true; $('#ana-detail').hidden = false;
       this.board.setFlip(g.user === 1);
@@ -73,7 +73,7 @@
       if (!FSF.supported()) { this.msg = 'Cần engine mạnh để phân tích. Hãy tải lại trang một lần (kéo xuống để làm mới hoặc đóng và mở lại app), rồi mở lại ván này.'; this.draw(); return; }
       const gen = ++this.gen, N = g.moves.length, mode = Store.get('ana_mode', 'max'), M = this.MODES[mode] || this.MODES.max;
       this.running = true; this.msg = ''; this.status = '';
-      if (!FSF.sf) toast('Đang tải engine cao thủ (13 MB), lần đầu hơi lâu…');
+      if (!FSF.sf) toast('Đang tải engine cao thủ' + HOOKS.ana.engineSize + ', lần đầu hơi lâu…');
       const stm = [], bm = [], acc = [], pvs = [];
       const me = g.user, mineAt = i => i < N && isMine(g, i);
       try {
@@ -130,14 +130,14 @@
     },
     // Chuyển dãy nước UCI (từ thế pos) thành ký hiệu, dừng khi gặp nước không hợp lệ.
     pvNotes(pos, uci, max) {
-      const q = XQ.Pos.fromFen(pos.fen()), out = [];
-      for (const u of (uci || []).slice(0, max || 7)) { const m = q.legalMoves().find(x => XQ.mvStr(x) === u); if (m === undefined) break; out.push(q.notation(m)); q.make(m); }
+      const q = RULES.Pos.fromFen(pos.fen()), out = [];
+      for (const u of (uci || []).slice(0, max || 7)) { const m = q.legalMoves().find(x => RULES.mvStr(x) === u); if (m === undefined) break; out.push(q.notation(m)); q.make(m); }
       return out;
     },
     evText(vRed) {
-      if (Math.abs(vRed) > 9000) return (vRed > 0 ? 'Đỏ' : 'Đen') + ' chiếu hết sau ' + (10000 - Math.abs(vRed)) + ' nước';
+      if (Math.abs(vRed) > 9000) return SIDE[vRed > 0 ? 0 : 1] + ' chiếu hết sau ' + (10000 - Math.abs(vRed)) + ' nước';
       if (Math.abs(vRed) < AN.UNIT * 0.12) return 'cân bằng (' + (vRed >= 0 ? '+' : '−') + fmtPts(Math.abs(vRed)) + ')';
-      return (vRed > 0 ? 'Đỏ +' : 'Đen +') + fmtPts(Math.abs(vRed));
+      return SIDE[vRed > 0 ? 0 : 1] + ' +' + fmtPts(Math.abs(vRed));
     },
     // Soi sâu thế đang xem: engine tìm 15 giây, hiện 3 nước tốt nhất kèm đường đi dự kiến.
     stopLive() { if (this.live) { this.live = false; FSF.stop(); } },
@@ -155,7 +155,7 @@
           const vr = pos.side === 0 ? l.v : -l.v, nt = this.pvNotes(pos, l.pv, 8);
           return '<div style="margin:6px 0"><b>' + (r + 1) + '.</b> ' + esc(this.evText(vr)) + ' <span class="muted">(độ sâu ' + l.d + ')</span><br>' + esc(ndt(nt.join(' → '))) + '</div>';
         }).join('') || '<span class="muted">Đang tìm…</span>';
-        if (fin) this.liveHtml += '<span class="muted">Đã tìm xong. Điểm nhìn từ phía Đỏ/Đen, số càng lớn càng có lợi.</span>';
+        if (fin) this.liveHtml += '<span class="muted">Đã tìm xong. Điểm nhìn từ phía ' + SIDE.join('/') + HOOKS.ana.unitNote + ', số càng lớn càng có lợi.</span>';
         this.drawLive();
       };
       FSF.analyse(g.startFen, g.moves.slice(0, k), 15000, 3, upd).then(() => { this.live = false; if (gen === this.gen && this.k === k) this.draw(); }).catch(e => { this.live = false; this.liveHtml = 'Lỗi khi soi sâu: ' + esc(e && e.message || e); this.drawLive(); });
@@ -173,11 +173,10 @@
         if (!isMine(g, i)) continue;
         if (g.ana.ls[i] < AN.MIST || stm[i] < -900) continue;
         const id = 'm' + g.id.slice(1) + '_' + i; if (mine.some(x => x.id === id)) continue;
-        const pos = posAt(g, i), pv = pvs[i], sol = [], q = XQ.Pos.fromFen(pos.fen());
-        for (const u of pv.slice(0, 6)) { const m = q.legalMoves().find(x => XQ.mvStr(x) === u); if (m === undefined) break; sol.push(q.notation(m)); q.make(m); }
-        if (!sol.length) continue;
-        const pm = pos.legalMoves().find(x => XQ.mvStr(x) === g.moves[i]);
-        mine.unshift({ id, fen: pos.fen(), side: pos.side === 0 ? 'w' : 'b', best: g.ana.bm[i], accept: g.ana.acc[i], pv, sol, played: pm !== undefined ? pos.notation(pm) : '', loss: g.ana.ls[i], t: g.t, ok: 0 });
+        // Bài "Lỗi của bạn": cách ghi lời giải riêng từng loại cờ (HOOKS.ana.mineItem); null = bỏ qua
+        const item = HOOKS.ana.mineItem(posAt(g, i), g, i, pvs[i], id);
+        if (!item) continue;
+        mine.unshift(item);
         added++;
       }
       Store.set('mine', mine.slice(0, 200)); Tac.mine = Store.get('mine', []);
@@ -194,18 +193,18 @@
     draw() {
       const g = this.cur; if (!g) return;
       const N = g.moves.length, k = this.k, pos = posAt(g, k), A = g.ana;
-      const lastM = k > 0 ? (() => { const p0 = posAt(g, k - 1); const m = p0.legalMoves().find(x => XQ.mvStr(x) === g.moves[k - 1]); return m === undefined ? null : [m >> 7, m & 127]; })() : null;
+      const lastM = k > 0 ? (() => { const p0 = posAt(g, k - 1); const m = p0.legalMoves().find(x => RULES.mvStr(x) === g.moves[k - 1]); return m === undefined ? null : [RULES.mFrom(m), RULES.mTo(m)]; })() : null;
       let hint = null, info = '';
-      const mover = k < N ? (pos.side === 0 ? 'Đỏ' : 'Đen') : '';
+      const mover = k < N ? SIDE[pos.side] : '';
       if (k < N) {
         info = '<b>Nước ' + (k + 1) + ' (' + mover + '):</b> ' + esc(ndt(this.notes[k]));
         if (A) {
           const l = A.ls[k], q = this.quality(l), mine = isMine(g, k);
           if (q > 0) {
-            const bmv = pos.legalMoves().find(x => XQ.mvStr(x) === A.bm[k]);
+            const bmv = pos.legalMoves().find(x => RULES.mvStr(x) === A.bm[k]);
             const bn = bmv !== undefined ? pos.notation(bmv) : '';
             info += '<br><b class="' + (q >= 2 ? 'chk-t' : '') + '">' + this.QN[q] + (mine ? '' : ' (của máy)') + '</b>, mất ≈ ' + fmtPts(l) + ' điểm.' + (bn ? ' Engine chọn <b>' + esc(ndt(bn)) + '</b>.' : '');
-            if (bmv !== undefined && this.showBest) hint = [bmv >> 7, bmv & 127];
+            if (bmv !== undefined && this.showBest) hint = [RULES.mFrom(bmv), RULES.mTo(bmv)];
           } else info += '<br><b class=\"okt\">' + (g.moves[k] === A.bm[k] ? 'Trùng nước engine chọn.' : 'Nước tốt.') + '</b>';
           if (A.pv && A.pv[k]) {
             const best = A.pv[k].split(' ').filter(Boolean), line = this.pvNotes(pos, best, 7);
@@ -220,7 +219,7 @@
       if (!A && this.running) info = esc(this.status || 'Đang phân tích…') + '<br><span class="muted">Hãy giữ màn hình sáng và để app ở phía trước cho đến khi xong.</span>';
       if (!A && this.msg) info = esc(this.msg);
       this.board.render({ pos, last: lastM, sel: -1, targets: [], hint });
-      $('#ana-title').textContent = (g.pvp ? 'Hai người chơi' : (g.net ? 'Qua mạng · ' : '') + 'Bạn cầm ' + (g.user === 0 ? 'Đỏ' : 'Đen') + (g.net ? '' : ' · cấp ' + g.level)) + ' · ' + N + ' nước';
+      $('#ana-title').textContent = (g.pvp ? 'Hai người chơi' : (g.net ? 'Qua mạng · ' : '') + 'Bạn cầm ' + SIDE[g.user] + (g.net ? '' : ' · cấp ' + g.level)) + ' · ' + N + ' nước';
       $('#ana-info').innerHTML = info;
       $('#ana-deep').disabled = this.running; $('#ana-redo').disabled = this.running; $('#ana-mode').disabled = this.running;
       $('#ana-modeinfo').textContent = A && A.mode ? 'Ván này đã phân tích ở mức: ' + (this.MODES[A.mode] ? this.MODES[A.mode].name : A.mode) + '.' : '';
@@ -236,11 +235,11 @@
           return n + ' nước: <b>' + c[0] + '</b> tốt · <b>' + c[1] + '</b> chưa chính xác (?!) · <b>' + c[2] + '</b> sai lầm (?) · <b>' + c[3] + '</b> sai lầm nặng (??). Mỗi nước mất trung bình ≈ ' + fmtPts(n ? tot / n : 0) + ' điểm.';
         };
         $('#ana-sum').innerHTML = g.pvp
-          ? '<b>Đỏ</b> đi ' + stat(0) + '<br><b>Đen</b> đi ' + stat(1) + '<br>Đường biểu đồ: lên là Đỏ có lợi, xuống là Đen có lợi; chấm đỏ là chỗ sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.'
+          ? '<b>' + SIDE[0] + '</b> đi ' + stat(0) + '<br><b>' + SIDE[1] + '</b> đi ' + stat(1) + '<br>Đường biểu đồ: lên là ' + SIDE[0] + ' có lợi, xuống là ' + SIDE[1] + ' có lợi; chấm đỏ là chỗ sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.'
           : 'Bạn đi ' + stat(g.user === 0 ? 0 : 1) + '<br>Đường biểu đồ: lên là bạn có lợi, chấm đỏ là chỗ bạn sai lầm. Bấm vào biểu đồ hoặc danh sách nước để nhảy tới.';
         $('#ana-moves').innerHTML = this.notes.map((nt, i) => {
           const isRed = i % 2 === 0, q = isMine(g, i) ? this.quality(A.ls[i]) : 0;
-          return (isRed ? '<span class="mn">' + (i / 2 + 1) + '.</span>' : '') + '<span class="mv ck' + (isRed ? ' red' : '') + (i === k ? ' cur' : '') + (q ? ' q' + q : '') + '" data-i="' + i + '">' + esc(nd1(nt)) + (q ? this.QM[q] : '') + '</span>';
+          return (isRed ? '<span class="mn">' + (i / 2 + 1) + '.</span>' : '') + '<span class="mv ck' + (isRed ? HOOKS.ana.firstClass : '') + (i === k ? ' cur' : '') + (q ? ' q' + q : '') + '" data-i="' + i + '">' + esc(nd1(nt)) + (q ? this.QM[q] : '') + '</span>';
         }).join('');
       } else {
         $('#ana-graph').innerHTML = ''; $('#ana-sum').textContent = '';

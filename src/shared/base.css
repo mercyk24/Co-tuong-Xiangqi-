@@ -148,3 +148,5 @@ details.policy{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 details.policy summary{cursor:pointer;font-weight:600;padding:6px 0}
 details.policy p,details.policy li{font-size:14px}
 a.tohub{color:var(--accent)}
+/* Nút "Xem thêm" cuối lưới bài tập: chiếm cả hàng */
+.grid .more{grid-column:1/-1;justify-self:center;margin:6px 0}

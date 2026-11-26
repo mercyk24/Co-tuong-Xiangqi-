@@ -1,16 +1,15 @@
-  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/40-play.js (giống ~89%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần dính luật từng loại cờ gọi qua HOOKS.play (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
   // 40-play.js — Tab Trang chủ: chọn cách chơi rồi vào ván. Ba màn hình nối tiếp, không bao giờ chồng lên nhau:
   //   'home'  : trang chủ (chọn Đấu với máy / Hai người một máy / Chơi qua mạng; tiếp tục ván đang dở; lối tắt luyện tập)
   //   'setup' : chọn bên, cấp độ, thời gian, tạo/vào phòng… (không có bàn cờ)
   //   'game'  : chỉ bàn cờ và thanh của hai bên; mọi việc khác nằm trong menu ☰
-  // Hai người ngồi đối mặt (Đỏ dưới, Đen trên), mỗi người một menu ở phía mình; lưu ván để phân tích.
+  // Hai người ngồi đối mặt (bên đi trước ở dưới), mỗi người một menu ở phía mình; lưu ván để phân tích.
   // Tệp này giữ phần chung của mọi chế độ: trạng thái ván, nước đi, đồng hồ, lời xin (hòa, đi lại, chịu thua), luật kết thúc,
   // vẽ bàn cờ. Phần riêng: 41-play-ai.js (đấu với máy), 42-play-net.js (giao diện chơi qua mạng; kết nối ở 45-net.js).
   const MIN_PLIES = 10; // ván phải có ít nhất 5 nước mỗi bên mới được lưu và phân tích
-  const SIDE = ['Đỏ', 'Đen'];
-  const PERPETUAL_MAX = 4;  // số nước chiếu (đuổi) liên tiếp tối đa được làm thế cờ lặp lại; nước thứ 5 bị chặn
+  const SIDE = GAME.sides;   // tên hai bên: ['Đỏ', 'Đen'] hoặc ['Trắng', 'Đen']
   const Play = {
-    ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: XQ.START_FEN,
+    ctx: { pos: null, sel: -1, targets: [] }, moves: [], notes: [], startFen: RULES.START_FEN,
     user: Store.get('play_user', 1), level: Store.get('play_level', 3), warn: Store.get('play_warn', false),
     last: null, hint: null, thinking: false, over: null, gen: 0, rec: null,
     mode: Store.get('play_mode', 'ai'), clockSet: Store.get('play_clock', '0'),
@@ -56,6 +55,7 @@
       $('#play-back').onclick = () => this.goHome();
       this.initAi();
       this.initNet();
+      HOOKS.play.init(this);
       $('#play-ask-yes').onclick = () => { const a = this.ask; this.ask = null; if (a) a.yes(); this.draw(); };
       $('#play-ask-no').onclick = () => { const a = this.ask; this.ask = null; if (a && a.no) a.no(); this.draw(); };
       $$('#play-mode .btn').forEach(b => b.onclick = () => this.setMode(b.dataset.m));
@@ -122,7 +122,7 @@
         $('#home-resume-drop').textContent = st === 'watching' ? 'Thôi xem' : 'Rời phòng';
       } else {
         t = this.pvp() ? 'Ván hai người đang dở' : 'Ván với máy đang dở';
-        sub = (this.pvp() ? 'Đỏ – Đen' : 'Bạn cầm ' + SIDE[this.user] + ' · cấp ' + this.level) + ' · nước ' + n + clk + (this.paused ? ' · đồng hồ đang dừng' : '');
+        sub = (this.pvp() ? SIDE.join(' – ') : 'Bạn cầm ' + SIDE[this.user] + ' · cấp ' + this.level) + ' · nước ' + n + clk + (this.paused ? ' · đồng hồ đang dừng' : '');
         $('#home-resume-drop').textContent = 'Bỏ ván';
       }
       $('#home-resume-title').textContent = t; $('#home-resume-sub').textContent = sub;
@@ -130,7 +130,7 @@
     newGame() {
       this.saveGame(); this.rec = null;
       this.gen++;
-      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
+      this.ctx = { pos: RULES.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false;
       this.ask = null; this.clock = null;
       if (this.pvp() && this.clockSet !== '0') {
@@ -166,7 +166,7 @@
       else this.showAiSetup();
       window.scrollTo(0, 0);
     },
-    // Hai người luôn ngồi đối mặt: Đỏ ở dưới, quân Đen quay về phía người cầm Đen.
+    // Hai người luôn ngồi đối mặt: bên đi trước ở dưới, quân Đen quay về phía người cầm Đen.
     applyOrient() {
       const b = this.board;
       if (this.net()) { b.face = false; const f = !this.watching() && Net.mySide === 1; if (b.flip !== f) b.setFlip(f); return; }
@@ -250,42 +250,22 @@
       const side = this.pvp() ? this.ctx.pos.side : this.net() ? Net.mySide : this.user;
       if (this.ctx.pos.side !== side) return;
       this.hint = null;
-      trySelect(this.ctx, sq, side, m => this.doMove(m, true));
+      HOOKS.play.select(this, sq, side);   // chọn quân, đi quân (cờ vua: hỏi quân phong cấp)
       this.draw();
-    },
-    // Thế cờ lặp lại ba lần: hòa nếu không bên nào chiếu dai, đuổi dai. Có bên đang chiếu (đuổi) dai thì ván tiếp tục:
-    // bên đó sẽ bị chặn ở nước chiếu (đuổi) lặp lại vượt PERPETUAL_MAX và phải đổi nước (xem Pos.repetitionVerdict).
-    repeatDraw() {
-      const v = this.ctx.pos.repetitionVerdict();
-      return !v || v.result === 'draw';
-    },
-    // Nước bị chặn vì chiếu dai / đuổi dai ('check' | 'chase' | ''). Nếu mọi nước đều bị chặn thì cho đi (tránh kẹt ván).
-    blockedKind(m) {
-      const pos = this.ctx.pos, k = pos.perpetualBlocked(m, PERPETUAL_MAX);
-      if (!k) return '';
-      return pos.legalMoves().some(x => x !== m && !pos.perpetualBlocked(x, PERPETUAL_MAX)) ? k : '';
     },
     doMove(m, byUser) {
       const pos = this.ctx.pos;
-      if (byUser) {
-        const k = this.blockedKind(m);
-        if (k) {
-          const who = this.pvp() ? 'Bên ' + SIDE[pos.side] : 'Bạn';
-          toast(who + ' không được ' + (k === 'check' ? 'chiếu dai' : 'đuổi dai') + ': đã ' + (k === 'check' ? 'chiếu' : 'đuổi') + ' liên tục ' + PERPETUAL_MAX + ' nước làm thế cờ lặp lại. Hãy đi nước khác.', 'warn');
-          this.ctx.sel = -1; this.ctx.targets = []; this.draw();
-          return;
-        }
-      }
+      if (!HOOKS.play.allowMove(this, m, byUser)) return;   // cờ tướng: chặn chiếu dai / đuổi dai
       const before = { fen: this.startFen, moves: this.moves.slice() };
       const mover = pos.side;
       this.notes.push(pos.notation(m)); pos.make(m); this.moves.push(m);
-      this.last = [m >> 7, m & 127]; this.hint = null; this.ask = null;
+      this.last = [RULES.mFrom(m), RULES.mTo(m)]; this.hint = null; this.ask = null;
       const c = this.clock;
       if (c) { const now = Date.now(); if (c.at) { c.left[mover] -= now - c.at; c.left[mover] += c.inc; } c.at = now; }
       this.checkEnd();
       if (this.pvp()) this.applyOrient();
       this.draw();
-      if (byUser && this.net()) { Net.sendMove(this.moves.length - 1, XQ.mvStr(m), c ? c.left.slice() : null); if (this.warn && !this.over) this.analyze(before, m); return; }
+      if (byUser && this.net()) { Net.sendMove(this.moves.length - 1, RULES.mvStr(m), c ? c.left.slice() : null); if (this.warn && !this.over) this.analyze(before, m); return; }
       if (!byUser && this.net()) return;
       if (byUser && this.pvp()) { if (this.warn && !this.over) this.analyze(before, m); return; }
       if (byUser) {
@@ -293,26 +273,8 @@
         if (this.warn) this.analyze(before, m);
       }
     },
-    checkEnd() {
-      const pos = this.ctx.pos;
-      if (pos.legalMoves().length === 0) {
-        const winner = pos.side ^ 1;
-        this.over = SIDE[winner] + ' thắng' + (pos.inCheck() ? ' – chiếu bí.' : ' – đối phương hết nước đi.');
-      } else if (pos.repCount() >= 3 && this.repeatDraw()) this.over = 'Hòa do lặp lại thế cờ ba lần.';
-      else if (this.moves.length >= 300) this.over = 'Hòa (quá dài).';
-      else if (pos.repCount() >= 2) this.warnPerpetual();
-      if (this.over) this.finish();
-    },
-    // Người chơi vừa đi nước chiếu (đuổi) thứ PERPETUAL_MAX liên tiếp làm thế cờ lặp lại: nhắc rằng nước như vậy tiếp theo sẽ bị chặn.
-    warnPerpetual() {
-      const pos = this.ctx.pos, mover = pos.side ^ 1;
-      const human = this.pvp() || (this.net() ? !this.watching() && mover === Net.mySide : mover === this.user);
-      if (!human) return;
-      const info = pos.perpetualInfo(mover, PERPETUAL_MAX);
-      if (!info || info.streak !== PERPETUAL_MAX) return;
-      const w = info.kind === 'check' ? 'chiếu' : 'đuổi';
-      toast((this.pvp() ? 'Bên ' + SIDE[mover] + ' đã ' : 'Bạn đã ') + w + ' liên tục ' + PERPETUAL_MAX + ' nước làm thế cờ lặp lại. Nước ' + w + ' lặp lại tiếp theo sẽ không được đi.', 'warn');
-    },
+    // Luật kết thúc ván của từng loại cờ (chiếu hết, hòa…): HOOKS.play.checkEnd đặt this.over
+    checkEnd() { HOOKS.play.checkEnd(this); if (this.over) this.finish(); },
     // Lưu ván vào bộ nhớ máy (tối đa 20 ván gần nhất) để phân tích sau.
     saveGame() {
       if (this.moves.length < MIN_PLIES || this.watching()) return null;
@@ -323,7 +285,7 @@
           : { id: 'g' + Date.now(), t: Date.now(), user: this.user, level: this.level, startFen: this.startFen };
         Ana.games.unshift(g); Ana.games = Ana.games.slice(0, 20);
       }
-      g.moves = this.moves.map(m => XQ.mvStr(m)); g.res = this.over || '';
+      g.moves = this.moves.map(m => RULES.mvStr(m)); g.res = this.over || '';
       if (g.ana && g.ana.n !== g.moves.length) g.ana = null;
       Store.set('games', Ana.games);
       return g;
@@ -340,7 +302,7 @@
     undoFor(side) {
       let n = 0;
       while (this.moves.length) {
-        const by = (this.moves.length - 1) % 2; // nước cuối do bên nào đi (Đỏ đi trước)
+        const by = (this.moves.length - 1) % 2; // nước cuối do bên nào đi (bên 0 đi trước)
         this.ctx.pos.unmake(); this.moves.pop(); this.notes.pop(); n++;
         if (by === side) break;
       }
@@ -349,7 +311,7 @@
     },
     afterUndo() {
       this.over = null; this.ctx.sel = -1; this.ctx.targets = [];
-      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null; this.hint = null;
+      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [RULES.mFrom(lm), RULES.mTo(lm)] : null; this.hint = null; HOOKS.play.reset(this);
       if (this.clock) this.clock.at = this.moves.length ? Date.now() : 0;
     },
     drawBars() {
@@ -362,7 +324,7 @@
         const watch = this.watching();
         let st = '';
         if (watch && !this.over) st = myTurn ? (pz.inCheck() ? 'Bị chiếu!' : 'Đang nghĩ…') : 'Chờ';
-        else if (this.over) st = /Hòa/.test(this.over) ? 'Hòa' : (this.over.indexOf(SIDE[side] + ' thắng') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' chịu thua') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' hết giờ') >= 0 ? 'Thắng' : 'Thua');
+        else if (this.over) st = /^Hòa/.test(this.over) ? 'Hòa' : (this.over.indexOf(SIDE[side] + ' thắng') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' chịu thua') >= 0 || this.over.indexOf(SIDE[side ^ 1] + ' hết giờ') >= 0 ? 'Thắng' : 'Thua');
         else if (isOpp && Net.state === 'lost') st = 'Mất kết nối…';
         else if (isMe && Net.waitAsk) st = 'Chờ đối thủ trả lời…';
         else if (isEngine) st = this.thinking ? 'Đang nghĩ…' : (myTurn ? 'Sắp đi' : 'Chờ bạn');
@@ -380,6 +342,7 @@
     draw() {
       const c = this.ctx, pvp = this.pvp(), net = this.net(), human = this.human(), scr = this.screen;
       this.board.render({ pos: c.pos, last: this.last, sel: c.sel, targets: c.targets, hint: this.hint });
+      HOOKS.play.drawExtra(this);   // cờ vua: bảng chọn quân phong cấp
       const ml = this.notes.length ? moveListHtml(this.notes, 0, this.notes.length - 1, false) : '<span class="muted">Chưa có nước đi.</span>';
       const mv = $(human ? '#pm-moves' : '#play-moves'); mv.innerHTML = ml; mv.scrollTop = mv.scrollHeight;
       // Ba màn hình: trang chủ, chuẩn bị, bàn cờ — chỉ hiện một

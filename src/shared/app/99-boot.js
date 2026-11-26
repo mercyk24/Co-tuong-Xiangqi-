@@ -1,4 +1,4 @@
-  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/99-boot.js (giống ~92%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này. Phần riêng: HOOKS.boot (src/<loại cờ>/app/03-hooks.js). Sơ đồ: docs/CAU-TRUC.md
   // 99-boot.js — Điều hướng giữa các tab và khởi động app (đăng ký service worker, bật engine mạnh).
   // ---------- Điều hướng ----------
   function showTab(name) {
@@ -46,7 +46,7 @@
     try { localStorage.setItem('cl_last', GAME.id); } catch (e) { /* bỏ qua */ }   // để trang chủ đánh dấu loại cờ chơi gần nhất
     Engine.init();
     Play.init(); Puz.init(); Tac.init(); Op.init(); Ana.init();
-    $('#set-nmode').onchange = e => applyNmode(e.target.value); applyNmode(noteMode());
+    HOOKS.boot.settings();   // tuỳ chọn riêng của từng loại cờ trong Cài đặt
     Backup.init();
     Privacy.init();
     Report.init();
@@ -59,7 +59,7 @@
     // nếu không mã phòng sẽ mất giữa chừng.
     const hm = /[#&]phong=([A-Za-z0-9]{6})/.exec(location.hash);
     if (hm) {
-      let tried = true; try { tried = sessionStorage.getItem('xq_coi') === '1'; } catch (e) { /* bỏ qua */ }
+      let tried = true; try { tried = sessionStorage.getItem(GAME.store + 'coi') === '1'; } catch (e) { /* bỏ qua */ }
       const willReload = !window.crossOriginIsolated && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !tried;
       const go = () => {
         try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* bỏ qua */ }
@@ -76,10 +76,11 @@
       // Service worker chung đặt ở gốc trang (phục vụ cả trang chủ, cờ tướng, cờ vua)
       navigator.serviceWorker.register('../sw.js', { scope: '../' }).then(() => navigator.serviceWorker.ready).then(() => {
         // Lần đầu (hoặc sau khi cập nhật) trang chưa có tiêu đề COOP/COEP: tải lại một lần để bật engine mạnh.
-        let tried = false; try { tried = sessionStorage.getItem('xq_coi') === '1'; } catch (e) { /* bỏ qua */ }
-        if (!window.crossOriginIsolated && !tried) { try { sessionStorage.setItem('xq_coi', '1'); } catch (e) { /* bỏ qua */ } location.reload(); }
+        let tried = false; try { tried = sessionStorage.getItem(GAME.store + 'coi') === '1'; } catch (e) { /* bỏ qua */ }
+        if (!window.crossOriginIsolated && !tried) { try { sessionStorage.setItem(GAME.store + 'coi', '1'); } catch (e) { /* bỏ qua */ } location.reload(); }
       }).catch(() => { /* bỏ qua */ });
     }
   }
-  window.__xq = { Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Privacy, Consent, Report, ErrLog, Nav, Net, vi, showTab, version: APP_VERSION };
+  // Đối tượng cho kiểm tra tự động: window.__xq (cờ tướng) / window.__xc (cờ vua)
+  window[GAME.debug] = Object.assign({ Play, Puz, Tac, Op, FSF, Ana, Store, Engine, Board, Backup, Privacy, Consent, Report, ErrLog, Nav, Net, showTab, version: APP_VERSION }, HOOKS.boot.expose());
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

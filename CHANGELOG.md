@@ -4,7 +4,7 @@
 
 ## [2.0.2] – 2026-11-26
 
-Không đổi gì với người chơi (giao diện so từng điểm ảnh với bản 2.0.1 trên cả ba trang: giống nhau). Sắp xếp lại mã nguồn cho dễ bảo trì:
+Sắp xếp lại mã nguồn cho dễ bảo trì và làm trang cờ vua nhẹ hơn. Ngoài danh sách bài có nút "Xem thêm", giao diện giống hệt bản 2.0.1 (so từng điểm ảnh trên cả ba trang).
 
 ### Thay đổi
 - Mỗi loại cờ một thư mục riêng, cùng quy tắc ở mọi nơi: `xiangqi/` (cờ tướng), `chess/` (cờ vua), `shared/` hoặc `net/` (dùng chung) trong `src/`, `data/`, `tools/`, `tests/`.
@@ -12,6 +12,8 @@ Không đổi gì với người chơi (giao diện so từng điểm ảnh vớ
 - Tách CSS: phần chung `src/shared/base.css`, phần riêng `src/xiangqi/game.css`, `src/chess/game.css` (trước đây chép lặp trong hai khung trang).
 - Dòng đầu mỗi tệp mã nguồn ghi nhãn [DÙNG CHUNG] / [CỜ TƯỚNG] / [CỜ VUA]; tệp song sinh ghi tên bản bên kia và mức giống nhau.
 - Tài liệu mới: `docs/CAU-TRUC.md` (sơ đồ, ranh giới chung/riêng, bảng "muốn sửa X thì sửa ở đâu", cách thêm loại cờ), `docs/DU-LIEU-CO-VUA.md`; `docs/data.md` đổi tên thành `docs/DU-LIEU-CO-TUONG.md`. README ngắn trong `src/`, `data/`, `tools/`, `tests/`.
+- Gộp bốn cặp tệp song sinh vào phần dùng chung (`src/shared/app/40-play.js`, `42-play-net.js`, `80-analysis.js`, `99-boot.js`); khoảng 1.000 dòng lặp được bỏ. Phần dính luật từng loại cờ đi qua `HOOKS` (`src/<loại cờ>/app/03-hooks.js`), lõi cờ tướng thêm `XQ.mFrom`, `XQ.mTo` cho giống lõi cờ vua.
+- Danh sách bài Chiếu hết và Chiến thuật vẽ từng phần 60 bài, nút "Xem thêm" vẽ tiếp, lần đầu vẽ đủ để thấy bài chưa giải đầu tiên. Trang cờ vua lúc mở giảm từ khoảng 17.400 xuống 2.600 phần tử, nhẹ và mượt hơn trên điện thoại cũ.
 - Kiểm tra trang chủ tách ra `tests/e2e/shared/portal.spec.js`. Cần Node.js 22 trở lên (chạy kiểm tra đơn vị theo mẫu thư mục).
 
 ## [2.0.1] – 2026-11-26

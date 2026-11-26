@@ -122,3 +122,22 @@ test('chiến thuật (cờ vua): bài có phong cấp hỏi chọn quân; chọ
   }
 });
 
+
+test('danh sách bài dài vẽ từng phần: 60 thẻ, "Xem thêm" vẽ tiếp, bấm thẻ ở phần sau vẫn mở đúng bài', async ({ page }) => {
+  await openChess(page);
+  await showTab(page, 'puz');
+  const total = await page.evaluate(() => { window.__xc.Puz.filter = 0; window.__xc.Puz.renderList(); return PUZZLES.length; });
+  test.skip(total <= 60, 'ít bài, không cần chia phần');
+  await expect(page.locator('#puz-grid .pz')).toHaveCount(60);
+  await expect(page.locator('#puz-grid .more')).toContainText('còn ' + (total - 60) + ' bài');
+  await page.click('#puz-grid .more');
+  await expect(page.locator('#puz-grid .pz')).toHaveCount(Math.min(120, total));
+  const id = await page.locator('#puz-grid .pz').nth(100).getAttribute('data-id');
+  await page.locator('#puz-grid .pz').nth(100).click();
+  await expect(page.locator('#puz-play')).toBeVisible();
+  expect(await page.evaluate(() => String(window.__xc.Puz.cur.id))).toBe(id);
+  // Đã giải 70 bài đầu: lần mở danh sách sau vẽ đủ để thấy bài chưa giải đầu tiên
+  await page.evaluate(() => { const P = window.__xc.Puz; P.done = {}; PUZZLES.slice(0, 70).forEach(p => { P.done[p.id] = 1; }); P.showList(); });
+  await expect(page.locator('#puz-grid .pz')).toHaveCount(Math.min(120, total));
+  await page.evaluate(() => { window.__xc.Puz.done = window.__xc.Store.get('puz_done', {}); });
+});

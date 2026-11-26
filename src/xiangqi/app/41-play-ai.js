@@ -59,7 +59,7 @@
       const m = pos.parse(s); return m > 0 ? m : 0;
     },
     // Nước này có bị chặn vì chiếu dai, đuổi dai không (nước chiếu/đuổi lặp lại vượt giới hạn)
-    losesByRule(m) { return !!this.blockedKind(m); },
+    losesByRule(m) { return !!HOOKS.play.blockedKind(this, m); },
     engineMove() {
       if (this.over) return;
       const bm = this.bookMove();

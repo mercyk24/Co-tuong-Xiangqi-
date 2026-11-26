@@ -836,6 +836,7 @@
 
   const XQ = {
     START_FEN, Pos, Searcher, sq, mvStr, rotateFen, ROW, COL,
+    mFrom: m => m >> 7, mTo: m => m & 127,   // ô đi / ô đến của một nước (giống tên hàm của lõi cờ vua)
     canMate, mateLength, mateFirstMoves, bestDefense,
     MATE, T: { R, N, B, A, K, C, P }
   };

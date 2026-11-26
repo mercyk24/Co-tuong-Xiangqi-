@@ -34,4 +34,22 @@
     const t = $('#toast'); t.textContent = GAME.fmt ? GAME.fmt(msg) : msg; t.className = 'show ' + (kind || '');
     clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = ''; }, 2600);
   }
-
+  // Danh sách bài dài (cờ vua có hàng nghìn bài): mỗi lần chỉ vẽ một phần (step thẻ), nút "Xem thêm" vẽ tiếp. Lần đầu vẽ đủ
+  // để thấy bài đầu tiên chưa giải. Bấm thẻ (phần tử có data-id) gọi onPick(id). Dùng một trình nghe chung cho cả lưới.
+  function pagedGrid(el, items, itemHtml, onPick, isDone, step) {
+    step = step || 60;
+    let shown = 0;
+    const firstTodo = isDone ? items.findIndex(x => !isDone(x)) : 0;
+    const more = n => {
+      const part = items.slice(shown, shown + n); shown += part.length;
+      const old = el.querySelector('.more'); if (old) old.remove();
+      el.insertAdjacentHTML('beforeend', part.map(itemHtml).join('') +
+        (shown < items.length ? '<button class="btn more" type="button">Xem thêm (còn ' + (items.length - shown) + ' bài)</button>' : ''));
+    };
+    el.onclick = e => {
+      if (e.target.closest('.more')) { more(step); return; }
+      const b = e.target.closest('[data-id]'); if (b && el.contains(b)) onPick(b.dataset.id);
+    };
+    el.innerHTML = '';
+    more(Math.max(step, Math.ceil((Math.max(0, firstTodo) + 1) / step) * step));
+  }

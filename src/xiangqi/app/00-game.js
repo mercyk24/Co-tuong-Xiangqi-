@@ -4,6 +4,8 @@
   const RULES = XQ;   // lõi luật cờ tướng (src/xiangqi/core/xq.js)
   const GAME = {
     id: 'xiangqi',
+    debug: '__xq',   // tên đối tượng gắn vào window cho kiểm tra tự động
+    sides: ['Đỏ', 'Đen'],   // tên hai bên, bên 0 đi trước
     title: 'Cờ Tướng Luyện Tập',
     app: 'co-tuong-luyen-tap',          // tên trong tệp sao lưu: chỉ khôi phục được tệp của đúng loại cờ
     store: 'xq_',                        // tiền tố localStorage (giữ nguyên từ trước để không mất dữ liệu người dùng)

@@ -1,4 +1,4 @@
-  // [CỜ TƯỚNG] Chỉ app cờ tướng dùng. Có bản song sinh bên cờ vua: src/chess/app/42-play-net.js (giống ~95%). Sửa lỗi ở phần giống nhau thì sửa cả bên kia. Sơ đồ: docs/CAU-TRUC.md
+  // [DÙNG CHUNG] Cả cờ tướng và cờ vua chạy tệp này (chỉ dùng RULES, GAME). Sơ đồ: docs/CAU-TRUC.md
   // 42-play-net.js — Phần giao diện của chơi qua mạng: màn tạo / vào phòng, xin đồng ý, xem trận, các hàm Net gọi vào.
   // Kết nối và giao thức nằm trong 45-net.js. Các hàm được gắn thêm vào Play (định nghĩa trong 40-play.js).
   Object.assign(Play, {
@@ -34,7 +34,7 @@
       this.saveGame(); this.rec = null;
       this.setup = false; this.started = true; this.closeMenu();
       this.gen++;
-      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
+      this.ctx = { pos: RULES.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false; this.ask = null;
       this.clock = null;
       if (clockSet && clockSet !== '0') { const [mn, inc] = clockSet.split('+').map(Number); this.clock = { left: [mn * 60000, mn * 60000], inc: inc * 1000, at: Date.now() }; }
@@ -43,13 +43,13 @@
     // Dựng lại ván từ danh sách nước (khi nối lại hoặc mở lại app)
     netLoad(list, left, over, running) {
       this.setup = false; this.started = true; this.gen++;
-      this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
+      this.ctx = { pos: RULES.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.ask = null; this.hint = null; this.thinking = false;
       for (const u of list || []) {
-        const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u); if (m === undefined) break;
+        const m = this.ctx.pos.legalMoves().find(x => RULES.mvStr(x) === u); if (m === undefined) break;
         this.notes.push(this.ctx.pos.notation(m)); this.ctx.pos.make(m); this.moves.push(m);
       }
-      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [lm >> 7, lm & 127] : null;
+      const lm = this.moves[this.moves.length - 1]; this.last = lm ? [RULES.mFrom(lm), RULES.mTo(lm)] : null;
       if (Net.clockSet && Net.clockSet !== '0') {
         const [mn, inc] = Net.clockSet.split('+').map(Number);
         this.clock = { left: left ? left.slice() : [mn * 60000, mn * 60000], inc: inc * 1000, at: running && !over ? Date.now() : 0 };
@@ -61,7 +61,7 @@
     netApplyMove(n, u, left) {
       if (n < this.moves.length) return 'dup';
       if (n > this.moves.length || this.over) return 'gap';
-      const m = this.ctx.pos.legalMoves().find(x => XQ.mvStr(x) === u);
+      const m = this.ctx.pos.legalMoves().find(x => RULES.mvStr(x) === u);
       if (m === undefined || this.ctx.pos.side === Net.mySide) return 'gap';
       const mover = this.ctx.pos.side, before = this.clock ? this.clock.left.slice() : null;
       this.doMove(m, false);
@@ -96,10 +96,10 @@
       if (!Net.connected()) { toast('Đối thủ đã rời phòng hoặc mất kết nối.', 'warn'); return; }
       Net.ask('rematch'); toast('Đã gửi lời mời đấu lại, chờ đối thủ…');
     },
-    // Người xem: bàn cờ chỉ để xem, Đỏ ở dưới, chờ thế cờ từ chủ phòng
+    // Người xem: bàn cờ chỉ để xem, bên đi trước ở dưới, chờ thế cờ từ chủ phòng
     watchStart() {
       this.saveGame(); this.rec = null; this.started = true; this.screen = 'game'; this.closeMenu();
-      this.gen++; this.ctx = { pos: XQ.Pos.fromFen(this.startFen), sel: -1, targets: [] };
+      this.gen++; this.ctx = { pos: RULES.Pos.fromFen(this.startFen), sel: -1, targets: [] };
       this.moves = []; this.notes = []; this.last = null; this.hint = null; this.over = null; this.thinking = false; this.ask = null; this.clock = null;
       this.applyOrient(); this.draw();
     },
