@@ -10,6 +10,9 @@ async function openGo(page) {
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto('co-vay/index.html');
+  // Lần đầu mở, app có thể tự tải lại một lần (đăng ký service worker để bật cách ly COOP/COEP): chờ xong rồi mới bấm,
+  // nếu không lần tải lại rơi vào giữa bài kiểm tra (máy chạy CI chậm từng bị như vậy ở bài "ván đã lưu").
+  await page.waitForFunction(() => window.crossOriginIsolated === true, null, { timeout: 20_000 });
   await page.waitForFunction(() => window.__xv && window.__xv.Play);
   return errors;
 }
