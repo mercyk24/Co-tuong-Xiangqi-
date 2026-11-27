@@ -33,3 +33,15 @@
 .moves .mv.mb::before,.moves .mv.mw::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:1px}
 .moves .mv.mb::before{background:#111}.moves .mv.mw::before{background:#fff;box-shadow:0 0 0 1px #888}
 .dot.w{background:#fff;box-shadow:0 0 0 1px #888}
+
+/* Ván đã lưu: biểu đồ khả năng thắng của Đen và dấu nước dở / nước hỏng sau khi phân tích cả ván */
+.ana-graph{margin:6px 0;cursor:pointer;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ana-graph svg{display:block;width:100%;height:auto;max-height:160px}
+.ana-graph .g-bg{fill:var(--card)}
+.ana-graph .g-mid{stroke:var(--line);stroke-width:1;stroke-dasharray:4 3}
+.ana-graph .g-line{fill:none;stroke:var(--ink);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.ana-graph .g-cur{stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
+.ana-graph .g-bad{fill:var(--red)}
+.ana-graph .g-dub{fill:#d08a00}
+.moves .mv.mk2{color:var(--red);font-weight:700}
+.moves .mv.mk1{color:#b06f00;font-weight:600}

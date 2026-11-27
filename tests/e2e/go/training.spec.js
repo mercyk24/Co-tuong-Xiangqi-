@@ -105,3 +105,39 @@ test('ván đã lưu: ván hai người được lưu, xem lại, xuất SGF, nh
   expect(await page.evaluate(() => window.__xv.Ana.games.length)).toBe(2);
   expect(errors).toEqual([]);
 });
+
+test('cờ vây Ván đã lưu: phân tích cả ván bằng KataGo – biểu đồ, đánh dấu nước hỏng, nước đề nghị, lưu lại sau khi tải lại trang', async ({ page }) => {
+  const errors = await openGo(page);
+  await page.click('.tab[data-tab="ana"]');
+  // Trắng bỏ lượt vô cớ ở nước 4 khi đang ngang ngửa: phải bị đánh dấu ??
+  await page.fill('#ana-paste', '(;GM[1]SZ[9]KM[7.5];B[ee];W[gc];B[cg];W[tt];B[gg];W[cc];B[dc];W[aa];B[cd];W[bb];B[ge])');
+  await page.click('#ana-imp-text');
+  await expect(page.locator('#ana-info')).toContainText('Nước 11/11');
+  await page.click('#ana-full');
+  await expect(page.locator('#ana-full')).toHaveText('Phân tích lại cả ván', { timeout: 90_000 });
+  await expect(page.locator('#ana-graph svg polyline')).toHaveCount(1);
+  await expect(page.locator('#ana-moves .mv[data-i="3"]')).toHaveText('Bỏ lượt??');
+  await expect(page.locator('#ana-full-text')).toContainText('Trắng: 2 nước hỏng');
+  await page.locator('#ana-mist .pz[data-k="3"]').click();
+  await expect(page.locator('#ana-info')).toContainText('Nước 3/11');
+  await expect(page.locator('#ana-note')).toContainText('Nước tiếp theo 4. Trắng Bỏ lượt là nước hỏng');
+  await expect(page.locator('#ana-board .hintg')).toHaveCount(1);
+  // Bấm vào đầu biểu đồ: về thế 0
+  await page.locator('#ana-graph').scrollIntoViewIfNeeded();
+  const box = await page.locator('#ana-graph').boundingBox();
+  await page.mouse.click(box.x + 2, box.y + box.height / 2);
+  await expect(page.locator('#ana-info')).toContainText('Nước 0/11');
+  // Lưu cùng ván: tải lại trang vẫn còn, không phải phân tích lại
+  await page.reload();
+  await page.waitForFunction(() => window.__xv && window.__xv.Ana);
+  await page.click('.tab[data-tab="ana"]');
+  await page.locator('#ana-list .pz').first().click();
+  await expect(page.locator('#ana-full')).toHaveText('Phân tích lại cả ván');
+  await expect(page.locator('#ana-moves .mk2')).toHaveCount(2);
+  // Dữ liệu phân tích hỏng (ví dụ từ tệp sao lưu bị sửa) thì bỏ qua, không vẽ
+  await page.evaluate(() => { const A = window.__xv.Ana; A.games[0].ana.b[2] = '<img>'; A.open(A.games[0].id); });
+  await expect(page.locator('#ana-full')).toHaveText('Phân tích cả ván (KataGo)');
+  await expect(page.locator('#ana-graph')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+

@@ -2,6 +2,16 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.4.0] – 2026-11-27
+
+### Thêm
+- **Cờ Vây – phân tích cả ván bằng KataGo** (tab Ván đã lưu, nút "Phân tích cả ván"): KataGo đánh giá lần lượt mọi thế của ván (mỗi thế một lần chạy mạng; ván 19×19 khoảng một phút trên điện thoại cũ, có báo tiến độ, chuyển ván khác thì dừng).
+  - Biểu đồ khả năng thắng của Đen theo từng nước; bấm vào biểu đồ để nhảy tới nước đó.
+  - Đánh dấu nước dở `?` (khả năng thắng của bên đi tụt từ 10%) và nước hỏng `??` (từ 20%); khi ván đã ngã ngũ thì xét số điểm mất (5 / 10 điểm). Nước bị đánh dấu được tô màu trong danh sách nước và liệt kê riêng để bấm tới.
+  - Ở thế ngay trước một nước bị đánh dấu, bàn vẽ vòng tròn ở nước KataGo đề nghị, dòng dưới bàn nói khả năng thắng và số điểm hơn kém.
+  - Kết quả lưu cùng ván (trường `ana` của ván trong bộ nhớ máy và tệp sao lưu); dữ liệu không hợp lệ thì bỏ qua.
+- Kiểm tra e2e mới cho phân tích cả ván.
+
 ## [2.3.0] – 2026-11-27
 
 ### Thêm

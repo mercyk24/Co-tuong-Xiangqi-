@@ -39,6 +39,19 @@
       const e = KATA.evaluate(st.net, [pos])[0];
       return { dead: Array.from(KATA.deadFromOwnership(pos, e.whiteOwnership)), own: Array.from(e.whiteOwnership), whiteLead: e.whiteLead, whiteWin: e.whiteWin };
     }
+    // Phân tích cả ván (Ván đã lưu): đánh giá thế sau d.moves rồi lần lượt sau từng nước trong d.next (mỗi thế một lần chạy mạng).
+    // Trả về khả năng thắng và số điểm hơn của Đen, nước mạng chọn (m = điểm + 1, bỏ lượt = GO.PASS).
+    // (Đánh giá ngay trên thế đang đi, không clone: đầu vào của mạng cần lịch sử nước đi pos.undo mà clone() không chép.)
+    if (d.type === 'analyze') {
+      const out = [], one = () => {
+        const e = KATA.evaluate(st.net, [pos])[0], A = e.policy.length - 1, wl = e.whiteWin + e.whiteLoss;
+        let b = 0; for (let p = 1; p <= A; p++) if (e.policy[p] > e.policy[b]) b = p;
+        out.push({ w: wl > 0 ? e.whiteLoss / wl : 0.5, l: -e.whiteLead, b: b === A ? GO.PASS : b + 1 });
+      };
+      one();
+      for (const m of d.next || []) { if (!pos.isLegal(m)) break; pos.make(m); one(); }
+      return { list: out };
+    }
     if (d.type === 'eval') { const e = KATA.evaluate(st.net, [pos])[0]; return { whiteWin: e.whiteWin, whiteLead: e.whiteLead }; }
     return { error: 'không rõ việc ' + d.type };
   }

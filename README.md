@@ -17,7 +17,7 @@ Các app dùng chung khung (đấu máy, hai người một máy, chơi qua mạ
 - **Hai người một máy, chơi qua mạng, xem trận**: chủ phòng chọn cỡ bàn; hai bên bỏ lượt thì đếm điểm. Ván với máy và hai người: máy đánh dấu sẵn quân chết, người chơi bấm vào nhóm quân để sửa rồi xác nhận, hoặc chơi tiếp.
 - **Bài học luật** (10 bài có bàn cờ tương tác): khí, ăn quân, chạy thoát, chỗ cấm đặt quân, kiếp, hai mắt, thang, lưới, đếm điểm.
 - **Bắt quân**: 260 bài bắt nhóm quân trong 1–5 nước, sinh tự động và kiểm bằng bộ giải của app; máy luôn chạy theo cách cầm cự lâu nhất.
-- **Ván đã lưu**: xem lại từng nước, ước lượng điểm ở thế bất kỳ, xuất / nhập ván SGF.
+- **Ván đã lưu**: xem lại từng nước, ước lượng điểm ở thế bất kỳ, **phân tích cả ván bằng KataGo** (biểu đồ khả năng thắng, đánh dấu nước dở `?` / nước hỏng `??` kèm nước KataGo đề nghị), xuất / nhập ván SGF.
 - Không có engine Fairy-Stockfish nên không có cấp "cao thủ" và phân tích ván bằng engine mạnh như hai app kia.
 
 ## Cờ Vua

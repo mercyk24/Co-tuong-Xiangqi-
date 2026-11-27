@@ -94,7 +94,7 @@ Thứ tự ghép theo số đầu tên tệp, xen kẽ giữa hai thư mục:
 | 60 | `60-openings.js` / `60-lessons.js` | riêng | tab Khai cuộc (cờ vây: Bài học luật) |
 | 70 | `70-settings.js` | chung | sao lưu, quyền riêng tư |
 | 75 | `75-report.js` | chung | báo lỗi tự nguyện |
-| 80 | `80-analysis.js` / `80-review.js` | chung (cờ tướng, cờ vua) / riêng (cờ vây) | phân tích ván / xem lại ván, SGF |
+| 80 | `80-analysis.js` / `80-review.js` | chung (cờ tướng, cờ vua) / riêng (cờ vây) | phân tích ván / xem lại ván, phân tích cả ván bằng KataGo (việc `analyze` của Worker trong `15-kata.js`), SGF |
 | 90 | `90-tactics.js` | riêng (cờ tướng, cờ vua) | tab Chiến thuật |
 | 99 | `99-boot.js` | chung | điều hướng tab, khởi động |
 

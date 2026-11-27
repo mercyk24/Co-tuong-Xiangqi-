@@ -1,6 +1,6 @@
 {
   "name": "co-tuong-luyen-tap",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Web app luyện cờ miễn phí (cờ tướng, cờ vua, cờ vây): đấu máy, chơi qua mạng, bài tập, khai cuộc, bài học và phân tích ván.",
   "private": true,
   "license": "GPL-3.0-or-later",

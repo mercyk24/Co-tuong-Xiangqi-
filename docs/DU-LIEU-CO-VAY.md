@@ -70,3 +70,13 @@ Các cấp: 1–2 là máy Monte-Carlo (không cần tải); 3 đi theo xác su�
 thấy hợp lý); 4 đi nước mạng cho điểm cao nhất; 5 và 6 tìm kiếm PUCT khoảng 2 và 6 giây (tối đa 200 / 1000 lần đánh giá). Gợi ý
 đọc khoảng 2,5 giây. Đếm điểm và ước lượng điểm dùng bản đồ chủ đất của mạng (nhóm quân có chủ đất trung bình nghiêng về đối
 phương quá 0,4 là chết). Không tải được mạng (máy quá cũ, hết bộ nhớ) thì tất cả tự quay về máy Monte-Carlo.
+
+### Phân tích cả ván (Ván đã lưu)
+
+Việc `analyze` của Worker KataGo chạy mạng một lần cho từng thế của ván (thế ban đầu và sau mỗi nước) và lưu vào ván đã lưu
+trường `ana`: `{ v: 1, net: 'kata-g170e-b10c128.kgo', w: [...], l: [...], b: [...] }`, với `w[i]` là khả năng thắng của Đen
+(0–1, làm tròn 3 chữ số), `l[i]` số điểm Đen hơn (làm tròn 0,1), `b[i]` nước mạng chọn ở thế sau `i` nước (điểm + 1, bỏ lượt = 1000).
+Đổi mạng (tên `net` khác) thì dữ liệu cũ bị bỏ qua. Nước thứ `i + 1` bị đánh dấu khi khác `b[i]` và làm khả năng thắng của bên
+vừa đi tụt từ 0,1 (`?`) hoặc 0,2 (`??`); nếu trước nước đó bên đi đã trên 90% hoặc dưới 10% thì xét số điểm mất từ 5 (`?`) hoặc
+10 (`??`). Ngưỡng ở hằng `MIS` đầu `src/go/app/80-review.js`. Đây là đánh giá nhanh không tìm kiếm, đủ để chỉ ra các nước sai lớn.
+
