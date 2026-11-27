@@ -25,6 +25,41 @@ Mạng NNUE cờ tướng
   Giấy phép: CHƯA XÁC MINH. Cần hỏi tác giả mạng trước khi dùng cho mục đích thương mại
             (xem docs/PHAP-LY.md, mục giấy phép phần mềm).
 
+TensorFlow.js (máy KataGo của app cờ vây chạy bằng thư viện này)
+  Tệp:      engine/tf-core.min.js, engine/tf-backend-cpu.min.js, engine/tf-backend-wasm.min.js,
+            engine/tfjs-backend-wasm.wasm, engine/tfjs-backend-wasm-simd.wasm
+  Nguồn:    gói npm @tensorflow/tfjs-core, @tensorflow/tfjs-backend-cpu, @tensorflow/tfjs-backend-wasm 4.22.0
+            https://github.com/tensorflow/tfjs
+  Giấy phép: Apache License 2.0 (tương thích GPL-3.0); thông báo bản quyền Google LLC giữ nguyên ở đầu mỗi tệp .js.
+  Chỉnh sửa: không sửa.
+
+KataGo: mạng nơ-ron và phần mã được viết lại (app cờ vây, cấp 3–6, gợi ý, đếm điểm)
+  Tệp:      engine/kata-g170e-b10c128.kgo (mạng), src/go/core/kata.js, tools/go/kata_convert.js (mã viết lại)
+  Nguồn:    https://github.com/lightvector/KataGo (mã, bản 1.18.1), mạng g170e-b10c128-s1141046784-d204142634
+            (đợt huấn luyện g170, https://katagotraining.org/, https://github.com/lightvector/KataGo/releases)
+  Giấy phép mạng: phạm vi công cộng (CC0) theo tác giả KataGo. Tệp .kgo chỉ đổi định dạng (float16, gộp lớp chuẩn hoá).
+  Giấy phép mã: src/go/core/kata.js và tools/go/kata_convert.js viết lại bằng JavaScript cách KataGo mã hoá thế cờ
+            (đặc trưng đầu vào V7, thang, đất sống chắc), cấu trúc mạng và hậu xử lý (cpp/neuralnet/nninputs.cpp, desc.cpp,
+            eigenbackend.cpp, nneval.cpp, cpp/game/board.cpp), nên giữ thông báo MIT của KataGo:
+
+            Copyright 2025 David J Wu ("lightvector") and/or other authors of the content in this repository.
+            (See 'CONTRIBUTORS' file for a list of authors as well as other indirect contributors).
+
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+            associated documentation files (the "Software"), to deal in the Software without restriction,
+            including without limitation the rights to use, copy, modify, merge, publish, distribute,
+            sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+            furnished to do so, subject to the following conditions:
+
+            The above copyright notice and this permission notice shall be included in all copies or
+            substantial portions of the Software.
+
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+            NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+            DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 Hình quân cờ vua "cburnett" (app cờ vua)
   Tệp:      src/chess/pieces/*.svg (nhúng vào co-vua/index.html khi dựng)
   Nguồn:    https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
@@ -64,8 +99,9 @@ Danh mục khai cuộc cờ vua (data/chess/openings.json, data/chess/book.json)
   (tools/chess/build-data.js).
 
 Cờ vây (src/go/, data/go/)
-  Lõi luật, máy chơi Monte-Carlo, bài học luật và bài bắt quân do người phát triển tự viết, tự soạn và
-  tự sinh (tools/go/gen_puzzles.js); không dùng mã, dữ liệu hay mạng thần kinh của bên thứ ba.
+  Lõi luật, máy chơi Monte-Carlo (cấp 1–2), bài học luật và bài bắt quân do người phát triển tự viết, tự soạn và
+  tự sinh (tools/go/gen_puzzles.js). Máy KataGo (cấp 3–6) dùng mạng và mã viết lại của KataGo, xem mục 1.
+  Tệp mẫu tests/unit/go/kata-ref.json là đầu ra của chương trình KataGo 1.18.1 trên 8 thế cờ (để kiểm tra).
   Định dạng ván SGF (FF[4]) là định dạng mở, chỉ đọc / ghi theo đặc tả công khai.
 
 ------------------------------------------------------------------------------

@@ -2,6 +2,21 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.3.0] – 2026-11-27
+
+### Thêm
+- **Cờ Vây: máy KataGo.** Mạng nơ-ron KataGo g170 (10 khối, phạm vi công cộng CC0) chạy ngay trong trình duyệt bằng TensorFlow.js (WebAssembly), trong Web Worker, không gửi thế cờ đi đâu. Chỉ tải (khoảng 7 MB, một lần, sau đó dùng được khi không có mạng) khi người chơi chọn cấp KataGo hoặc bấm "Tải KataGo ngay" trong Cài đặt.
+  - Đấu máy nay 6 cấp: 1–2 máy Monte-Carlo như trước (không cần tải), 3 KataGo đi theo cảm giác (có ngẫu nhiên), 4 KataGo đi nước đầu tiên nghĩ ra, 5 và 6 KataGo đọc khoảng 2 và 6 giây. Người mới mặc định cấp 2.
+  - Gợi ý nước, đếm điểm khi hai bên bỏ lượt (đoán quân chết) và "Ước lượng điểm" trong Ván đã lưu dùng KataGo nếu đã tải; ước lượng điểm có thêm tỉ lệ thắng và số điểm hơn kém. Không chạy được KataGo thì tự quay về máy Monte-Carlo.
+  - Mã viết lại: `src/go/core/kata.js` (đặc trưng đầu vào, thang, đất sống chắc kiểu Benson, mạng, tìm kiếm PUCT), `src/go/app/15-kata.js` (Worker); công cụ đổi mạng `tools/go/kata_convert.js` (gộp lớp chuẩn hoá, lưu float16). Thư viện và mạng trong `engine/` (mã băm trong `engine/SHA256SUMS`).
+- Kiểm tra mới: `tests/unit/go/kata.test.js` so kết quả mạng với chương trình KataGo 1.18.1 thật trên 8 thế cờ (`tests/unit/go/kata-ref.json`), kiểm tra thang, đất Benson, quân chết, tìm kiếm; e2e đấu KataGo cấp 4, gợi ý, đếm điểm qua mạng có người xem.
+
+### Thay đổi
+- Cờ vây chơi qua mạng: máy chủ phòng đếm điểm rồi gửi kết quả (tin mới `over`, kèm danh sách quân chết) cho khách và người xem, thay cho việc mỗi máy tự tính. Khách chờ tối đa 20 giây; không nhận được (chủ phòng dùng bản 2.2.0) thì tự đếm như trước.
+- Bảng đếm điểm hiện "Máy đang đoán quân chết…" trong lúc tính (không làm đứng trang); qua mạng không còn nút Xác nhận / Chơi tiếp.
+- `scripts/build.js`: `core` của một app có thể là danh sách tệp (cờ vây: `go.js` + `kata.js`).
+- Giấy phép: `NOTICE` thêm TensorFlow.js (Apache-2.0), mạng KataGo (CC0) và thông báo MIT của KataGo cho phần viết lại.
+
 ## [2.2.0] – 2026-11-26
 
 ### Thêm

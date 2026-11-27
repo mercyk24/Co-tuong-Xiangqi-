@@ -1,7 +1,7 @@
   // [CỜ VÂY] Chỉ app cờ vây dùng (riêng). Sơ đồ: docs/CAU-TRUC.md
   // 00-game.js — Cấu hình riêng của CỜ VÂY cho các phần dùng chung (src/shared/): tiền tố lưu trữ "xv_", mã máy trên điểm hẹn
   // "xgvn-", tệp sao lưu "co-vay-luyen-tap". Cờ vây không có engine Fairy-Stockfish (không có GAME.fsf, build bỏ 30-fsf.js
-  // và 80-analysis.js); máy chơi là Monte-Carlo tự viết trong lõi src/go/core/go.js.
+  // và 80-analysis.js); máy chơi: Monte-Carlo tự viết trong lõi src/go/core/go.js (cấp 1–2) và KataGo (src/go/core/kata.js, 15-kata.js; cấp 3–6).
   const RULES = GO;   // lõi luật cờ vây (src/go/core/go.js)
   const GAME = {
     id: 'go',

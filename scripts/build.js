@@ -117,7 +117,7 @@ const APPS = [
   },
   {
     id: 'go', dir: 'co-vay/', title: 'Cờ Vây Luyện Tập', short: 'Cờ Vây',
-    template: 'src/go/index.template.html', css: 'src/go/game.css', core: 'src/go/core/go.js', modules: [SHARED.modules, 'src/go/app'],
+    template: 'src/go/index.template.html', css: 'src/go/game.css', core: ['src/go/core/go.js', 'src/go/core/kata.js'], modules: [SHARED.modules, 'src/go/app'],
     skip: ['30-fsf.js', '80-analysis.js'],   // không có engine Fairy-Stockfish; xem lại ván ở src/go/app/80-review.js
     blocks: { '/*__PUZZLES__*/': ['go/puzzles.json', '[]'], '/*__LESSONS__*/': ['go/lessons.json'] }
   }
@@ -176,7 +176,7 @@ function main() {
     const code = bundleApp(app);
     fs.writeFileSync(r('.build', app.id + '.js'), code);
     if (app.id === 'xiangqi') fs.writeFileSync(r('.build', 'app.js'), code);   // tên cũ, giữ cho công cụ kiểm tra lỗi mã
-    const blocks = { '/*__CORE__*/': read(app.core) };
+    const blocks = { '/*__CORE__*/': [].concat(app.core).map(read).join('\n') };   // core: một tệp hoặc danh sách tệp lõi
     for (const [key, [file, fallback]] of Object.entries(app.blocks)) blocks[key] = jsonData(file, fallback);
     blocks['/*__APP__*/'] = code;
     let html = read(app.template);

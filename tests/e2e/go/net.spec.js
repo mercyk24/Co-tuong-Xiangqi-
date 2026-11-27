@@ -63,3 +63,36 @@ test('cờ vây qua mạng: người xem thấy đúng bàn 19×19; khách tải
   await C.waitForFunction(() => window.__xv.Play.notes.length === 3);
   expect(errors).toEqual([]);
 });
+
+test('cờ vây qua mạng: hai bên bỏ lượt thì máy chủ phòng đếm điểm, khách và người xem nhận cùng kết quả', async ({ browser }) => {
+  const errors = [];
+  const A = await device(browser, errors);
+  await A.evaluate(() => { window.__xv.Store.set('go_size', 9); window.__xv.Play.setMode('net'); return window.__xv.Net.create('0', '0'); });
+  await A.waitForFunction(() => window.__xv.Net.state === 'waiting', null, { timeout: 20_000 });
+  const code = await A.evaluate(() => window.__xv.Net.code);
+  const B = await device(browser, errors);
+  await B.evaluate(c => { window.__xv.Play.setMode('net'); return window.__xv.Net.join(c); }, code);
+  await B.waitForFunction(() => window.__xv.Net.state === 'playing', null, { timeout: 40_000 });
+  await A.waitForFunction(() => window.__xv.Net.state === 'playing', null, { timeout: 10_000 });
+  const seq = ['E5', 'C3', 'D7', 'G3'];
+  for (let i = 0; i < seq.length; i++) {
+    const P = i % 2 ? B : A, Q = i % 2 ? A : B;
+    await move(P, seq[i]); await Q.waitForFunction(k => window.__xv.Play.notes.length === k, i + 1);
+  }
+  const C = await device(browser, errors);
+  await C.evaluate(c => { window.__xv.Play.setMode('net'); return window.__xv.Net.join(c); }, code);
+  await expect(C.locator('#net-watch-ask')).toBeVisible();
+  await C.click('#net-watch-yes');
+  await C.waitForFunction(() => window.__xv.Net.state === 'watching' && window.__xv.Play.notes.length === 4, null, { timeout: 15_000 });
+  await A.click('#go-pass'); await B.waitForFunction(() => window.__xv.Play.notes.length === 5);
+  // Khách không có nút Xác nhận / Chơi tiếp; bỏ lượt lần hai thì chờ chủ phòng
+  await B.click('#go-pass');
+  await expect(A.locator('#play-result')).toBeVisible({ timeout: 30_000 });
+  await expect(B.locator('#play-result')).toBeVisible({ timeout: 30_000 });
+  const ta = await A.evaluate(() => window.__xv.Play.over), tb = await B.evaluate(() => window.__xv.Play.over);
+  expect(ta).toContain('chủ phòng ước lượng');
+  expect(tb).toBe(ta);
+  expect(await B.evaluate(() => window.__xv.Play.final && window.__xv.Play.final.dead.size)).toBe(await A.evaluate(() => window.__xv.Play.final.dead.size));
+  await C.waitForFunction(t => window.__xv.Play.over === t, ta, { timeout: 15_000 });
+  expect(errors).toEqual([]);
+});

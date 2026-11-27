@@ -597,6 +597,7 @@
       }
       if (m.t === 'ask') { Play.netAsk(m.k); return; }
       if (m.t === 'ans') { this.waitAsk = ''; Play.netAnswer(m.k, m.y); this.save(); return; }
+      if (m.t === 'over') { if (HOOKS.play.netResult) HOOKS.play.netResult(Play, m); this.save(); return; }   // kết quả do chủ phòng tính (cờ vây: đếm điểm)
       if (m.t === 'resign') { Play.netOver(SIDE[this.mySide ^ 1] + ' chịu thua – ' + SIDE[this.mySide] + ' thắng.'); this.save(); return; }
       if (m.t === 'flag') {
         // Chỉ tin báo hết giờ của chính đối thủ; báo "bạn hết giờ" chỉ được nhận khi đồng hồ của mình cũng đã gần hết.

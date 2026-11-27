@@ -63,6 +63,29 @@ test('cờ vây: đấu máy, bấm để đặt quân, máy đáp nước hợp
   expect(errors).toEqual([]);
 });
 
+test('cờ vây đấu KataGo (cấp 4): tải mạng nơ-ron, máy đi đúng nước đầu tiên KataGo nghĩ ra, gợi ý nước, Cài đặt báo sẵn sàng', async ({ page }) => {
+  const errors = await openGo(page);
+  await page.click('.mode[data-m="ai"]');
+  await page.click('#ai-side .chip[data-v="0"]');
+  await page.click('#ai-size .chip[data-v="9"]');
+  await page.click('#ai-var .chip[data-v="area"]');
+  await page.click('#ai-levels .lvl[data-v="4"]');
+  await page.click('#ai-start');
+  await page.waitForFunction(() => window.__xv.Kata.state === 'ready', null, { timeout: 60_000 });
+  await tap(page, 'E5');
+  await page.waitForFunction(() => window.__xv.Play.moves.length >= 2, null, { timeout: 30_000 });
+  const same = await page.evaluate(async () => {
+    const P = window.__xv.Play, r = await window.__xv.Kata.call({ type: 'search', fen: P.startFen, moves: P.moves.slice(0, 1), opts: { visits: 1 } });
+    return [r.move, P.moves[1]];
+  });
+  expect(same[0]).toBe(same[1]);
+  await page.evaluate(() => window.__xv.Play.showHint());
+  await page.waitForFunction(() => window.__xv.Play.hint, null, { timeout: 30_000 });
+  await expect(page.locator('#kata-state')).toContainText('Đã sẵn sàng', { useInnerText: false });
+  expect(await page.evaluate(() => window.__xv.Kata.info.backend)).toBe('wasm');
+  expect(errors).toEqual([]);
+});
+
 test('cờ vây hai người: ăn quân, kiếp, cấm tự sát, bỏ lượt hai lần thì đếm điểm, sửa quân chết rồi xác nhận', async ({ page }) => {
   const errors = await openGo(page);
   await pvp(page, 9);
@@ -79,6 +102,8 @@ test('cờ vây hai người: ăn quân, kiếp, cấm tự sát, bỏ lượt h
   // Bỏ lượt hai lần -> bảng đếm điểm; quân Trắng A9, A8 lọt trong vùng Đen được máy đánh dấu chết hoặc bấm để đánh dấu
   await page.click('#go-pass'); await page.click('#go-pass');
   await expect(page.locator('#go-score')).toBeVisible();
+  await page.waitForFunction(() => window.__xv.Play.scoring && !window.__xv.Play.scoring.busy);   // máy đoán quân chết trong Worker
+  await expect(page.locator('#go-score-ok')).toBeEnabled();
   const deadA9 = await page.evaluate(() => window.__xv.Play.scoring.dead.has(GO.Pos.fromFen(GO.emptyFen(9)).pointOf('A9')));
   if (!deadA9) await tap(page, 'A9');
   expect(await page.evaluate(() => window.__xv.Play.scoring.dead.has(0))).toBe(true);

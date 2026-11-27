@@ -74,19 +74,24 @@
       this.board.render(st);
     },
     onSquare() { /* bàn xem lại: chỉ xem, không đặt quân */ },
-    // Ước lượng điểm ở thế đang xem: máy chơi thử nhiều ván ngẫu nhiên tới hết để đoán đất và quân chết
+    // Ước lượng điểm ở thế đang xem: KataGo (tải nếu chưa có) cho tỉ lệ thắng, điểm hơn kém, đất và quân chết;
+    // không chạy được KataGo thì máy Monte-Carlo chơi thử nhiều ván ngẫu nhiên tới hết để đoán đất và quân chết.
     estimate() {
       if (!this.cur) return;
-      const g = this.gen, n = this.pos.n;
-      $('#ana-est-text').textContent = 'Máy đang ước lượng…';
-      Engine.call({ type: 'ownership', fen: this.pos.fen(), moves: [], n: n >= 19 ? 120 : 200 }).then(r => {
-        if (g !== this.gen || r.error) return;
-        const dead = new Set(r.dead), s = this.pos.score(dead), f = x => String(x).replace('.', ',');
+      const g = this.gen, n = this.pos.n, pos = this.pos, f = x => String(x).replace('.', ',');
+      const job = { fen: this.cur.startFen || RULES.START_FEN, moves: this.cur.moves.slice(0, this.k).map(u => this.toMove(u)) };
+      $('#ana-est-text').textContent = Kata.state === 'ready' ? 'KataGo đang ước lượng…' : 'Máy đang ước lượng…';
+      const show = (r, kata) => {
+        if (g !== this.gen || !r || r.error) return;
+        const dead = new Set(r.dead), s = pos.score(dead);
         this.est = { dead, own: s.own };
-        $('#ana-est-text').textContent = 'Ước lượng (luật Trung Quốc, ' + f(this.pos.komi) + ' điểm bù): Đen ' + f(s.black) + ', Trắng ' + f(s.white) + ' → ' +
-          (s.winner < 0 ? 'hòa' : GAME.sides[s.winner] + ' hơn ' + f(s.margin)) + '. Giữa ván, con số này chỉ để tham khảo.';
+        const head = kata ? 'KataGo: ' + (r.whiteLead > 0 ? 'Trắng' : 'Đen') + ' hơn khoảng ' + f(Math.abs(r.whiteLead).toFixed(1)) + ' điểm, khả năng thắng của Đen ' + Math.round((1 - r.whiteWin) * 100) + '%. ' : '';
+        $('#ana-est-text').textContent = head + 'Đếm theo đất và quân chết đang vẽ (luật Trung Quốc, ' + f(pos.komi) + ' điểm bù): Đen ' + f(s.black) + ', Trắng ' + f(s.white) + ' → ' +
+          (s.winner < 0 ? 'hòa' : GAME.sides[s.winner] + ' hơn ' + f(s.margin)) + '.' + (kata ? '' : ' Giữa ván, con số này chỉ để tham khảo.');
         this.draw();
-      });
+      };
+      const mc = () => Engine.call({ type: 'ownership', fen: pos.fen(), moves: [], n: n >= 19 ? 120 : 200 }).then(r => show(r, false));
+      Kata.ensure().then(ok => ok ? Kata.call(Object.assign({ type: 'ownership' }, job)).then(r => r && r.dead ? show(r, true) : mc()) : mc());
     },
     // Kết quả ván (chữ trong app) -> thẻ RE của SGF: B+4.5, W+R (chịu thua), B+T (hết giờ), 0 (hòa)
     reOf(res) {

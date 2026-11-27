@@ -38,7 +38,8 @@ src/
   go/                     [CỜ VÂY]
     core/go.js            lõi luật (GO): bàn 9/13/19 (và bàn nhỏ cho bài học), khí, ăn quân, tự sát, siêu kiếp,
                           đếm điểm kiểu Trung Quốc, đoán quân chết, SGF, bộ giải bắt quân, máy Monte-Carlo (UCT + RAVE)
-    app/                  module giao diện của cờ vây
+    core/kata.js          KataGo viết lại (KATA): đọc mạng .kgo, đặc trưng đầu vào, chạy mạng bằng TensorFlow.js, tìm kiếm PUCT
+    app/                  module giao diện của cờ vây (15-kata.js: Worker chạy KataGo, tải mạng khi cần)
     game.css              giao diện riêng (bàn gỗ, quân đá, đất khi đếm điểm…)
     index.template.html   khung trang /co-vay/
 data/
@@ -48,7 +49,7 @@ data/
 tools/
   xiangqi/                [CỜ TƯỚNG] sinh dữ liệu bằng Pikafish (docs/DU-LIEU-CO-TUONG.md)
   chess/                  [CỜ VUA] tải và dựng dữ liệu từ Lichess (docs/DU-LIEU-CO-VUA.md)
-  go/                     [CỜ VÂY] sinh bài bắt quân (docs/DU-LIEU-CO-VAY.md)
+  go/                     [CỜ VÂY] sinh bài bắt quân, đổi mạng KataGo sang .kgo (docs/DU-LIEU-CO-VAY.md)
   net/                    [DÙNG CHUNG] thử điểm hẹn, thử tải điểm hẹn
 tests/
   unit/{shared,xiangqi,chess,go}/   kiểm tra bằng node:test
@@ -184,7 +185,8 @@ phần chung (màn chơi, chơi qua mạng, giới thiệu, quyền riêng tư) 
 | Luật đi, luật hòa, ký hiệu nước đi của một loại cờ | `src/<loại cờ>/core/` (+ `02-notation.js`) | chỉ loại cờ đó |
 | Sức mạnh máy tự viết | `src/<loại cờ>/core/` (engine) và `10-engine.js` (bảng cấp) | chỉ loại cờ đó |
 | Máy cấp 6, phân tích ván (Fairy-Stockfish) | `src/shared/app/30-fsf.js`, `80-analysis.js` (chung), `GAME.fsf` (riêng) | cờ tướng, cờ vua |
-| Đếm điểm, đoán quân chết (cờ vây) | `src/go/core/go.js` (`score`, `guessDead`), `HOOKS.play` trong `src/go/app/03-hooks.js` | cờ vây |
+| Đếm điểm, đoán quân chết (cờ vây) | `src/go/core/go.js` (`score`, `guessDead`), `src/go/core/kata.js` (`deadFromOwnership`), `HOOKS.play` trong `src/go/app/03-hooks.js` (qua mạng: máy chủ phòng đếm rồi gửi tin `over`) | cờ vây |
+| Máy KataGo (cờ vây cấp 3–6, gợi ý, ước lượng điểm) | `src/go/core/kata.js`, `src/go/app/15-kata.js`, bảng cấp `src/go/app/10-engine.js`, tệp trong `engine/` | cờ vây |
 | Màu sắc, bố cục, nút, thẻ | `src/shared/base.css` | mọi app |
 | Màu bàn cờ, quân, ô bị chiếu | `src/<loại cờ>/game.css`, `20-board.js` | chỉ loại cờ đó |
 | Chơi qua mạng (kết nối, phòng, xem trận) | `src/shared/app/45-net.js`, `server/` | mọi app |

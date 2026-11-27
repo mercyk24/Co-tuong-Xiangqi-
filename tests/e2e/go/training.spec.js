@@ -86,7 +86,7 @@ test('ván đã lưu: ván hai người được lưu, xem lại, xuất SGF, nh
   expect(sgf).toContain(';B[cg]');
   expect(sgf).toMatch(/RE\[[BW]\+[\d.]+\]/);
   await page.click('#ana-est');
-  await expect(page.locator('#ana-est-text')).toContainText('Ước lượng', { timeout: 20_000 });
+  await expect(page.locator('#ana-est-text')).toContainText('Đếm theo đất', { timeout: 40_000 });
   // Nhập SGF (có tên người chơi chứa ký tự lạ: phải được làm sạch)
   await page.click('#ana-back');
   await page.fill('#ana-paste', '(;GM[1]FF[4]SZ[13]KM[6.5]PB[An <b>"x"</b>]PW[Bình]RE[W+R];B[dd];W[jj];B[];W[dj])');

@@ -2,9 +2,15 @@
   // bản tương ứng: src/xiangqi/app/03-hooks.js, src/chess/app/03-hooks.js (cùng tên hàm, khác nội dung). Sơ đồ: docs/CAU-TRUC.md
   // Khác cờ tướng / cờ vua: có nút Bỏ lượt; hai bên cùng bỏ lượt thì đếm điểm (luật Trung Quốc: quân + đất, Trắng được 7,5 điểm bù).
   // Đấu với máy và hai người một máy: máy đoán sẵn quân chết, người chơi bấm vào nhóm quân để sửa rồi Xác nhận (hoặc Chơi tiếp).
-  // Chơi qua mạng: hai máy tự đoán quân chết giống hệt nhau (cùng phép tính, cùng số ngẫu nhiên) nên kết quả hai bên như nhau.
-  const DEAD_N = { 9: 200, 13: 140, 19: 90 };   // số ván thử khi đoán quân chết, theo cỡ bàn
-  const deadOf = pos => GO.guessDead(pos, DEAD_N[pos.n] || 120);
+  // Chơi qua mạng: máy của chủ phòng đoán quân chết, tính kết quả rồi gửi cho khách (tin 'over'), nên hai bên luôn cùng một kết quả.
+  // Đoán quân chết: KataGo (15-kata.js) nếu đã tải, không thì máy Monte-Carlo trong Worker (10-engine.js).
+  const DEAD_N = { 9: 200, 13: 140, 19: 90 };   // số ván thử khi đoán quân chết bằng Monte-Carlo, theo cỡ bàn
+  function estimateDead(play, pos) {
+    const job = { fen: play.startFen, moves: play.moves.slice() };
+    const mc = () => Engine.call(Object.assign({ type: 'ownership', n: DEAD_N[pos.n] || 120 }, job)).then(r => new Set(r.dead || []));
+    if (Kata.state !== 'ready') return mc();
+    return Kata.call(Object.assign({ type: 'ownership' }, job)).then(r => r && r.dead ? new Set(r.dead) : mc());
+  }
   // Tên lý do không đặt được quân
   function illegalWhy(pos, p) {
     const i = pos.idx(p);
@@ -24,7 +30,7 @@
         // Lúc đếm điểm thì bên nào cũng bấm được vào bàn để đánh dấu quân chết (kể cả khi đang là "lượt" của máy)
         const tap = play.board.onSquare;
         play.board.onSquare = sq => {
-          if (play.scoring && play.screen === 'game' && !play.over) { this.select(play, sq); play.draw(); return; }
+          if (play.scoring && play.screen === 'game' && !play.over) { if (!play.scoring.net && !play.scoring.busy) { this.select(play, sq); play.draw(); } return; }
           tap(sq);
         };
         $('#go-score-ok').onclick = () => this.confirmScore(play);
@@ -60,7 +66,7 @@
       select(play, sq, side) {
         const ctx = play.ctx, pos = ctx.pos;
         if (play.scoring) {
-          if (sq < 0 || pos.at(sq) < 0) return;
+          if (play.scoring.net || play.scoring.busy || sq < 0 || pos.at(sq) < 0) return;
           const g = pos.group(pos.idx(sq)).stones.map(i => pos.pt(i)), D = play.scoring.dead;
           const allDead = g.every(p => D.has(p));
           g.forEach(p => allDead ? D.delete(p) : D.add(p));
@@ -81,19 +87,45 @@
         const pos = play.ctx.pos;
         if (pos.cg) { if (pos.ended) play.over = GAME.sides[pos.ended - 1] + ' thắng – ăn được quân trước.'; return; }
         if (pos.passes < 2) return;
-        const g = deadOf(pos);
-        if (play.net()) {   // qua mạng: tính luôn (hai máy ra cùng kết quả)
-          const s = pos.score(g.dead);
-          play.final = { pos, dead: g.dead, own: s.own };
-          play.over = pos.resultText(g.dead) + ' Quân chết do máy ước lượng.';
+        if (play.thinking) play.thinking = false;
+        const net = play.net();
+        play.scoring = { pos, dead: new Set(), busy: true, net, wait: net && Net.role !== 'host' };
+        if (net && Net.role !== 'host') {   // khách: chờ chủ phòng gửi kết quả; quá 20 giây (chủ phòng dùng bản cũ, mất tin) thì tự đếm
+          setTimeout(() => {
+            if (!play.scoring || play.scoring.pos !== pos || play.over) return;
+            estimateDead(play, pos).then(dead => {
+              if (!play.scoring || play.scoring.pos !== pos || play.over) return;
+              this.netResult(play, { text: pos.resultText(dead) + ' Quân chết do máy này ước lượng (chưa nhận được kết quả từ chủ phòng).', dead: Array.from(dead) });
+            });
+          }, 20000);
           return;
         }
-        play.scoring = { pos, dead: g.dead };
-        if (play.thinking) play.thinking = false;
+        estimateDead(play, pos).then(dead => {
+          const sc = play.scoring;
+          if (!sc || sc.pos !== pos || play.over) return;
+          if (!net) { sc.dead = dead; sc.busy = false; play.draw(); return; }
+          // Chủ phòng: chốt kết quả và gửi cho khách
+          const text = pos.resultText(dead) + ' Quân chết do máy của chủ phòng ước lượng.';
+          play.final = { pos, dead, own: pos.score(dead).own };
+          play.scoring = null;
+          play.over = text;
+          if (play.clock) play.clock.at = 0;
+          Net.sendMsg({ t: 'over', text, dead: Array.from(dead) });
+          play.finish(); Net.save(); Net.castSoon();
+        });
+      },
+      // Khách nhận kết quả đếm điểm từ chủ phòng (tin 'over' của src/shared/app/45-net.js)
+      netResult(play, m) {
+        const pos = play.ctx.pos, A = pos.n * pos.n;
+        if (play.over || typeof m.text !== 'string') return;
+        const dead = new Set((Array.isArray(m.dead) ? m.dead : []).filter(p => Number.isInteger(p) && p >= 0 && p < A && pos.at(p) >= 0));
+        play.final = { pos, dead, own: pos.score(dead).own };
+        play.scoring = null;
+        play.netOver(m.text.slice(0, 300));
       },
       // Người chơi xác nhận kết quả đếm điểm
       confirmScore(play) {
-        const sc = play.scoring; if (!sc || sc.pos !== play.ctx.pos) return;
+        const sc = play.scoring; if (!sc || sc.pos !== play.ctx.pos || sc.busy || sc.net) return;
         const pos = sc.pos, s = pos.score(sc.dead);
         play.final = { pos, dead: sc.dead, own: s.own };
         play.scoring = null;
@@ -123,8 +155,12 @@
         box.hidden = !(sc && game);
         if (sc && game) {
           const s = pos.score(sc.dead), f = x => String(x).replace('.', ',');
-          $('#go-score-text').textContent = 'Đen ' + f(s.black) + ' · Trắng ' + f(s.white) + ' (kể cả ' + f(pos.komi) + ' điểm bù) → ' +
-            (s.winner < 0 ? 'hòa' : GAME.sides[s.winner] + ' hơn ' + f(s.margin) + ' điểm');
+          $('#go-score-help').hidden = sc.net;
+          $('#go-score-ok').hidden = $('#go-score-resume').hidden = sc.net;
+          $('#go-score-ok').disabled = sc.busy;
+          $('#go-score-text').textContent = sc.wait ? 'Hai bên đã bỏ lượt. Đang chờ máy của chủ phòng đếm điểm…' :
+            sc.busy ? 'Máy đang đoán quân chết…' :
+              'Đen ' + f(s.black) + ' · Trắng ' + f(s.white) + ' (kể cả ' + f(pos.komi) + ' điểm bù) → ' + (s.winner < 0 ? 'hòa' : GAME.sides[s.winner] + ' hơn ' + f(s.margin) + ' điểm');
         }
       }
     },
@@ -135,9 +171,13 @@
         const el = $('#set-confirm');
         el.value = Store.get('go_confirm', 'auto');
         el.onchange = e => Store.set('go_confirm', e.target.value);
+        // Cài đặt › Máy KataGo: tình trạng và nút tải trước (để dùng ngoại tuyến)
+        const show = () => { $('#kata-state').textContent = Kata.label(); $('#kata-load').hidden = Kata.state === 'ready' || Kata.state === 'loading'; };
+        Kata.onChange = show; show();
+        $('#kata-load').onclick = () => { Kata.state = Kata.state === 'failed' ? 'none' : Kata.state; Kata.ensure(); show(); };
       },
       // Dòng tình trạng máy chơi trong thông tin báo lỗi (75-report.js): cờ vây không có engine Fairy-Stockfish
-      engineInfo(yn) { return ' (cờ vây không dùng) · máy Monte-Carlo chạy trong Worker ' + yn(!!Engine.worker); },
+      engineInfo(yn) { return ' (cờ vây không dùng) · máy Monte-Carlo trong Worker ' + yn(!!Engine.worker) + ' · KataGo: ' + Kata.state + (Kata.info ? ' ' + Kata.info.backend + '/' + Kata.info.threads : '') + (Kata.err ? ' (' + Kata.err + ')' : ''); },
       // Các tab riêng: Bài học (Les), Bắt quân (Puz), Ván đã lưu (Ana)
       init() { Les.init(); Puz.init(); Ana.init(); },
       onTab(name) {
@@ -149,6 +189,6 @@
         if (tab === 'les') return !!Les.cur && !Les.done;
         return false;
       },
-      expose() { return { Puz, Les, Ana, GO }; }
+      expose() { return { Puz, Les, Ana, GO, Kata }; }
     }
   };

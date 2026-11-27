@@ -1,5 +1,5 @@
   // [CỜ VÂY] Chỉ app cờ vây dùng. Cùng khuôn với src/chess/app/10-engine.js (Worker dựng từ #core-src + hàm xử lý) nhưng
-  // máy chơi là Monte-Carlo (GO.Searcher). Sơ đồ: docs/CAU-TRUC.md
+  // máy chơi là Monte-Carlo (GO.Searcher). Máy KataGo (cấp 3–6) ở 15-kata.js. Sơ đồ: docs/CAU-TRUC.md
   // 10-engine.js — CỜ VÂY: chạy máy chơi trong Web Worker (dự phòng chạy trên luồng chính), bảng cấp độ LEVELS.
   // Các việc: 'search' tìm nước (kể cả bỏ lượt), 'ownership' ước lượng đất và quân chết để đếm điểm.
   function goHandle(S, d) {
@@ -41,12 +41,15 @@ onmessage = function (e) { let res; try { res = goHandle(S, e.data); } catch (er
       }, 30));
     }
   };
-  // Cấp độ: số ván thử (playout) cho mỗi nước, có giới hạn thời gian (bàn 19×19 chậm hơn bàn 9×9 khoảng 4 lần).
-  // noise: xác suất chọn một nước khá thay vì nước tốt nhất, cho cấp thấp đánh "người" hơn.
+  // Cấp độ. Cấp 1–2: máy Monte-Carlo trong lõi go.js (số ván thử mỗi nước, có giới hạn thời gian; noise: xác suất chọn một nước
+  // khá thay vì nước tốt nhất). Cấp 3–6: máy KataGo (15-kata.js): visits 1 là chỉ dùng "cảm giác" của mạng (temp > 0 thì chọn
+  // ngẫu nhiên theo xác suất, đánh giống người hơn), còn lại là đọc thêm trong thời gian timeMs. KataGo chưa tải được thì cấp 3–6
+  // tạm dùng máy Monte-Carlo mạnh nhất (fallback).
   const LEVELS = {
     1: { name: '1 – Tập sự (mới học luật)', opts: { playouts: 150, timeMs: 800, noise: 0.6 } },
-    2: { name: '2 – Sơ cấp', opts: { playouts: 600, timeMs: 1500, noise: 0.3 } },
-    3: { name: '3 – Trung bình', opts: { playouts: 2000, timeMs: 2500, noise: 0.1 } },
-    4: { name: '4 – Khá', opts: { playouts: 5000, timeMs: 4500 } },
-    5: { name: '5 – Mạnh nhất của máy (nghĩ lâu)', opts: { playouts: 15000, timeMs: 8000 } }
+    2: { name: '2 – Sơ cấp', opts: { playouts: 1500, timeMs: 2000, noise: 0.15 } },
+    3: { name: '3 – Trung bình (KataGo, đi theo cảm giác)', kata: { visits: 1, temp: 1 }, opts: { playouts: 5000, timeMs: 3000 } },
+    4: { name: '4 – Khá (KataGo, nước đầu tiên nghĩ ra)', kata: { visits: 1 }, opts: { playouts: 5000, timeMs: 3000 } },
+    5: { name: '5 – Mạnh (KataGo, đọc khoảng 2 giây)', kata: { visits: 200, timeMs: 2000 }, opts: { playouts: 8000, timeMs: 4000 } },
+    6: { name: '6 – Cao thủ (KataGo, đọc khoảng 6 giây)', kata: { visits: 1000, timeMs: 6000 }, opts: { playouts: 15000, timeMs: 8000 } }
   };

@@ -13,7 +13,7 @@ Các app dùng chung khung (đấu máy, hai người một máy, chơi qua mạ
 ## Cờ Vây
 
 - **Bàn 9×9, 13×13, 19×19.** Luật Trung Quốc: đếm quân sống và đất, Trắng được 7,5 điểm bù; cấm tự sát, cấm lặp lại thế cờ toàn bàn (siêu kiếp). Bàn 13×13, 19×19 bấm hai lần để đặt quân (lần đầu hiện quân nháp), đổi được trong Cài đặt.
-- **Đấu máy 5 cấp**: máy Monte-Carlo (UCT + RAVE) tự viết, chạy trong Web Worker, biết bỏ lượt khi đã thắng. Có kiểu **cờ bắt quân** (ai ăn quân trước là thắng) để người mới tập đọc khí.
+- **Đấu máy 6 cấp**: cấp 1–2 máy Monte-Carlo (UCT + RAVE) tự viết; cấp 3–6 **KataGo** (mạng nơ-ron g170 10 khối chạy bằng TensorFlow.js trong trình duyệt, tải khoảng 7 MB khi chọn lần đầu). KataGo cũng dùng cho gợi ý, đếm điểm và ước lượng điểm. Có kiểu **cờ bắt quân** (ai ăn quân trước là thắng) để người mới tập đọc khí.
 - **Hai người một máy, chơi qua mạng, xem trận**: chủ phòng chọn cỡ bàn; hai bên bỏ lượt thì đếm điểm. Ván với máy và hai người: máy đánh dấu sẵn quân chết, người chơi bấm vào nhóm quân để sửa rồi xác nhận, hoặc chơi tiếp.
 - **Bài học luật** (10 bài có bàn cờ tương tác): khí, ăn quân, chạy thoát, chỗ cấm đặt quân, kiếp, hai mắt, thang, lưới, đếm điểm.
 - **Bắt quân**: 260 bài bắt nhóm quân trong 1–5 nước, sinh tự động và kiểm bằng bộ giải của app; máy luôn chạy theo cách cầm cự lâu nhất.
@@ -73,6 +73,7 @@ Các lệnh khác:
 |---|---|
 | `npm run build` | Dựng `dist/`: trang chủ `index.html`, `co-tuong/index.html`, `co-vua/index.html`, `co-vay/index.html` (mỗi trang một file nhúng sẵn dữ liệu), kèm service worker và engine dùng chung. |
 | `node tools/go/gen_puzzles.js` | Sinh lại bài bắt quân cờ vây `data/go/puzzles.json` (vài giây, không cần mạng). |
+| `node tools/go/kata_convert.js <mạng.bin.gz> <ra.kgo>` | Đổi mạng KataGo sang tệp `.kgo` của app (docs/DU-LIEU-CO-VAY.md, mục 3). |
 | `node tools/chess/fetch-data.mjs` | Tải nguyên liệu cờ vua (hình quân, danh mục khai cuộc, kho bài tập Lichess). Cần mạng, chạy một lần. |
 | `node tools/chess/build-data.js` | Dựng `data/chess/*.json` từ nguyên liệu trên, kiểm lại mọi nước bằng lõi luật (không cần mạng). |
 | `npm run lint` | Kiểm tra lỗi mã bằng ESLint. |
@@ -95,7 +96,7 @@ src/shared/      [DÙNG CHUNG] module chung (app/), giao diện chung (base.css)
 src/portal/      [DÙNG CHUNG] trang chủ chọn loại cờ
 src/xiangqi/     [CỜ TƯỚNG]   lõi luật (core/xq.js), module (app/), game.css, index.template.html
 src/chess/       [CỜ VUA]     lõi luật (core/chess.js), module (app/), game.css, pieces/, index.template.html
-src/go/          [CỜ VÂY]     lõi luật và máy Monte-Carlo (core/go.js), module (app/), game.css, index.template.html
+src/go/          [CỜ VÂY]     lõi luật và máy Monte-Carlo (core/go.js), KataGo viết lại (core/kata.js), module (app/), game.css, index.template.html
 data/xiangqi/    [CỜ TƯỚNG]   dữ liệu nhúng vào app (docs/DU-LIEU-CO-TUONG.md)
 data/chess/      [CỜ VUA]     dữ liệu nhúng vào app (docs/DU-LIEU-CO-VUA.md)
 data/go/         [CỜ VÂY]     bài bắt quân, bài học luật (docs/DU-LIEU-CO-VAY.md)
@@ -141,5 +142,5 @@ Mã nguồn phát hành theo **GNU GPL phiên bản 3 hoặc mới hơn** (xem `
 - [Pikafish](https://github.com/official-pikafish/Pikafish) – GPL-3.0. Chỉ dùng trên máy tính để sinh dữ liệu bài tập và khai cuộc; không phân phối kèm app.
 - Chuỗi nước của nhóm khai cuộc Bình phong mã lấy từ lý thuyết khai cuộc công khai; phần giải thích tiếng Việt do dự án viết.
 - Cờ vua: hình quân [cburnett](https://github.com/lichess-org/lila/tree/master/public/piece/cburnett) của Colin M.L. Burnett – GPLv2 hoặc mới hơn; [kho bài tập Lichess](https://database.lichess.org/#puzzles) và [danh mục khai cuộc lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) – CC0.
-- Cờ vây: lõi luật, máy chơi, bài học và bài bắt quân do dự án tự viết, tự sinh; không dùng thành phần bên thứ ba.
+- Cờ vây: lõi luật, máy Monte-Carlo, bài học và bài bắt quân do dự án tự viết, tự sinh. Máy KataGo dùng mạng g170 (CC0), TensorFlow.js (Apache-2.0) và phần mã viết lại từ KataGo (MIT); chi tiết trong `NOTICE` và `engine/README.md`.
 - Danh sách đầy đủ thành phần bên thứ ba: `NOTICE`.

@@ -1,5 +1,6 @@
   // [CỜ VÂY] Chỉ app cờ vây dùng. Cùng tên hàm với src/chess/app/41-play-ai.js (phần dùng chung 40-play.js gọi vào) nhưng
-  // nội dung riêng: máy Monte-Carlo, chọn cỡ bàn và kiểu chơi, máy biết bỏ lượt. Sơ đồ: docs/CAU-TRUC.md
+  // nội dung riêng: máy Monte-Carlo (cấp 1–2, cờ bắt quân) hoặc KataGo (cấp 3–6, gợi ý), chọn cỡ bàn và kiểu chơi, máy biết bỏ lượt.
+  // Sơ đồ: docs/CAU-TRUC.md
   // 41-play-ai.js — CỜ VÂY, đấu với máy: màn chuẩn bị, gọi máy, gợi ý. Các hàm được gắn thêm vào Play (định nghĩa trong 40-play.js).
   Object.assign(Play, {
     initAi() {
@@ -8,13 +9,16 @@
         const nm = LEVELS[k].name.split(' – ')[1], i = nm.indexOf(' (');
         return '<button class="lvl" data-v="' + k + '"><b>' + k + ' · ' + (i > 0 ? nm.slice(0, i) : nm) + '</b>' + (i > 0 ? '<small>' + nm.slice(i + 2, -1) + '</small>' : '') + '</button>';
       }).join('');
-      if (!LEVELS[this.level]) this.level = 2;
-      $$('#ai-levels .lvl').forEach(b => b.onclick = () => { this.level = +b.dataset.v; Store.set('play_level', this.level); $('#play-level').value = String(this.level); this.drawAiSetup(); });
+      if (!LEVELS[this.level] || Store.get('play_level', null) === null) this.level = 2;   // người mới: cấp 2, không phải tải gì
+      $$('#ai-levels .lvl').forEach(b => b.onclick = () => {
+        this.level = +b.dataset.v; Store.set('play_level', this.level); $('#play-level').value = String(this.level); this.drawAiSetup();
+        if (LEVELS[this.level].kata) Kata.ensure();   // tải sẵn trong lúc người chơi chọn tiếp
+      });
       $('#ai-start').onclick = () => this.startAi();
       const lv = $('#play-level');
       lv.innerHTML = Object.keys(LEVELS).map(k => '<option value="' + k + '">' + LEVELS[k].name + '</option>').join('');
       lv.value = String(this.level);
-      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); this.drawBars(); };
+      lv.onchange = () => { this.level = +lv.value; Store.set('play_level', this.level); if (LEVELS[this.level].kata) Kata.ensure(); this.drawBars(); };
     },
     showAiSetup() { this.screen = 'setup'; this.ask = null; this.closeMenu(); this.draw(); },
     startAi() {
@@ -28,11 +32,19 @@
       $$('#ai-side .chip').forEach(b => b.classList.toggle('on', b.dataset.v === this.aiSide));
       $$('#ai-levels .lvl').forEach(b => b.classList.toggle('on', +b.dataset.v === this.level));
     },
+    // Gọi máy: KataGo khi cấp đó dùng KataGo và đã tải được (cờ bắt quân luôn dùng máy Monte-Carlo vì KataGo không học kiểu chơi này)
+    askEngine(lv, hint) {
+      const job = { fen: this.startFen, moves: this.moves.slice() };
+      const mc = () => Engine.call(Object.assign({ type: 'search', opts: hint ? { playouts: 4000, timeMs: 3000 } : lv.opts }, job));
+      if (this.ctx.pos.cg || !(hint || lv.kata)) return mc();
+      return Kata.ensure().then(ok => ok ? Kata.call(Object.assign({ type: 'search', opts: hint ? { visits: 400, timeMs: 2500 } : lv.kata }, job)) : { error: 'no' })
+        .then(r => r && r.move ? r : mc());
+    },
     engineMove() {
       if (this.over || this.scoring) return;
       const g = this.gen; this.thinking = true; this.draw();
       const lv = LEVELS[this.level] || LEVELS[2];
-      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: lv.opts }).then(r => {
+      this.askEngine(lv, false).then(r => {
         if (g !== this.gen) return;
         this.thinking = false;
         if (!r.move) { this.draw(); return; }
@@ -44,7 +56,7 @@
     showHint() {
       if (this.thinking || this.over || this.scoring || this.pvp() || this.ctx.pos.side !== this.user) return;
       const g = this.gen; this.thinking = true; this.draw();
-      Engine.call({ type: 'search', fen: this.startFen, moves: this.moves.slice(), opts: { playouts: 4000, timeMs: 3000 } }).then(r => {
+      this.askEngine(null, true).then(r => {
         if (g !== this.gen) return;
         this.thinking = false;
         if (r.move === GO.PASS) toast('Gợi ý: bỏ lượt (không còn nước nào đáng đi).');

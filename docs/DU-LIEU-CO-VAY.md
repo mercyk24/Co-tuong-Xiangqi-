@@ -8,6 +8,7 @@ Hai tệp trong `data/go/`, nhúng vào trang `/co-vay/` khi dựng:
 | `lessons.json` | bài học luật (tab Bài học) | soạn tay; `tests/unit/go/content.test.js` kiểm từng bước |
 
 Không dùng nguồn bên ngoài nào: cả hai do dự án tự sinh, tự soạn, nên không có điều kiện giấy phép riêng.
+Riêng máy KataGo (cấp 3–6) dùng mạng nơ-ron của KataGo nằm trong `engine/`, xem mục 3.
 
 ## 1. Bài bắt quân
 
@@ -46,3 +47,26 @@ Bộ giải coi người phòng thủ thoát khi nhóm có từ 3 khí; người
 
 `done` là lời khen khi làm đúng. Toạ độ ghi kiểu quốc tế (cột bỏ chữ I, hàng đếm từ dưới lên). Bàn có thể từ 5×5 tới 19×19
 (bài học dùng 7×7 và 9×9). Sửa bài học xong chạy `node --test tests/unit/go/content.test.js`.
+
+## 3. Mạng KataGo (`engine/kata-g170e-b10c128.kgo`)
+
+Mạng `g170e-b10c128-s1141046784-d204142634.bin.gz` (10 khối, 128 kênh, đợt huấn luyện g170, phạm vi công cộng CC0) được đổi
+sang định dạng riêng của app:
+
+```bash
+node tools/go/kata_convert.js g170e-b10c128-s1141046784-d204142634.bin.gz engine/kata-g170e-b10c128.kgo
+```
+
+- SHA-256 tệp gốc: `1a8e05a4ea3fca20dab79410cbb566c760767fcdd2fa0b701cfe259a84cc8b04`; tệp ra ghi trong `engine/SHA256SUMS`.
+- Công cụ đọc tệp `.bin.gz` (phiên bản mô hình 8), gộp các lớp chuẩn hoá (batch norm, kèm hàm kích hoạt) vào lớp tích chập kế
+  tiếp và lưu trọng số dạng float16: 5,7 MB thay vì 11 MB. Thêm `--f32` để lưu float32 (để đối chiếu).
+- Vì sao chọn b10: b6 (2 MB) nhanh hơn khoảng gấp đôi nhưng yếu hơn rõ; b10 trên iPhone 8 vẫn đủ nhanh (1 lần đánh giá 19×19
+  khoảng 0,2 giây) để cấp 5–6 đọc vài chục tới vài trăm nước trong 2–6 giây. Các mạng lớn hơn (b15, b20, b40) quá chậm trên điện thoại.
+- Kiểm tra: `tests/unit/go/kata-ref.json` chứa tỉ lệ thắng, điểm hơn kém, nước tốt nhất và bản đồ chủ đất do chính chương trình
+  KataGo 1.18.1 (bản Eigen AVX2, lệnh `kata-raw-nn 0`, luật `chinese`) tính trên 8 thế cờ; `tests/unit/go/kata.test.js` chạy
+  mạng bằng TensorFlow.js và so từng số. Sai lệch thực tế dưới 0,001 (xác suất nước đi) và 0,01 (chủ đất).
+
+Các cấp: 1–2 là máy Monte-Carlo (không cần tải); 3 đi theo xác suất của mạng có ngẫu nhiên (nhiệt độ 1, chỉ trong các nước mạng
+thấy hợp lý); 4 đi nước mạng cho điểm cao nhất; 5 và 6 tìm kiếm PUCT khoảng 2 và 6 giây (tối đa 200 / 1000 lần đánh giá). Gợi ý
+đọc khoảng 2,5 giây. Đếm điểm và ước lượng điểm dùng bản đồ chủ đất của mạng (nhóm quân có chủ đất trung bình nghiêng về đối
+phương quá 0,4 là chết). Không tải được mạng (máy quá cũ, hết bộ nhớ) thì tất cả tự quay về máy Monte-Carlo.

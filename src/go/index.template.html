@@ -29,7 +29,7 @@
         <div class="row"><button class="btn primary" id="home-resume-go">Tiếp tục</button><button class="btn" id="home-resume-drop">Bỏ ván</button></div>
       </div>
       <div class="modes" id="play-mode">
-        <button class="mode" data-m="ai"><span class="gl gs b">機</span><span class="mt"><b>Đấu với máy</b><small>Bàn 9×9, 13×13, 19×19 · 5 cấp độ · có kiểu cờ bắt quân</small></span><span class="go">›</span></button>
+        <button class="mode" data-m="ai"><span class="gl gs b">機</span><span class="mt"><b>Đấu với máy</b><small>Bàn 9×9, 13×13, 19×19 · 6 cấp độ (có KataGo) · có kiểu cờ bắt quân</small></span><span class="go">›</span></button>
         <button class="mode" data-m="pvp"><span class="gl gs w">對</span><span class="mt"><b>Hai người một máy</b><small>Ngồi đối diện, chung một màn hình</small></span><span class="go">›</span></button>
         <button class="mode" data-m="net"><span class="gl gs b">網</span><span class="mt"><b>Chơi qua mạng</b><small>Tạo phòng, gửi mã cho bạn bè</small></span><span class="go">›</span></button>
       </div>
@@ -50,7 +50,7 @@
       <div class="chips" id="ai-var"><button class="chip" data-v="area">Ván đầy đủ <small>đếm điểm</small></button><button class="chip" data-v="cg">Cờ bắt quân <small>ăn trước là thắng</small></button></div>
       <div class="lbl">Cấp độ của máy</div>
       <div class="lvls" id="ai-levels"></div>
-      <p class="muted">Máy chơi bằng cách thử hàng nghìn ván ngẫu nhiên mỗi nước (Monte-Carlo), đủ cho người mới học và chơi phong trào. Bàn 19×19 máy nghĩ lâu hơn.</p>
+      <p class="muted">Cấp 1–2: máy thử hàng nghìn ván ngẫu nhiên mỗi nước (Monte-Carlo), hợp với người mới. Cấp 3–6: máy KataGo dùng mạng nơ-ron, từ mức khá tới cao thủ nghiệp dư; lần đầu chọn sẽ tải khoảng 7 MB rồi dùng được cả khi không có mạng.</p>
       <button class="btn primary wide" id="ai-start">Bắt đầu</button>
     </div>
     <div class="card setup" id="pvp-setup" hidden>
@@ -111,7 +111,7 @@
     <div class="board-wrap" id="play-board"></div>
     <div class="gobar"><button class="btn" id="go-pass" hidden>Bỏ lượt</button><span class="muted" id="go-info" hidden></span></div>
     <div class="card goscore" id="go-score" hidden>
-      <p><b>Đếm điểm</b> · Máy đã đánh dấu quân chết (vẽ mờ). Bấm vào nhóm quân để đổi chết / sống, rồi bấm Xác nhận.</p>
+      <p id="go-score-help"><b>Đếm điểm</b> · Máy đã đánh dấu quân chết (vẽ mờ). Bấm vào nhóm quân để đổi chết / sống, rồi bấm Xác nhận.</p>
       <p id="go-score-text"></p>
       <div class="row"><button class="btn primary" id="go-score-ok">Xác nhận kết quả</button><button class="btn" id="go-score-resume">Chơi tiếp</button></div>
     </div>
@@ -223,6 +223,10 @@
 
   <section class="view" id="v-about" hidden>
     <h1>Giới thiệu</h1>
+    <div class="card">
+      <p><b>Máy KataGo</b> (cấp 3–6, gợi ý, đếm điểm, ước lượng điểm): <span id="kata-state"></span></p>
+      <button class="btn" id="kata-load" hidden>Tải KataGo ngay (khoảng 7 MB)</button>
+    </div>
     <div class="card"><label>Đặt quân <select id="set-confirm"><option value="auto">Bàn 13×13, 19×19: bấm hai lần (lần đầu hiện quân nháp)</option><option value="on">Luôn bấm hai lần</option><option value="off">Bấm một lần là đặt</option></select></label></div>
     <div class="card">
       <p><b>Cờ Vây Luyện Tập</b> là web app miễn phí, chạy ngay trên trình duyệt, không cần tài khoản. Tiến độ được lưu trên máy của bạn; app không gửi dữ liệu đi đâu, trừ thông tin kết nối khi bạn chơi qua mạng (xem mục Quyền riêng tư).</p>
@@ -291,7 +295,7 @@
     </ul>
     <h2>Ghi chú</h2>
     <ul class="tidy">
-      <li>Máy chơi là engine Monte-Carlo (UCT, RAVE) do dự án tự viết, chạy hoàn toàn trên máy của bạn. Mức mạnh nhất vẫn ở trình người mới đến chơi phong trào, phù hợp để học và tập.</li>
+      <li>Cấp 1–2: máy Monte-Carlo (UCT, RAVE) do dự án tự viết. Cấp 3–6, gợi ý nước, đếm điểm và ước lượng điểm: KataGo (lightvector, giấy phép MIT) với mạng nơ-ron g170 10 khối (giấy phép CC0), chạy bằng TensorFlow.js (giấy phép Apache-2.0). Tất cả chạy trên máy của bạn, không gửi thế cờ đi đâu.</li>
       <li>Bài học và bài bắt quân do dự án soạn và tự sinh, mỗi bài được bộ giải của app kiểm tra lại.</li>
       <li>Xuất / nhập ván theo định dạng SGF (FF[4]), mở được bằng các phần mềm và trang cờ vây phổ biến.</li>
       <li>Chơi qua mạng: hai máy nối thẳng với nhau (WebRTC); nếu mạng chặn kết nối trực tiếp, nước đi được chuyển qua điểm hẹn của app. Phòng cờ vây tách hẳn phòng cờ tướng, cờ vua. Dữ liệu được gửi đi và nơi nhận: xem mục Quyền riêng tư ở trên.</li>
