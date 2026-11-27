@@ -2,6 +2,13 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/); số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [2.4.1] – 2026-11-27
+
+### Thay đổi
+- Trang chủ gọn lại: chỉ còn tên app và ba ô chọn Cờ Tướng, Cờ Vua, Cờ Vây (ô to hơn, bỏ đoạn giới thiệu và dòng mô tả).
+- README viết lại cho trang GitHub: giới thiệu chung, mỗi loại cờ một hàng ảnh minh hoạ, cách cài lên điện thoại, phần phát triển gọn hơn.
+- `scripts/screenshots.js` chụp cả trang chủ, cờ vua và cờ vây (ván cờ vây mẫu do KataGo tự đánh, có hai nước cố ý đi dở để minh hoạ phân tích); sửa phần cờ tướng chạy lại được với màn hình chọn chế độ mới.
+
 ## [2.4.0] – 2026-11-27
 
 ### Thêm
